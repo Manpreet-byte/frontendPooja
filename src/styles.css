@@ -363,18 +363,18 @@ iframe {
 
 .grid {
   display: grid;
-  gap: 18px;
+  gap: var(--space-5);
 }
 
 .stack {
   display: grid;
-  gap: 22px;
+  gap: var(--space-6);
 }
 
 /* Typography System: Premium Bakery Brand */
 /* Typography System: Consistent & Accessible Hierarchy */
 h1, h2, h3, h4, h5, h6 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-weight: 700;
   margin: 0;
   letter-spacing: -0.02em;
@@ -391,7 +391,7 @@ h1, h2, h3, h4, h5, h6 {
 .h2,
 .hero-title,
 .footer-brand-name {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   letter-spacing: -0.025em;
   margin: 0;
   font-weight: 700;
@@ -400,7 +400,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .h3 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   letter-spacing: -0.02em;
   margin: 0;
   font-size: var(--type-lg);
@@ -409,7 +409,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .h4 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   margin: 0 0 10px;
   font-size: 1.4rem;
   letter-spacing: -0.015em;
@@ -479,7 +479,7 @@ h1, h2, h3, h4, h5, h6 {
   border: none;
   border-radius: var(--radius-sm);
   padding: 13px 28px;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   letter-spacing: 0.02em;
   font-size: 0.95rem;
@@ -756,6 +756,126 @@ h1, h2, h3, h4, h5, h6 {
   gap: 10px;
 }
 
+.notifications {
+  position: relative;
+}
+
+.notifications-panel {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  width: min(420px, calc(100vw - 24px));
+  z-index: 60;
+  display: grid;
+  gap: var(--space-4);
+  padding: var(--space-5);
+}
+
+@media (max-width: 560px) {
+  .notifications-panel {
+    position: fixed;
+    left: 12px;
+    right: 12px;
+    top: 84px;
+    width: auto;
+    max-height: calc(100vh - 110px);
+    overflow: auto;
+  }
+}
+
+.notifications-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.notifications-title .h4 {
+  margin: 0;
+}
+
+.notifications-subtitle {
+  margin-top: 4px;
+}
+
+.notifications-actions {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.notifications-close {
+  width: 38px;
+  height: 38px;
+}
+
+.notifications-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: var(--space-3);
+  max-height: 420px;
+  overflow: auto;
+}
+
+.notifications-item {
+  width: 100%;
+  text-align: left;
+  border: 1px solid rgba(99, 77, 55, 0.12);
+  background: rgba(255, 255, 255, 0.6);
+  border-radius: 16px;
+  padding: 12px 12px;
+  cursor: pointer;
+  transition: transform 160ms ease, border-color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+}
+
+.notifications-item:hover {
+  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.72);
+  border-color: rgba(140, 59, 43, 0.18);
+  box-shadow: 0 12px 26px rgba(64, 49, 32, 0.06);
+}
+
+.notifications-item:active {
+  transform: translateY(0);
+}
+
+.notifications-item:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px var(--ring);
+}
+
+.notifications-item-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-3);
+}
+
+.notifications-item-title {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.notifications-item-title[data-unread='true'] {
+  font-weight: 800;
+}
+
+.notifications-item-body {
+  margin-top: 6px;
+  white-space: normal;
+  line-height: 1.55;
+}
+
+.notifications-new {
+  align-self: flex-start;
+}
+
+.notifications-foot {
+  padding-top: var(--space-2);
+}
+
 .nav-link-action {
   background: transparent;
   border: 1px solid transparent;
@@ -804,7 +924,7 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   gap: 10px;
   padding: 10px 18px;
-  border-radius: 0;
+  border-radius: 999px;
   background: linear-gradient(135deg,var(--accent-2),var(--accent));
   color: #fff;
   box-shadow: 0 10px 30px rgba(242,154,42,0.18);
@@ -1129,7 +1249,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-like-title {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   letter-spacing: -0.05em;
   line-height: 1.05;
@@ -1330,7 +1450,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-hero-title {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   text-transform: uppercase;
   font-weight: 700;
   letter-spacing: -0.02em;
@@ -1551,7 +1671,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-mosaic-title {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-size: clamp(2.5rem, 2.9vw + 1.3rem, 5rem);
   line-height: 0.92;
   letter-spacing: -0.06em;
@@ -1844,7 +1964,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .hero-premium-title {
   margin: 0 0 20px;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: var(--type-hero);
   line-height: var(--lh-tight);
   color: var(--text);
@@ -2380,7 +2500,7 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid rgba(99, 77, 55, 0.10);
   background: rgba(255, 255, 255, 0.55);
   box-shadow: 0 12px 30px rgba(0, 0, 0, 0.05);
-  border-radius: 0;
+  border-radius: 16px;
 }
 
 .course-value-icon {
@@ -2407,7 +2527,7 @@ h1, h2, h3, h4, h5, h6 {
 .course-value-cta {
   justify-self: start;
   margin-top: 6px;
-  border-radius: 0;
+  border-radius: 999px;
 }
 
 /* Recipe highlights */
@@ -2526,7 +2646,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-recipes-stat strong {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 2rem;
   line-height: 1;
   color: var(--brown-800);
@@ -2603,7 +2723,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .recipe-feature-overlay h3 {
   margin: 0;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: clamp(2.2rem, 4vw, 3.4rem);
   line-height: 0.96;
   letter-spacing: -0.03em;
@@ -2680,7 +2800,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .recipe-support-body h3 {
   margin: 0;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: 1.28rem;
   line-height: 1.05;
   color: var(--brown-800);
@@ -2761,7 +2881,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .bakery-showcase-head h2 {
   margin: 0;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: clamp(2rem, 3vw, 2.8rem);
   color: #4a2a1d;
 }
@@ -2854,7 +2974,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .bakery-showcase-copy h3 {
   margin: 0;
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   font-size: clamp(2rem, 4vw, 3.2rem);
   line-height: 0.94;
   color: #fff8ed;
@@ -3017,7 +3137,7 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 999px;
   display: grid;
   place-items: center;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-weight: 700;
   font-size: 1.12rem;
   color: #FFFFFF;
@@ -3028,7 +3148,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .testimonial-name {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-size: 1.28rem;
   color: var(--text);
   font-weight: 600;
@@ -3280,12 +3400,12 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Section heading */
 .section-heading {
-  margin: 0 auto 26px;
+  margin: 0 auto var(--space-7);
   max-width: 760px;
 }
 
 .section-heading .h2 {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   letter-spacing: -0.025em;
 }
 
@@ -3317,7 +3437,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.86rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 /* Cards */
@@ -3908,7 +4028,7 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.35);
   box-shadow: var(--elev-0);
   padding: 0;
-  border-radius: 0;
+  border-radius: 14px;
   width: 92px;
   height: 64px;
   flex: 0 0 auto;
@@ -4321,7 +4441,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose-block h2,
 .prose-block h3 {
   color: var(--text);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-display);
   letter-spacing: -0.02em;
 }
 
@@ -4342,7 +4462,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose-block .elementor h3,
 .prose-block .elementor h4 {
   color: var(--text);
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-display);
   margin-top: 0.6em;
   margin-bottom: 0.4em;
 }
@@ -4427,7 +4547,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose-block .frm-fluent-form .ff-el-form-control {
   width: 100%;
   padding: 12px 12px;
-  border-radius: 0;
+  border-radius: 14px;
   border: 1px solid rgba(99, 77, 55, 0.18);
   background: rgba(255, 255, 255, 0.92);
   color: var(--text);
@@ -4457,7 +4577,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose-block .frm-fluent-form .ff-btn {
   appearance: none;
   border: 1px solid rgba(0, 0, 0, 0.06);
-  border-radius: 0;
+  border-radius: 999px;
   background: linear-gradient(135deg, var(--accent-2), var(--accent));
   color: #fff;
   padding: 12px 18px;
@@ -4481,7 +4601,7 @@ h1, h2, h3, h4, h5, h6 {
 .prose-block .frm-fluent-form .ff-errors-in-stack {
   margin-top: 12px;
   padding: 12px 14px;
-  border-radius: 0;
+  border-radius: 14px;
   border: 1px solid rgba(140, 59, 43, 0.28);
   background: rgba(140, 59, 43, 0.08);
   color: var(--text);
@@ -5148,7 +5268,7 @@ h1, h2, h3, h4, h5, h6 {
 .panel {
   border: 1px solid rgba(99, 77, 55, 0.1);
   border-radius: var(--radius-lg);
-  padding: 18px;
+  padding: var(--space-5);
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.95), rgba(248, 242, 234, 0.92));
   box-shadow: 0 12px 28px rgba(64, 49, 32, 0.05);
 }
@@ -5647,7 +5767,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .about-float-number {
   margin: 0;
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   font-size: 2rem;
   letter-spacing: -0.03em;
 }
@@ -5915,7 +6035,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-heading {
-  font-family: 'Poppins', sans-serif;
+  font-family: var(--font-body);
   letter-spacing: -0.02em;
   margin: 0 0 12px;
   font-size: 1.1rem;
@@ -6507,7 +6627,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Section heading styling inside prose blocks */
 .prose-block .elementor-heading-title {
-  font-family: 'Playfair Display', serif;
+  font-family: var(--font-display);
   color: var(--text);
   letter-spacing: -0.02em;
   font-weight: 700;

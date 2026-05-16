@@ -11,12 +11,15 @@ export default function NotificationsBell({ token, enabled = true }) {
   const [notifications, setNotifications] = useState([]);
   const [unread, setUnread] = useState(0);
   const wrapRef = useRef(null);
+  const buttonRef = useRef(null);
+  const panelRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
   const hasUnread = unread > 0;
 
   const compactList = useMemo(() => (Array.isArray(notifications) ? notifications.slice(0, 8) : []), [notifications]);
+  const panelId = useMemo(() => `lf-notifications-${Math.random().toString(36).slice(2, 10)}`, []);
 
   const load = async () => {
     if (!token) return;
@@ -57,12 +60,15 @@ export default function NotificationsBell({ token, enabled = true }) {
   useEffect(() => {
     if (!open) return;
     load();
+    panelRef.current?.focus?.();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open]);
 
   useEffect(() => {
     function onKeyDown(e) {
-      if (e.key === 'Escape') setOpen(false);
+      if (e.key !== 'Escape') return;
+      setOpen(false);
+      buttonRef.current?.focus?.();
     }
     function onPointerDown(e) {
       if (!wrapRef.current) return;
@@ -76,6 +82,16 @@ export default function NotificationsBell({ token, enabled = true }) {
       window.removeEventListener('pointerdown', onPointerDown);
     };
   }, []);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    // Avoid the dropdown getting cut off behind body scrollbars on mobile.
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [open]);
 
   const markAllRead = async () => {
     if (!token) return;
@@ -104,12 +120,14 @@ export default function NotificationsBell({ token, enabled = true }) {
   };
 
   return (
-    <div ref={wrapRef} style={{ position: 'relative' }}>
+    <div ref={wrapRef} className="notifications">
       <button
-        className="icon-button"
+        ref={buttonRef}
+        className="icon-button notifications-trigger"
         type="button"
         aria-label={hasUnread ? `Notifications (${unread} unread)` : 'Notifications'}
         aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen((v) => !v)}
       >
         <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none">
@@ -129,38 +147,60 @@ export default function NotificationsBell({ token, enabled = true }) {
       </button>
 
       {open ? (
-        <div className="panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 10px)', width: 340, zIndex: 50 }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
-            <div className="h4" style={{ margin: 0 }}>Notifications</div>
-            <button className="button button-ghost" type="button" onClick={markAllRead} disabled={!notifications.length || loading}>
-              Mark all read
-            </button>
+        <div
+          id={panelId}
+          ref={panelRef}
+          className="panel notifications-panel"
+          role="dialog"
+          aria-label="Notifications"
+          tabIndex={-1}
+        >
+          <div className="notifications-head">
+            <div className="notifications-title">
+              <div className="h4">Notifications</div>
+              {hasUnread ? <div className="muted notifications-subtitle">{unread} unread</div> : null}
+            </div>
+            <div className="notifications-actions">
+              <button className="button button-ghost" type="button" onClick={markAllRead} disabled={!notifications.length || loading}>
+                Mark all read
+              </button>
+              <button
+                className="icon-button notifications-close"
+                type="button"
+                aria-label="Close notifications"
+                onClick={() => {
+                  setOpen(false);
+                  buttonRef.current?.focus?.();
+                }}
+              >
+                ×
+              </button>
+            </div>
           </div>
 
-          {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
-          {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading…</p> : null}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {loading ? <p className="muted">Loading…</p> : null}
 
-          {!loading && !compactList.length ? <p className="muted" style={{ marginTop: 10 }}>No notifications yet.</p> : null}
+          {!loading && !compactList.length ? <p className="muted">No notifications yet.</p> : null}
 
           {compactList.length ? (
-            <ul className="list" style={{ marginTop: 10 }}>
+            <ul className="notifications-list" aria-label="Recent notifications">
               {compactList.map((n) => {
                 const isUnread = !n?.read_at;
                 return (
                   <li key={n.id}>
-                    <button
-                      type="button"
-                      className="button button-ghost"
-                      style={{ textAlign: 'left', width: '100%' }}
-                      onClick={() => openNotification(n)}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
-                        <div style={{ minWidth: 0 }}>
-                          <div style={{ fontWeight: isUnread ? 700 : 600 }}>{n.title ?? 'Update'}</div>
-                          <div className="muted" style={{ marginTop: 4, whiteSpace: 'normal' }}>{n.message ?? ''}</div>
+                    <button type="button" className="notifications-item" onClick={() => openNotification(n)}>
+                      <div className="notifications-item-head">
+                        <div className="notifications-item-title" data-unread={isUnread ? 'true' : 'false'}>
+                          {n.title ?? 'Update'}
                         </div>
-                        {isUnread ? <span className="pill" style={{ alignSelf: 'flex-start' }}>New</span> : null}
+                        {isUnread ? <span className="pill notifications-new">New</span> : null}
                       </div>
+                      {n.message ? <div className="muted notifications-item-body">{n.message}</div> : null}
                     </button>
                   </li>
                 );
@@ -168,7 +208,7 @@ export default function NotificationsBell({ token, enabled = true }) {
             </ul>
           ) : null}
 
-          <div style={{ marginTop: 10 }}>
+          <div className="notifications-foot">
             <Link className="link" to="/dashboard" onClick={() => setOpen(false)}>
               Go to dashboard
             </Link>
