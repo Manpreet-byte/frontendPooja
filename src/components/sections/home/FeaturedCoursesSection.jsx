@@ -2,10 +2,11 @@ import { useEffect, useState } from 'react';
 import CourseCard from '../../CourseCard';
 import SectionHeading from '../../SectionHeading';
 import { api } from '../../../api/client';
-import { sortByDateDesc } from '../../../utils/publicContent';
+import { courses as seededCourses } from '../../../data/seededContent';
+import { mergeBySlug, sortByDateDesc } from '../../../utils/publicContent';
 
 export default function FeaturedCoursesSection() {
-  const [featured, setFeatured] = useState([]);
+  const [featured, setFeatured] = useState(() => sortByDateDesc(seededCourses).slice(0, 6));
 
   useEffect(() => {
     let active = true;
@@ -13,10 +14,10 @@ export default function FeaturedCoursesSection() {
       .list()
       .then((data) => {
         if (!active) return;
-        setFeatured(sortByDateDesc(data.courses ?? []).slice(0, 6));
+        setFeatured(sortByDateDesc(mergeBySlug(data.courses ?? [], seededCourses)).slice(0, 6));
       })
       .catch(() => {
-        if (active) setFeatured([]);
+        if (active) setFeatured(sortByDateDesc(seededCourses).slice(0, 6));
       });
 
     return () => {
