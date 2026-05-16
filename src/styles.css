@@ -485,11 +485,12 @@ h1, h2, h3, h4, h5, h6 {
   justify-content: center;
   border: none;
   border-radius: var(--radius-sm);
-  padding: 13px 28px;
+  padding: clamp(10px, 2vw, 13px) clamp(20px, 4vw, 28px);
+  min-height: 44px;
   font-family: var(--font-body);
   font-weight: 700;
   letter-spacing: 0.02em;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   line-height: 1.5;
   transition: all var(--transition-base);
   background: var(--button);
@@ -499,17 +500,20 @@ h1, h2, h3, h4, h5, h6 {
   overflow: hidden;
   box-shadow: 0 4px 14px rgba(140, 74, 61, 0.15);
   text-rendering: optimizeLegibility;
-}
-
-.button:hover:not(:disabled) {
-  background: var(--button-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(140, 74, 61, 0.22);
+  touch-action: manipulation;
 }
 
 .button:active:not(:disabled) {
-  transform: translateY(0);
+  transform: scale(0.98);
   box-shadow: 0 2px 8px rgba(140, 74, 61, 0.15);
+}
+
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    background: var(--button-hover);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(140, 74, 61, 0.22);
+  }
 }
 
 .button:disabled {
@@ -1862,7 +1866,7 @@ h1, h2, h3, h4, h5, h6 {
   right: 50%;
   margin-left: -50vw;
   margin-right: -50vw;
-  min-height: clamp(560px, 75vh, 820px);
+  min-height: clamp(420px, 65vh, 820px);
   background: linear-gradient(135deg, var(--cream) 0%, var(--bg-light) 50%, var(--bg-deep) 100%);
   display: grid;
   align-items: center;
@@ -1910,11 +1914,12 @@ h1, h2, h3, h4, h5, h6 {
 .hero-premium-inner {
   position: relative;
   z-index: 2;
-  padding: 120px 0 100px;
+  padding: clamp(60px, 12vw, 120px) 0;
 }
 
 .hero-premium-content {
   max-width: 650px;
+  padding: 0 clamp(16px, 4vw, 40px);
   animation: fadeInUp 800ms var(--ease-out) both;
 }
 
@@ -1971,39 +1976,50 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-premium-title {
-  margin: 0 0 20px;
+  margin: 0 0 16px;
   font-family: var(--font-display);
-  font-size: var(--type-hero);
+  font-size: clamp(2rem, 6vw, var(--type-hero));
   line-height: var(--lh-tight);
   color: var(--text);
   font-weight: 700;
   letter-spacing: -0.02em;
   animation: fadeInUp 800ms var(--ease-out) both;
   animation-delay: 150ms;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .hero-premium-subtitle {
-  margin: 0 0 32px;
+  margin: 0 0 clamp(20px, 4vw, 32px);
   color: var(--text-secondary);
-  font-size: 1.15rem;
+  font-size: clamp(0.95rem, 3vw, 1.15rem);
   line-height: var(--lh-relaxed);
   font-weight: 400;
   max-width: 540px;
   animation: fadeInUp 800ms var(--ease-out) both;
   animation-delay: 200ms;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .hero-premium-actions {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: clamp(12px, 3vw, 20px);
   flex-wrap: wrap;
   animation: fadeInUp 800ms var(--ease-out) both;
   animation-delay: 250ms;
+  row-gap: 12px;
 }
 
 .hero-premium-actions .button {
-  min-width: 160px;
+  min-width: clamp(140px, 40vw, 160px);
+  padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .hero-premium-content .button,
@@ -2038,33 +2054,54 @@ h1, h2, h3, h4, h5, h6 {
   pointer-events: none;
 }
 
-@media (max-width: 768px) {
+@media (max-width: 520px) {
   .hero-premium {
-    min-height: clamp(480px, 65vh, 680px);
+    min-height: clamp(360px, 60vh, 540px);
   }
 
   .hero-premium-inner {
-    padding: 80px 0 60px;
+    padding: clamp(40px, 10vw, 80px) 0;
+  }
+
+  .hero-premium-overlay {
+    background: linear-gradient(
+      90deg,
+      rgba(255, 250, 244, 0.95) 0%,
+      rgba(255, 250, 244, 0.88) 40%,
+      rgba(255, 250, 244, 0.6) 70%,
+      rgba(255, 250, 244, 0.25) 100%
+    );
+  }
+
+  .hero-premium-badge {
+    font-size: 0.75rem;
+    margin-bottom: 12px;
   }
 
   .hero-premium-title {
-    font-size: clamp(2.2rem, 7vw, 3.2rem);
+    margin-bottom: 12px;
   }
 
   .hero-premium-subtitle {
-    font-size: 1rem;
-    margin-bottom: 24px;
+    margin-bottom: 16px;
+    max-width: 100%;
   }
 
   .hero-premium-actions {
-    gap: 12px;
-    justify-content: center;
+    flex-direction: column;
+    width: 100%;
+    gap: 10px;
   }
 
   .hero-premium-actions .button {
-    min-width: 140px;
-    padding: 12px 20px;
-    font-size: 0.9rem;
+    width: 100%;
+    min-width: unset;
+  }
+}
+
+@media (max-width: 768px) {
+  .hero-premium {
+    min-height: clamp(420px, 65vh, 680px);
   }
 }
 
@@ -2343,13 +2380,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-together-feature {
   display: grid;
-  grid-template-columns: 42px 1fr;
-  gap: 12px;
-  padding: 14px 14px 12px;
-  border-radius: 18px;
+  grid-template-columns: clamp(36px, 8vw, 42px) 1fr;
+  gap: clamp(10px, 2vw, 12px);
+  padding: clamp(12px, 2vw, 14px);
+  border-radius: clamp(14px, 3vw, 18px);
   border: 1px solid rgba(99, 77, 55, 0.12);
   background: rgba(255, 255, 255, 0.55);
   box-shadow: 0 10px 22px rgba(64, 49, 32, 0.04);
+  min-height: 60px;
 }
 
 .home-together-icon {
@@ -2368,12 +2406,17 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 900;
   letter-spacing: -0.01em;
   color: rgba(46, 36, 27, 0.92);
+  font-size: clamp(0.95rem, 2vw, 1rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .home-together-copy {
   margin-top: 6px;
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2vw, 0.95rem);
   line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 @media (max-width: 520px) {
@@ -2455,12 +2498,13 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .course-value-tile {
-  border-radius: 22px;
+  border-radius: clamp(14px, 4vw, 22px);
   overflow: hidden;
   border: 1px solid rgba(99, 77, 55, 0.12);
   background: rgba(255, 255, 255, 0.65);
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
   aspect-ratio: 1 / 1;
+  min-height: 160px;
 }
 
 .course-value-tile img {
@@ -2560,21 +2604,23 @@ h1, h2, h3, h4, h5, h6 {
 .home-recipes-intro {
   position: relative;
   display: grid;
-  gap: 18px;
+  gap: clamp(14px, 3vw, 18px);
+  padding: 0 clamp(8px, 3vw, 16px);
 }
 
 .recipe-showcase-carousel {
   display: grid;
-  gap: 14px;
+  gap: clamp(10px, 2vw, 14px);
+  padding: 0 clamp(8px, 3vw, 16px);
 }
 
 .recipe-showcase-viewport {
   overflow: hidden;
-  border-radius: 34px;
+  border-radius: clamp(20px, 5vw, 34px);
   border: 1px solid rgba(99, 77, 55, 0.1);
   background: rgba(255, 253, 248, 0.76);
   box-shadow: 0 22px 54px rgba(36, 22, 18, 0.12);
-  padding: 14px;
+  padding: clamp(10px, 2vw, 14px);
 }
 
 .recipe-showcase-track {
@@ -2611,6 +2657,9 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-secondary);
   line-height: 1.72;
   max-width: 42ch;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .category-pills {
@@ -2623,11 +2672,16 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid rgba(99, 77, 55, 0.1);
   background: rgba(255, 253, 249, 0.88);
   border-radius: 999px;
-  padding: 10px 14px;
-  font-size: 0.92rem;
+  padding: clamp(8px, 2vw, 10px) clamp(12px, 2.5vw, 14px);
+  font-size: clamp(0.8rem, 2vw, 0.92rem);
   color: var(--text-secondary);
   transition: background-color 180ms ease, transform 180ms ease, box-shadow 180ms ease;
   box-shadow: 0 8px 24px rgba(36, 22, 18, 0.05);
+  display: inline-block;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .category-pill:hover {
@@ -2644,25 +2698,29 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-recipes-stat {
-  border-radius: 20px;
+  border-radius: clamp(16px, 4vw, 20px);
   border: 1px solid rgba(99, 77, 55, 0.08);
   background: rgba(255, 253, 248, 0.78);
   box-shadow: 0 14px 34px rgba(36, 22, 18, 0.08);
-  padding: 16px;
+  padding: clamp(12px, 3vw, 16px);
   display: grid;
-  gap: 4px;
+  gap: 6px;
+  min-height: 80px;
+  justify-content: center;
 }
 
 .home-recipes-stat strong {
   font-family: var(--font-display);
-  font-size: 2rem;
+  font-size: clamp(1.4rem, 5vw, 2rem);
   line-height: 1;
   color: var(--brown-800);
+  word-break: break-word;
 }
 
 .home-recipes-stat span {
   color: var(--text-muted);
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  line-height: 1.3;
 }
 
 .recipe-showcase {
@@ -2761,12 +2819,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .recipe-support-card {
   overflow: hidden;
-  border-radius: 24px;
+  border-radius: clamp(16px, 4vw, 24px);
   background: rgba(255, 253, 248, 0.9);
   border: 1px solid rgba(99, 77, 55, 0.08);
   box-shadow: 0 16px 34px rgba(36, 22, 18, 0.08);
   display: grid;
   transition: transform 180ms ease, box-shadow 180ms ease;
+  min-height: 200px;
 }
 
 .recipe-support-card:hover {
@@ -2841,11 +2900,51 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 759px) {
   .recipe-feature-card {
-    min-height: 420px;
+    min-height: clamp(340px, 60vw, 420px);
   }
 
   .recipe-support-grid {
     grid-template-columns: 1fr;
+    gap: clamp(10px, 2vw, 12px);
+  }
+
+  .recipe-feature-overlay {
+    padding: clamp(18px, 4vw, 28px);
+  }
+}
+
+@media (max-width: 520px) {
+  .recipe-feature-card {
+    min-height: 300px;
+  }
+
+  .recipe-feature-overlay h3 {
+    font-size: clamp(1.6rem, 5vw, 2.4rem);
+    margin-bottom: 8px;
+  }
+
+  .recipe-feature-overlay p {
+    font-size: 0.9rem;
+    max-width: 100%;
+  }
+
+  .recipe-support-body {
+    padding: clamp(10px, 2vw, 14px);
+    gap: 8px;
+  }
+
+  .recipe-support-body h3 {
+    font-size: clamp(1rem, 3vw, 1.28rem);
+  }
+
+  .recipe-support-topline {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .recipe-support-date {
+    font-size: 0.7rem;
   }
 }
 
@@ -2949,11 +3048,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .bakery-showcase-hero {
-  margin-top: 14px;
-  border-radius: 26px;
+  margin-top: clamp(10px, 3vw, 14px);
+  border-radius: clamp(16px, 4vw, 26px);
   overflow: hidden;
   position: relative;
-  min-height: 470px;
+  min-height: clamp(320px, 60vw, 470px);
   background: #301d14;
 }
 
@@ -2976,28 +3075,40 @@ h1, h2, h3, h4, h5, h6 {
   position: relative;
   z-index: 2;
   max-width: 470px;
-  padding: clamp(24px, 4vw, 42px);
+  padding: clamp(18px, 5vw, 42px);
   color: #fff8ed;
 }
 
 .bakery-showcase-copy h3 {
   margin: 0;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-size: clamp(1.8rem, 5vw, 3.2rem);
   line-height: 0.94;
   color: #fff8ed;
   text-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .bakery-showcase-copy p {
-  margin: 14px 0 0;
+  margin: clamp(10px, 2vw, 14px) 0 0;
   color: rgba(255, 244, 228, 0.86);
   max-width: 44ch;
   text-shadow: 0 8px 20px rgba(0, 0, 0, 0.38);
+  font-size: clamp(0.9rem, 2vw, 1rem);
+  line-height: 1.6;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .bakery-showcase-copy .button {
-  margin-top: 18px;
+  margin-top: clamp(12px, 3vw, 18px);
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(10px, 2vw, 14px) clamp(16px, 3vw, 24px);
+  font-size: clamp(0.85rem, 2vw, 1rem);
   background: #8b4e34;
   border-color: rgba(255, 231, 204, 0.22);
 }
@@ -3470,25 +3581,43 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(180deg, rgba(255, 252, 248, 0.96), rgba(251, 244, 236, 0.94));
   border-color: rgba(99, 77, 55, 0.16);
   box-shadow: 0 14px 34px rgba(26, 18, 15, 0.14);
-  border-radius: 14px;
+  border-radius: clamp(12px, 3vw, 14px);
+  min-height: 300px;
+  touch-action: manipulation;
 }
 
-.card.course-card:hover {
-  border-color: rgba(140, 59, 43, 0.22);
-  box-shadow: 0 22px 64px rgba(26, 18, 15, 0.22);
+.card.course-card:active {
+  transform: scale(0.98);
 }
 
-.course-card-media img {
-  transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.45s ease;
-}
-
-.card.course-card:hover .course-card-media img {
-  transform: scale(1.04);
-  filter: saturate(1.05) contrast(1.02);
+@media (hover: hover) {
+  .card.course-card:hover {
+    border-color: rgba(140, 59, 43, 0.22);
+    box-shadow: 0 22px 64px rgba(26, 18, 15, 0.22);
+  }
 }
 
 .course-card-media {
   position: relative;
+  aspect-ratio: 3 / 2.2;
+  overflow: hidden;
+  background: linear-gradient(135deg, rgba(255, 245, 233, 0.9), rgba(240, 216, 196, 0.7));
+  border-radius: clamp(10px, 3vw, 16px);
+  min-height: 180px;
+}
+
+.course-card-media img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.45s ease;
+}
+
+@media (hover: hover) {
+  .card.course-card:hover .course-card-media img {
+    transform: scale(1.04);
+    filter: saturate(1.05) contrast(1.02);
+  }
 }
 
 .course-card-media::after {
@@ -3515,7 +3644,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .cards-grid {
   grid-template-columns: repeat(1, 1fr);
-  gap: 26px;
+  gap: clamp(16px, 3vw, 26px);
+}
+
+@media (min-width: 680px) {
+  .cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: clamp(14px, 2.5vw, 20px);
+  }
 }
 
 @media (min-width: 720px) {
@@ -3531,10 +3667,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .recipe-card-media {
-  height: 230px;
+  height: clamp(180px, 40vw, 230px);
   background: linear-gradient(135deg, rgba(255, 250, 244, 0.98), rgba(235, 214, 187, 0.95));
   position: relative;
   overflow: hidden;
+  border-radius: clamp(12px, 3vw, 16px);
 }
 
 .recipe-card-media img {
@@ -3546,9 +3683,11 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.45s ease;
 }
 
-.card.recipe-card:hover .recipe-card-media img {
-  transform: scale(1.05);
-  filter: saturate(1.06) contrast(1.02);
+@media (hover: hover) {
+  .card.recipe-card:hover .recipe-card-media img {
+    transform: scale(1.05);
+    filter: saturate(1.06) contrast(1.02);
+  }
 }
 
 .recipe-card-media::after {
@@ -3581,10 +3720,10 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .recipe-card-body {
-  --recipe-card-pad: 18px;
-  padding: var(--recipe-card-pad) var(--recipe-card-pad) 16px;
+  --recipe-card-pad: clamp(12px, 3vw, 18px);
+  padding: var(--recipe-card-pad) var(--recipe-card-pad) clamp(12px, 2vw, 16px);
   display: grid;
-  gap: 10px;
+  gap: clamp(8px, 2vw, 10px);
   color: var(--text);
   flex: 1;
   background: linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(253, 245, 236, 0.92));
@@ -3728,16 +3867,16 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .course-card-body {
-  padding: 14px 14px 12px;
+  padding: clamp(10px, 2.5vw, 14px) clamp(10px, 2.5vw, 14px) clamp(10px, 2vw, 12px);
   display: grid;
-  gap: 10px;
+  gap: clamp(8px, 2vw, 10px);
   height: 100%;
   background: linear-gradient(180deg, rgba(255, 250, 244, 0.96), rgba(253, 245, 236, 0.92));
   transition: background 180ms ease, color 180ms ease;
 }
 
 .course-card-kicker {
-  font-size: 0.78rem;
+  font-size: clamp(0.7rem, 2vw, 0.78rem);
   line-height: 1.1;
   color: rgba(58, 43, 38, 0.82);
   text-transform: lowercase;
@@ -6002,52 +6141,70 @@ h1, h2, h3, h4, h5, h6 {
 .site-footer {
   background: linear-gradient(135deg, var(--bg-deep), var(--bg-darker));
   color: var(--dark-text);
-  padding: 56px 0;
+  padding: clamp(28px, 6vw, 56px) 0;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 .footer-grid {
   display: grid;
-  gap: 26px;
+  grid-template-columns: 1fr;
+  gap: clamp(14px, 3vw, 26px);
+  padding: 0 clamp(12px, 3vw, 16px);
+}
+
+@media (min-width: 680px) {
+  .footer-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(18px, 3vw, 26px);
+  }
 }
 
 @media (min-width: 860px) {
   .footer-grid {
     grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    gap: 26px;
+    padding: 0;
   }
 }
 
 .footer-brand {
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: clamp(8px, 2vw, 10px);
 }
 
 .footer-logo {
-  height: 44px;
+  height: clamp(36px, 8vw, 44px);
   width: auto;
   display: block;
   filter: brightness(0) invert(1);
 }
 
 .footer-muted {
-  margin: 12px 0 0;
+  margin: clamp(8px, 2vw, 12px) 0 0;
   color: rgba(255, 250, 244, 0.8);
   line-height: 1.7;
+  font-size: clamp(0.9rem, 2.5vw, 1rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .footer-fineprint {
-  margin: 16px 0 0;
+  margin: clamp(10px, 2vw, 16px) 0 0;
   color: rgba(255, 250, 244, 0.68);
-  font-size: 0.9rem;
+  font-size: clamp(0.75rem, 2vw, 0.9rem);
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .footer-heading {
   font-family: var(--font-body);
   letter-spacing: -0.02em;
-  margin: 0 0 12px;
-  font-size: 1.1rem;
+  margin: 0 0 clamp(8px, 2vw, 12px);
+  font-size: clamp(0.95rem, 3vw, 1.1rem);
   color: #fffaf4;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
 }
 
 .footer-list {
@@ -6055,33 +6212,53 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
   margin: 0;
   display: grid;
-  gap: 10px;
+  gap: clamp(8px, 2vw, 10px);
   color: rgba(255, 250, 244, 0.86);
-  font-size: 0.95rem;
+  font-size: clamp(0.85rem, 2.5vw, 0.95rem);
 }
 
 .footer-list a {
   color: inherit;
+  transition: color 180ms ease;
+  display: inline-block;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
 }
 
-.footer-list a:hover {
-  color: #ffffff;
+@media (hover: hover) {
+  .footer-list a:hover {
+    color: #ffffff;
+  }
 }
 
 .footer-social {
   display: flex;
-  gap: 10px;
-  margin-bottom: 12px;
+  gap: clamp(8px, 2vw, 10px);
+  margin-bottom: clamp(8px, 2vw, 12px);
+  flex-wrap: wrap;
 }
 
 .site-footer .icon-button-dark {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fffaf4;
+  min-width: 40px;
+  min-height: 40px;
+  padding: clamp(8px, 2vw, 10px);
+  font-size: clamp(0.85rem, 2vw, 1rem);
+  transition: background 180ms ease, transform 180ms ease;
+  touch-action: manipulation;
 }
 
-.site-footer .icon-button-dark:hover {
-  background: rgba(255, 255, 255, 0.18);
+.site-footer .icon-button-dark:active {
+  transform: scale(0.96);
+}
+
+@media (hover: hover) {
+  .site-footer .icon-button-dark:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
 }
 
 .course-detail-fallback {
