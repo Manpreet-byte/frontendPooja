@@ -118,6 +118,15 @@ export default function SiteHeader({ onCartClick }) {
     setOpenMenu(null);
   }, [mobileOpen]);
 
+  useEffect(() => {
+    if (typeof document === 'undefined') return undefined;
+    const className = 'no-scroll';
+    const body = document.body;
+    if (mobileOpen) body.classList.add(className);
+    else body.classList.remove(className);
+    return () => body.classList.remove(className);
+  }, [mobileOpen]);
+
   function handleDropdownBlur(e) {
     const current = e.currentTarget;
     const next = e.relatedTarget;

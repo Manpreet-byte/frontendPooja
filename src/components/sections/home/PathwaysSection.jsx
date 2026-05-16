@@ -37,11 +37,13 @@ export default function PathwaysSection() {
         <div className="pathways-grid">
           {pathways.map((p) => (
             <Link key={p.title} className="pathway-card" to={p.to}>
-              <div className="pathway-card-top">
+              <div className="pathway-card-body">
                 <h3 className="h3">{p.title}</h3>
-                <span className="pathway-chip">Explore</span>
+                <p className="muted">{p.description}</p>
               </div>
-              <p className="muted">{p.description}</p>
+              <span className="pathway-cta" aria-hidden="true">
+                Explore
+              </span>
             </Link>
           ))}
         </div>
@@ -49,4 +51,3 @@ export default function PathwaysSection() {
     </section>
   );
 }
-

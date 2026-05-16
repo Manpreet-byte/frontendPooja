@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import { useShallow } from 'zustand/shallow';
@@ -34,6 +34,7 @@ export default function CartDrawer({ open, onClose }) {
   const [couponMessage, setCouponMessage] = useState('');
   const [preview, setPreview] = useState(null);
   const [validating, setValidating] = useState(false);
+  const closeButtonRef = useRef(null);
 
   useEffect(() => {
     if (!open) {
@@ -47,6 +48,18 @@ export default function CartDrawer({ open, onClose }) {
       document.body.style.overflow = previousOverflow;
     };
   }, [open]);
+
+  useEffect(() => {
+    if (!open) return undefined;
+    closeButtonRef.current?.focus?.();
+    const onKeyDown = (event) => {
+      if (event.key !== 'Escape') return;
+      event.preventDefault();
+      onClose?.();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [open, onClose]);
   const totals = useMemo(() => {
     const currency = items.find((i) => i.currency)?.currency ?? 'INR';
     const subtotal = items.reduce((sum, it) => {
@@ -110,7 +123,7 @@ export default function CartDrawer({ open, onClose }) {
             <h2 className="h3">Online workshops</h2>
             <p className="cart-drawer-summary">{items.length} selected workshop{items.length === 1 ? '' : 's'}</p>
           </div>
-          <button className="icon-button cart-close" type="button" onClick={onClose} aria-label="Close cart">
+          <button ref={closeButtonRef} className="icon-button cart-close" type="button" onClick={onClose} aria-label="Close cart">
             ×
           </button>
         </div>
@@ -160,7 +173,11 @@ export default function CartDrawer({ open, onClose }) {
                   {validating ? 'Checking…' : 'Apply'}
                 </button>
               </div>
-              {couponMessage ? <p className="muted">{couponMessage}</p> : null}
+              {couponMessage ? (
+                <p className="muted" role="status" aria-live="polite">
+                  {couponMessage}
+                </p>
+              ) : null}
               {preview?.valid && preview?.final_total != null ? (
                 <p className="muted">Preview total: {formatMoney(preview.final_total, preview.currency ?? totals.currency)}</p>
               ) : null}

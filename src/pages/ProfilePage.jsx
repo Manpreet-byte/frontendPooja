@@ -67,34 +67,33 @@ export default function ProfilePage() {
       <div className="container">
         <SectionHeading badge="Account" title="Profile" subtitle="Your account details from the backend." />
 
-        <div className="panel auth-card">
-          {token ? null : <p className="form-error">You are not logged in.</p>}
-          {error ? <p className="form-error">{error}</p> : null}
-          {message ? <p className={message.includes('updated') ? 'muted' : 'form-error'}>{message}</p> : null}
+        <div className="panel profile-card">
+          {token ? null : (
+            <p className="form-error" role="alert">
+              You are not logged in.
+            </p>
+          )}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
+          {message ? (
+            <p className={message.includes('updated') ? 'muted' : 'form-error'} role="status" aria-live="polite">
+              {message}
+            </p>
+          ) : null}
           {user ? (
             <>
-              <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
-                <div
-                  style={{
-                    width: 56,
-                    height: 56,
-                    borderRadius: 16,
-                    background: 'rgba(201, 122, 74, 0.12)',
-                    border: '1px solid rgba(99, 77, 55, 0.14)',
-                    display: 'grid',
-                    placeItems: 'center',
-                    fontWeight: 900,
-                    letterSpacing: '0.04em',
-                  }}
-                  aria-hidden="true"
-                >
+              <div className="profile-header">
+                <div className="profile-avatar" aria-hidden="true">
                   {(user?.name ?? user?.email ?? '?').trim().slice(0, 1).toUpperCase()}
                 </div>
-                <div style={{ minWidth: 0 }}>
-                  <div className="h3" style={{ margin: 0 }}>{user?.name ?? 'Profile'}</div>
-                  <div className="muted" style={{ marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
+                <div className="profile-header-main">
+                  <div className="h3 profile-name">{user?.name ?? 'Profile'}</div>
+                  <div className="muted profile-email">{user.email}</div>
                 </div>
-                <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
+                <div className="profile-header-actions">
                   <span className="pill">{String(user.role ?? 'user')}</span>
                   <Link className="button button-ghost" to="/dashboard">
                     Open dashboard
@@ -107,32 +106,46 @@ export default function ProfilePage() {
                 </div>
               </div>
 
-              <div className="profile-grid" style={{ marginTop: 18 }}>
-                <div>
-                  <p className="section-kicker">Name</p>
-                  <input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={!canSave} />
-                </div>
-                <div>
-                  <p className="section-kicker">Phone</p>
-                  <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={!canSave} placeholder="Optional" />
-                </div>
-                <div>
+              <div className="profile-grid">
+                <label className="field">
+                  <span className="field-label">Name</span>
+                  <input
+                    className="input"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    autoComplete="name"
+                    disabled={!canSave}
+                  />
+                </label>
+                <label className="field">
+                  <span className="field-label">Phone</span>
+                  <input
+                    className="input"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    autoComplete="tel"
+                    inputMode="tel"
+                    disabled={!canSave}
+                    placeholder="Optional"
+                  />
+                </label>
+                <div className="profile-meta">
                   <p className="section-kicker">Email</p>
-                  <p className="muted" style={{ marginTop: 8 }}>{user.email}</p>
+                  <p className="muted profile-meta-value">{user.email}</p>
                 </div>
-                <div>
+                <div className="profile-meta">
                   <p className="section-kicker">Role</p>
-                  <p className="muted" style={{ marginTop: 8 }}>{user.role}</p>
+                  <p className="muted profile-meta-value">{user.role}</p>
                 </div>
               </div>
 
-              <div style={{ marginTop: 18 }}>
+              <div className="profile-block">
                 <p className="section-kicker">Notifications</p>
-                <p className="muted" style={{ marginTop: 8 }}>
+                <p className="muted profile-block-copy">
                   Enable push notifications on this device for reminders, order updates, and recordings.
                 </p>
-                {pushMsg ? <p className="muted" style={{ marginTop: 8 }}>{pushMsg}</p> : null}
-                <div className="button-row" style={{ marginTop: 10 }}>
+                {pushMsg ? <p className="muted profile-block-copy">{pushMsg}</p> : null}
+                <div className="button-row">
                   <button className="button button-ghost" type="button" onClick={enablePush} disabled={!token || pushStatus === 'loading'}>
                     {pushStatus === 'loading' ? 'Enabling…' : 'Enable notifications'}
                   </button>
@@ -141,12 +154,12 @@ export default function ProfilePage() {
             </>
           ) : null}
 
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
+          <div className="profile-actions">
             <button className="button button-solid" type="button" onClick={onSave} disabled={!canSave}>
               {status === 'saving' ? 'Saving…' : 'Save changes'}
             </button>
             <button className="button button-ghost" type="button" onClick={logout} disabled={status === 'saving'}>
-            Logout
+              Logout
             </button>
           </div>
         </div>

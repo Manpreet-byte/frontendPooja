@@ -161,44 +161,48 @@ export default function App() {
 
   return (
     <div className={`page${isAboutPage ? ' page-white' : ''}${isCourseDetailPage ? ' course-detail-theme' : ''}`}>
+      <a className="skip-link" href="#content">
+        Skip to content
+      </a>
       <SiteHeader onCartClick={() => setCartOpen(true)} />
-      <Suspense
-        fallback={
-          <main className="section">
-            <div className="container">
-              <p className="muted">Loading…</p>
-            </div>
-          </main>
-        }
-      >
-        <Routes>
-          <Route path="/" element={<HomePage />} />
-          <Route path="/courses" element={<CoursesPage />} />
-          <Route path="/courses/:slug" element={<CourseDetailPage />} />
-          <Route path="/live-sessions" element={<LiveSessionsPage />} />
-          <Route path="/live-sessions/:slug" element={<LiveSessionDetailPage />} />
-          <Route
-            path="/course/:slug/learn"
-            element={
-              <ProtectedRoute>
-                <CourseLearnPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/recipe-library" element={<RecipeLibraryPage />} />
-          <Route path="/recipes/:slug" element={<RecipeDetailPage />} />
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/signup" element={<SignupPage />} />
-          <Route path="/profile" element={<ProfilePage />} />
-          <Route path="/certificates/verify/:certificateCode" element={<CertificateVerifyPage />} />
-          <Route
-            path="/checkout"
-            element={
-              <ProtectedRoute>
-                <CheckoutPage />
-              </ProtectedRoute>
-            }
-          />
+      <div id="content" tabIndex={-1}>
+        <Suspense
+          fallback={
+            <main className="section">
+              <div className="container">
+                <p className="muted">Loading…</p>
+              </div>
+            </main>
+          }
+        >
+          <Routes>
+            <Route path="/" element={<HomePage />} />
+            <Route path="/courses" element={<CoursesPage />} />
+            <Route path="/courses/:slug" element={<CourseDetailPage />} />
+            <Route path="/live-sessions" element={<LiveSessionsPage />} />
+            <Route path="/live-sessions/:slug" element={<LiveSessionDetailPage />} />
+            <Route
+              path="/course/:slug/learn"
+              element={
+                <ProtectedRoute>
+                  <CourseLearnPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route path="/recipe-library" element={<RecipeLibraryPage />} />
+            <Route path="/recipes/:slug" element={<RecipeDetailPage />} />
+            <Route path="/login" element={<LoginPage />} />
+            <Route path="/signup" element={<SignupPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/certificates/verify/:certificateCode" element={<CertificateVerifyPage />} />
+            <Route
+              path="/checkout"
+              element={
+                <ProtectedRoute>
+                  <CheckoutPage />
+                </ProtectedRoute>
+              }
+            />
           <Route
             path="/order-success"
             element={
@@ -293,8 +297,9 @@ export default function App() {
           <Route path="/newsletter" element={<NewsletterPage />} />
           <Route path="/pages/:slug" element={<WpPageDetailPage />} />
           <Route path="*" element={<NotFoundPage />} />
-        </Routes>
-      </Suspense>
+          </Routes>
+        </Suspense>
+      </div>
       <CartDrawer open={cartOpen} onClose={() => setCartOpen(false)} />
       <SiteFooter />
     </div>

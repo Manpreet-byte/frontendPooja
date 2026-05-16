@@ -55,7 +55,16 @@ export default function LoginPage() {
 
           <label className="field">
             <span className="field-label">Email</span>
-            <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            <input
+              className="input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              required
+            />
           </label>
 
           <label className="field">
@@ -65,12 +74,17 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
+              autoComplete="current-password"
               minLength={8}
               required
             />
           </label>
 
-          {error ? <p className="form-error">{error}</p> : null}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
           <button className="button button-solid" type="submit" disabled={disabled}>
             {disabled ? 'Logging in…' : 'Login'}

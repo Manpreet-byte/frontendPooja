@@ -65,12 +65,28 @@ export default function SignupPage() {
 
           <label className="field">
             <span className="field-label">Name</span>
-            <input className="input" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input
+              className="input"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              type="text"
+              autoComplete="name"
+              required
+            />
           </label>
 
           <label className="field">
             <span className="field-label">Email</span>
-            <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} type="email" required />
+            <input
+              className="input"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              type="email"
+              autoComplete="email"
+              inputMode="email"
+              autoCapitalize="none"
+              required
+            />
           </label>
 
           <label className="field">
@@ -80,12 +96,17 @@ export default function SignupPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               type="password"
+              autoComplete="new-password"
               minLength={8}
               required
             />
           </label>
 
-          {error ? <p className="form-error">{error}</p> : null}
+          {error ? (
+            <p className="form-error" role="alert">
+              {error}
+            </p>
+          ) : null}
 
           <button className="button button-solid" type="submit" disabled={disabled}>
             {disabled ? 'Creating…' : 'Create account'}
