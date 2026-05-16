@@ -1,5 +1,7 @@
 function getBaseUrl() {
-  // Prefer Vite env override; fallback to localhost backend for local dev/testing.
+  const productionBackendUrl = 'https://loveandflourbackend.onrender.com';
+
+  // Prefer Vite env override; otherwise use the deployed backend in production.
   const configured = import.meta.env.VITE_API_BASE_URL;
   if (typeof configured === 'string' && configured.trim()) {
     let base = configured.trim().replace(/\/$/, '');
@@ -31,8 +33,7 @@ function getBaseUrl() {
     if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
   }
 
-  // Same-origin fallback (useful when a reverse proxy serves frontend+backend together).
-  return '';
+  return productionBackendUrl;
 }
 
 function getPersistedAuthState() {
