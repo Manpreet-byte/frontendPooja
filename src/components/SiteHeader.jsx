@@ -1,0 +1,358 @@
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
+import { terms } from '../data/seededContent';
+import { api } from '../api/client';
+import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
+import NotificationsBell from './NotificationsBell';
+
+const courseCategoryOrder = [
+  'upcoming-live-workshops',
+  'upcoming-live-session',
+  'recorded-live-workshop',
+  'hands-on-classes',
+  'e-book',
+];
+
+export default function SiteHeader({ onCartClick }) {
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [openMenu, setOpenMenu] = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const location = useLocation();
+  const [courseCategories, setCourseCategories] = useState(() =>
+    (terms?.courseCategories ?? [])
+      .slice()
+      .sort((a, b) => courseCategoryOrder.indexOf(a.slug) - courseCategoryOrder.indexOf(b.slug))
+      .filter(Boolean),
+  );
+  const [recipeCategories, setRecipeCategories] = useState(() => (terms?.postCategories ?? []).filter((t) => t.slug !== 'uncategorized'));
+  const navRef = useRef(null);
+  const cartCount = useCartStore((state) => state.items.length);
+  const token = useAuthStore((state) => state.token);
+  const logout = useAuthStore((state) => state.logout);
+  const role = useAuthStore((state) => state.user?.role ?? '');
+
+  useEffect(() => {
+    let active = true;
+    Promise.all([api.public.categories.list('course'), api.public.categories.list('recipe')])
+      .then(([courseData, recipeData]) => {
+        if (!active) return;
+        const courseMap = new Map((terms?.courseCategories ?? []).map((item) => [item.slug, item]));
+        for (const item of courseData.categories ?? []) {
+          courseMap.set(item.slug, item);
+        }
+        const recipeMap = new Map((terms?.postCategories ?? []).map((item) => [item.slug, item]));
+        for (const item of recipeData.categories ?? []) {
+          if (item.slug !== 'uncategorized') recipeMap.set(item.slug, item);
+        }
+        setCourseCategories(
+          Array.from(courseMap.values())
+            .filter(Boolean)
+            .slice()
+            .sort((a, b) => {
+              const aIdx = courseCategoryOrder.indexOf(a.slug);
+              const bIdx = courseCategoryOrder.indexOf(b.slug);
+              const aRank = aIdx === -1 ? 999 : aIdx;
+              const bRank = bIdx === -1 ? 999 : bIdx;
+              if (aRank !== bRank) return aRank - bRank;
+              return String(a.name ?? a.slug ?? '').localeCompare(String(b.name ?? b.slug ?? ''));
+            }),
+        );
+        setRecipeCategories(Array.from(recipeMap.values()).filter((item) => item.slug !== 'uncategorized'));
+      })
+      .catch(() => {
+        if (!active) return;
+        setCourseCategories(
+          (terms?.courseCategories ?? [])
+            .slice()
+            .sort((a, b) => courseCategoryOrder.indexOf(a.slug) - courseCategoryOrder.indexOf(b.slug))
+            .filter(Boolean),
+        );
+        setRecipeCategories((terms?.postCategories ?? []).filter((t) => t.slug !== 'uncategorized'));
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const courseHrefBySlug = useMemo(() => {
+    const map = new Map();
+    for (const cat of courseCategories) map.set(cat.slug, `/courses?category=${encodeURIComponent(cat.slug)}`);
+    return map;
+  }, [courseCategories]);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === 'Escape') {
+        setOpenMenu(null);
+        setMobileOpen(false);
+      }
+    }
+
+    function onPointerDown(e) {
+      if (!navRef.current) return;
+      if (navRef.current.contains(e.target)) return;
+      setOpenMenu(null);
+    }
+
+    window.addEventListener('keydown', onKeyDown);
+    window.addEventListener('pointerdown', onPointerDown);
+    return () => {
+      window.removeEventListener('keydown', onKeyDown);
+      window.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, []);
+
+  useEffect(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 8);
+    }
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  useEffect(() => {
+    if (!mobileOpen) return;
+    setOpenMenu(null);
+  }, [mobileOpen]);
+
+  function handleDropdownBlur(e) {
+    const current = e.currentTarget;
+    const next = e.relatedTarget;
+    // On some mobile browsers `relatedTarget` is null and focus doesn't move predictably.
+    // In that case, rely on the global outside-click handler + Escape to close.
+    if (!next) return;
+    if (current.contains(next)) return;
+    setOpenMenu(null);
+  }
+
+  return (
+    <header className={`site-header${scrolled ? ' is-scrolled' : ''}`}>
+      <div className="container-wide header-inner" ref={navRef}>
+        <button
+          className="icon-button header-burger"
+          type="button"
+          aria-label={mobileOpen ? 'Close menu' : 'Open menu'}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((v) => !v)}
+        >
+          <span aria-hidden="true">{mobileOpen ? '×' : '≡'}</span>
+        </button>
+
+        <NavLink className="brand" to="/" onClick={() => setMobileOpen(false)}>
+          <span className="brand-lockup">
+            <img className="brand-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" />
+          </span>
+        </NavLink>
+
+        <nav className="header-nav" aria-label="Primary navigation">
+          <NavLink className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} to="/" end>
+            Home
+          </NavLink>
+          <NavLink className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} to="/about">
+            About
+          </NavLink>
+
+          <div
+            className={`nav-dropdown${openMenu === 'courses' ? ' is-open' : ''}`}
+            onMouseEnter={() => setOpenMenu('courses')}
+            onMouseLeave={() => setOpenMenu(null)}
+            onFocusCapture={() => setOpenMenu('courses')}
+            onBlurCapture={handleDropdownBlur}
+          >
+            <button
+              className="nav-link nav-link-button"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={openMenu === 'courses'}
+              onClick={() => setOpenMenu((v) => (v === 'courses' ? null : 'courses'))}
+            >
+              Online Workshops <span className="nav-caret" aria-hidden="true">▾</span>
+            </button>
+            {openMenu === 'courses' ? (
+              <div className="dropdown-panel" role="menu">
+                <NavLink className="dropdown-link dropdown-link-strong" to="/courses" onClick={() => setOpenMenu(null)}>
+                  Explore all
+                </NavLink>
+                {courseCategories.map((cat) => (
+                  <NavLink
+                    key={cat.slug}
+                    className="dropdown-link"
+                    to={courseHrefBySlug.get(cat.slug)}
+                    onClick={() => setOpenMenu(null)}
+                  >
+                    {cat.name}
+                  </NavLink>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <NavLink
+            className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
+            to="/courses?category=hands-on-classes"
+          >
+            Hands-On Classes
+          </NavLink>
+
+          <div
+            className={`nav-dropdown${openMenu === 'recipes' ? ' is-open' : ''}`}
+            onMouseEnter={() => setOpenMenu('recipes')}
+            onMouseLeave={() => setOpenMenu(null)}
+            onFocusCapture={() => setOpenMenu('recipes')}
+            onBlurCapture={handleDropdownBlur}
+          >
+            <button
+              className="nav-link nav-link-button"
+              type="button"
+              aria-haspopup="menu"
+              aria-expanded={openMenu === 'recipes'}
+              onClick={() => setOpenMenu((v) => (v === 'recipes' ? null : 'recipes'))}
+            >
+              Recipe Library <span className="nav-caret" aria-hidden="true">▾</span>
+            </button>
+            {openMenu === 'recipes' ? (
+              <div className="dropdown-panel dropdown-panel-wide" role="menu">
+                <NavLink className="dropdown-link dropdown-link-strong" to="/recipe-library" onClick={() => setOpenMenu(null)}>
+                  All Recipes
+                </NavLink>
+                {recipeCategories.map((cat) => (
+                  <NavLink
+                    key={cat.slug}
+                    className="dropdown-link"
+                    to={`/recipe-library?category=${encodeURIComponent(cat.slug)}`}
+                    onClick={() => setOpenMenu(null)}
+                  >
+                    {cat.name}
+                  </NavLink>
+                ))}
+              </div>
+            ) : null}
+          </div>
+
+          <NavLink className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`} to="/contact">
+            Contact
+          </NavLink>
+        </nav>
+
+        <div className="header-actions">
+          <button className="icon-button header-cart" type="button" onClick={onCartClick} aria-label={`Open cart (${cartCount})`}>
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none">
+              <path
+                d="M6.5 6.5H21l-1.6 7.2a2 2 0 0 1-2 1.6H9a2 2 0 0 1-2-1.6L5.2 3.8H3"
+                stroke="currentColor"
+                strokeWidth="2.4"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <path
+                d="M9.8 21a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Zm8.2 0a1.2 1.2 0 1 1 0-2.4 1.2 1.2 0 0 1 0 2.4Z"
+                fill="currentColor"
+              />
+            </svg>
+            {cartCount > 0 ? <span className="cart-badge">{cartCount}</span> : null}
+          </button>
+          {token ? (
+            <>
+              <NotificationsBell token={token} enabled={role === 'admin' || role === 'super_admin'} />
+              {role === 'admin' || role === 'super_admin' ? (
+                <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/admin/dashboard">
+                  Admin
+                </NavLink>
+              ) : null}
+              {role === 'instructor' ? (
+                <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/instructor/dashboard">
+                  Instructor
+                </NavLink>
+              ) : null}
+              {role !== 'admin' && role !== 'super_admin' ? (
+                <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/dashboard">
+                  Dashboard
+                </NavLink>
+              ) : null}
+              <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/profile">
+                Profile
+              </NavLink>
+              <button className="nav-link nav-link-action" type="button" onClick={logout}>
+                Logout
+              </button>
+            </>
+          ) : (
+            <NavLink className="nav-link nav-link-action nav-link-icon" to="/login" aria-label="Login">
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none">
+                <path
+                  d="M12 12a4.2 4.2 0 1 0-4.2-4.2A4.2 4.2 0 0 0 12 12Z"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M4.5 20.2a7.5 7.5 0 0 1 15 0"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </NavLink>
+          )}
+        </div>
+      </div>
+
+      {mobileOpen && (
+        <nav className="mobile-nav is-open" aria-label="Mobile navigation">
+          <div className="container mobile-nav-inner">
+            <NavLink className="mobile-nav-link" to="/" onClick={() => setMobileOpen(false)} end>
+              Home
+            </NavLink>
+            <NavLink className="mobile-nav-link" to="/about" onClick={() => setMobileOpen(false)}>
+              About
+            </NavLink>
+            <NavLink className="mobile-nav-link" to="/courses" onClick={() => setMobileOpen(false)}>
+              Online Workshops
+            </NavLink>
+            {courseCategories.map((cat) => (
+              <NavLink
+                key={cat.slug}
+                className="mobile-nav-link mobile-nav-sublink"
+                to={`/courses?category=${encodeURIComponent(cat.slug)}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                {cat.name}
+              </NavLink>
+            ))}
+            <NavLink
+              className="mobile-nav-link"
+              to="/courses?category=hands-on-classes"
+              onClick={() => setMobileOpen(false)}
+            >
+              Hands-On Classes
+            </NavLink>
+            <NavLink className="mobile-nav-link" to="/recipe-library" onClick={() => setMobileOpen(false)}>
+              Recipe Library
+            </NavLink>
+            <NavLink className="mobile-nav-link mobile-nav-sublink" to="/recipe-library" onClick={() => setMobileOpen(false)}>
+              All Recipes
+            </NavLink>
+            {recipeCategories.map((cat) => (
+              <NavLink
+                key={cat.slug}
+                className="mobile-nav-link mobile-nav-sublink"
+                to={`/recipe-library?category=${encodeURIComponent(cat.slug)}`}
+                onClick={() => setMobileOpen(false)}
+              >
+                {cat.name}
+              </NavLink>
+            ))}
+            <NavLink className="mobile-nav-link" to="/contact" onClick={() => setMobileOpen(false)}>
+              Contact
+            </NavLink>
+          </div>
+        </nav>
+      )}
+    </header>
+  );
+}
