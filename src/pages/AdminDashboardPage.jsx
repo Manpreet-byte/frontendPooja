@@ -3528,9 +3528,6 @@ export default function AdminDashboardPage() {
                 <p className="muted" style={{ marginTop: 6 }}>
                   Leave fields blank to keep existing secrets. Keys are stored encrypted in the database and never shown back.
                 </p>
-                <p className="muted" style={{ marginTop: 6 }}>
-                  Webhook URL to configure in Razorpay dashboard: <code style={{ fontFamily: 'inherit' }}>/api/webhooks/razorpay</code> (events: payment.captured, payment.failed).
-                </p>
 
                 <form className="contact-form" onSubmit={saveRazorpayConfig}>
                   <label className="field">

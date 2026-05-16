@@ -84,9 +84,6 @@ async function request(path, { method = 'GET', body, token, _retry = true } = {}
   if (body !== undefined) headers['Content-Type'] = 'application/json';
   const resolvedToken = token ?? getAccessToken();
   if (resolvedToken) headers.Authorization = `Bearer ${resolvedToken}`;
-  // Avoid empty-body 304 responses breaking JSON parsing for public content.
-  // Let the browser cache normally, but always revalidate and ensure a usable body.
-  if (method === 'GET') headers['Cache-Control'] = 'no-cache';
 
   let res;
   try {
@@ -95,19 +92,12 @@ async function request(path, { method = 'GET', body, token, _retry = true } = {}
       headers,
       body: body === undefined ? undefined : JSON.stringify(body),
       credentials: 'include',
-      cache: method === 'GET' ? 'no-store' : 'no-store',
     });
   } catch (err) {
     const e = new Error('Network error. Please check your connection and try again.');
     e.offline = typeof navigator !== 'undefined' ? navigator.onLine === false : false;
     e.cause = err;
     throw e;
-  }
-
-  if (res.status === 304) {
-    const err = new Error('Not modified');
-    err.status = 304;
-    throw err;
   }
 
   const contentType = res.headers.get('content-type') ?? '';

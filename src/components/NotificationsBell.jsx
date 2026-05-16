@@ -104,7 +104,7 @@ export default function NotificationsBell({ token, enabled = true }) {
   };
 
   return (
-    <div ref={wrapRef} className={`notif${open ? ' is-open' : ''}`}>
+    <div ref={wrapRef} style={{ position: 'relative' }}>
       <button
         className="icon-button"
         type="button"
@@ -129,35 +129,38 @@ export default function NotificationsBell({ token, enabled = true }) {
       </button>
 
       {open ? (
-        <div className="notif-panel panel">
-          <div className="notif-head">
-            <div className="notif-title">Notifications</div>
-            <button className="button button-ghost notif-mark" type="button" onClick={markAllRead} disabled={!notifications.length || loading}>
+        <div className="panel" style={{ position: 'absolute', right: 0, top: 'calc(100% + 10px)', width: 340, zIndex: 50 }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+            <div className="h4" style={{ margin: 0 }}>Notifications</div>
+            <button className="button button-ghost" type="button" onClick={markAllRead} disabled={!notifications.length || loading}>
               Mark all read
             </button>
           </div>
 
-          {error ? <p className="form-error notif-error">{error}</p> : null}
-          {loading ? <p className="muted notif-state">Loading…</p> : null}
+          {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
+          {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading…</p> : null}
 
-          {!loading && !compactList.length ? <p className="muted notif-state">No notifications yet.</p> : null}
+          {!loading && !compactList.length ? <p className="muted" style={{ marginTop: 10 }}>No notifications yet.</p> : null}
 
           {compactList.length ? (
-            <ul className="notif-list">
+            <ul className="list" style={{ marginTop: 10 }}>
               {compactList.map((n) => {
                 const isUnread = !n?.read_at;
                 return (
-                  <li className="notif-item" key={n.id}>
+                  <li key={n.id}>
                     <button
                       type="button"
-                      className={`notif-row${isUnread ? ' is-unread' : ''}`}
+                      className="button button-ghost"
+                      style={{ textAlign: 'left', width: '100%' }}
                       onClick={() => openNotification(n)}
                     >
-                      <div className="notif-row-main">
-                        <div className="notif-row-title">{n.title ?? 'Update'}</div>
-                        {n.message ? <div className="notif-row-msg">{n.message}</div> : null}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12 }}>
+                        <div style={{ minWidth: 0 }}>
+                          <div style={{ fontWeight: isUnread ? 700 : 600 }}>{n.title ?? 'Update'}</div>
+                          <div className="muted" style={{ marginTop: 4, whiteSpace: 'normal' }}>{n.message ?? ''}</div>
+                        </div>
+                        {isUnread ? <span className="pill" style={{ alignSelf: 'flex-start' }}>New</span> : null}
                       </div>
-                      {isUnread ? <span className="pill notif-pill">New</span> : null}
                     </button>
                   </li>
                 );
@@ -165,8 +168,8 @@ export default function NotificationsBell({ token, enabled = true }) {
             </ul>
           ) : null}
 
-          <div className="notif-footer">
-            <Link className="link notif-link" to="/dashboard" onClick={() => setOpen(false)}>
+          <div style={{ marginTop: 10 }}>
+            <Link className="link" to="/dashboard" onClick={() => setOpen(false)}>
               Go to dashboard
             </Link>
           </div>

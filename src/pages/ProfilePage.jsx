@@ -27,16 +27,7 @@ export default function ProfilePage() {
     setPhone(user?.phone ?? '');
   }, [user?.id]);
 
-  const isDirty = useMemo(() => {
-    if (!user) return false;
-    const nextName = String(name ?? '').trim();
-    const nextPhone = String(phone ?? '').trim();
-    const prevName = String(user?.name ?? '').trim();
-    const prevPhone = String(user?.phone ?? '').trim();
-    return nextName !== prevName || nextPhone !== prevPhone;
-  }, [name, phone, user]);
-
-  const canSave = useMemo(() => Boolean(token && status === 'idle' && isDirty), [token, status, isDirty]);
+  const canSave = useMemo(() => Boolean(token && status === 'idle'), [token, status]);
 
   const onSave = async () => {
     if (!token || status !== 'idle') return;
@@ -76,102 +67,88 @@ export default function ProfilePage() {
       <div className="container">
         <SectionHeading badge="Account" title="Profile" subtitle="Your account details from the backend." />
 
-        <div className="panel profile-card">
+        <div className="panel auth-card">
           {token ? null : <p className="form-error">You are not logged in.</p>}
           {error ? <p className="form-error">{error}</p> : null}
-          {message ? <p className={message.includes('updated') ? 'muted profile-flash' : 'form-error profile-flash'}>{message}</p> : null}
-
-          {!user ? (
-            <p className="muted profile-loading">{token ? 'Loading profile…' : 'Log in to view your profile.'}</p>
-          ) : (
+          {message ? <p className={message.includes('updated') ? 'muted' : 'form-error'}>{message}</p> : null}
+          {user ? (
             <>
-              <div className="profile-head">
-                <div className="profile-avatar" aria-hidden="true">
+              <div style={{ display: 'flex', gap: 14, alignItems: 'center', flexWrap: 'wrap' }}>
+                <div
+                  style={{
+                    width: 56,
+                    height: 56,
+                    borderRadius: 16,
+                    background: 'rgba(201, 122, 74, 0.12)',
+                    border: '1px solid rgba(99, 77, 55, 0.14)',
+                    display: 'grid',
+                    placeItems: 'center',
+                    fontWeight: 900,
+                    letterSpacing: '0.04em',
+                  }}
+                  aria-hidden="true"
+                >
                   {(user?.name ?? user?.email ?? '?').trim().slice(0, 1).toUpperCase()}
                 </div>
-                <div className="profile-meta">
-                  <div className="profile-name">{user?.name ?? 'Profile'}</div>
-                  <div className="profile-email">{user.email}</div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="h3" style={{ margin: 0 }}>{user?.name ?? 'Profile'}</div>
+                  <div className="muted" style={{ marginTop: 4, overflow: 'hidden', textOverflow: 'ellipsis' }}>{user.email}</div>
                 </div>
-                <div className="profile-actions">
+                <div style={{ marginLeft: 'auto', display: 'flex', gap: 10, flexWrap: 'wrap' }}>
                   <span className="pill">{String(user.role ?? 'user')}</span>
-                  <Link className="button button-ghost profile-quick" to="/dashboard">
-                    Dashboard
+                  <Link className="button button-ghost" to="/dashboard">
+                    Open dashboard
                   </Link>
                   {user.role === 'admin' ? (
-                    <Link className="button button-ghost profile-quick" to="/admin/dashboard">
+                    <Link className="button button-ghost" to="/admin/dashboard">
                       Admin panel
                     </Link>
                   ) : null}
                 </div>
               </div>
 
-              <div className="profile-sections">
-                <section className="profile-section" aria-label="Profile details">
-                  <div className="profile-section-head">
-                    <div>
-                      <div className="profile-section-title">Details</div>
-                      <p className="muted profile-section-subtitle">Update your name and phone number.</p>
-                    </div>
-                  </div>
+              <div className="profile-grid" style={{ marginTop: 18 }}>
+                <div>
+                  <p className="section-kicker">Name</p>
+                  <input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={!canSave} />
+                </div>
+                <div>
+                  <p className="section-kicker">Phone</p>
+                  <input className="input" value={phone} onChange={(e) => setPhone(e.target.value)} disabled={!canSave} placeholder="Optional" />
+                </div>
+                <div>
+                  <p className="section-kicker">Email</p>
+                  <p className="muted" style={{ marginTop: 8 }}>{user.email}</p>
+                </div>
+                <div>
+                  <p className="section-kicker">Role</p>
+                  <p className="muted" style={{ marginTop: 8 }}>{user.role}</p>
+                </div>
+              </div>
 
-                  <div className="profile-fields">
-                    <label className="field">
-                      <span className="field-label">Name</span>
-                      <input className="input" value={name} onChange={(e) => setName(e.target.value)} disabled={!canSave} />
-                    </label>
-                    <label className="field">
-                      <span className="field-label">Phone (optional)</span>
-                      <input
-                        className="input"
-                        value={phone}
-                        onChange={(e) => setPhone(e.target.value)}
-                        disabled={!canSave}
-                        placeholder="Optional"
-                        inputMode="tel"
-                      />
-                    </label>
-                    <div className="profile-kv">
-                      <div className="field-label">Email</div>
-                      <div className="profile-kv-value">{user.email}</div>
-                    </div>
-                    <div className="profile-kv">
-                      <div className="field-label">Role</div>
-                      <div className="profile-kv-value">{user.role}</div>
-                    </div>
-                  </div>
-
-                  <div className="profile-buttons">
-                    <button className="button button-solid" type="button" onClick={onSave} disabled={!canSave}>
-                      {status === 'saving' ? 'Saving…' : 'Save changes'}
-                    </button>
-                    <button className="button button-ghost" type="button" onClick={logout} disabled={status === 'saving'}>
-                      Logout
-                    </button>
-                    {!isDirty ? <span className="muted profile-hint">No changes to save.</span> : null}
-                  </div>
-                </section>
-
-                <section className="profile-section" aria-label="Notifications settings">
-                  <div className="profile-section-head">
-                    <div>
-                      <div className="profile-section-title">Notifications</div>
-                      <p className="muted profile-section-subtitle">
-                        Enable push notifications on this device for reminders, order updates, and recordings.
-                      </p>
-                    </div>
-                  </div>
-
-                  {pushMsg ? <p className="muted profile-note">{pushMsg}</p> : null}
-                  <div className="profile-buttons">
-                    <button className="button button-ghost" type="button" onClick={enablePush} disabled={!token || pushStatus === 'loading'}>
-                      {pushStatus === 'loading' ? 'Enabling…' : 'Enable notifications'}
-                    </button>
-                  </div>
-                </section>
+              <div style={{ marginTop: 18 }}>
+                <p className="section-kicker">Notifications</p>
+                <p className="muted" style={{ marginTop: 8 }}>
+                  Enable push notifications on this device for reminders, order updates, and recordings.
+                </p>
+                {pushMsg ? <p className="muted" style={{ marginTop: 8 }}>{pushMsg}</p> : null}
+                <div className="button-row" style={{ marginTop: 10 }}>
+                  <button className="button button-ghost" type="button" onClick={enablePush} disabled={!token || pushStatus === 'loading'}>
+                    {pushStatus === 'loading' ? 'Enabling…' : 'Enable notifications'}
+                  </button>
+                </div>
               </div>
             </>
-          )}
+          ) : null}
+
+          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginTop: 16 }}>
+            <button className="button button-solid" type="button" onClick={onSave} disabled={!canSave}>
+              {status === 'saving' ? 'Saving…' : 'Save changes'}
+            </button>
+            <button className="button button-ghost" type="button" onClick={logout} disabled={status === 'saving'}>
+            Logout
+            </button>
+          </div>
         </div>
       </div>
     </main>

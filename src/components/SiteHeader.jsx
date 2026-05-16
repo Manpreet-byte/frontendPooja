@@ -128,8 +128,10 @@ export default function SiteHeader({ onCartClick }) {
     setOpenMenu(null);
   }
 
+  const overlayHeader = location.pathname === '/' && !scrolled && !mobileOpen;
+
   return (
-    <header className={`site-header${scrolled ? ' is-scrolled' : ''}`}>
+    <header className={`site-header${scrolled ? ' is-scrolled' : ''}${overlayHeader ? ' is-overlay' : ''}`}>
       <div className="container-wide header-inner" ref={navRef}>
         <button
           className="icon-button header-burger"

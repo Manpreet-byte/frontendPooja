@@ -17,7 +17,7 @@ export const useAuthStore = create(
         set({ status: 'loading', error: '' });
         try {
           const data = await api.auth.login(payload);
-          set({ token: data.token, user: data.user, status: 'idle', hydrated: true });
+          set({ token: data.token, user: data.user, status: 'idle' });
           return data;
         } catch (err) {
           set({ status: 'idle', error: err?.message ?? 'Login failed' });
@@ -29,7 +29,7 @@ export const useAuthStore = create(
         set({ status: 'loading', error: '' });
         try {
           const data = await api.auth.signup(payload);
-          set({ token: data.token, user: data.user, status: 'idle', hydrated: true });
+          set({ token: data.token, user: data.user, status: 'idle' });
           return data;
         } catch (err) {
           set({ status: 'idle', error: err?.message ?? 'Signup failed' });
@@ -43,25 +43,7 @@ export const useAuthStore = create(
         // 1) if token exists -> validate via /api/profile
         // 2) else (or if invalid) -> silent refresh via cookie, then validate
         set({ status: 'loading', error: '' });
-        const startedToken = get().token;
-        const startedUser = get().user;
-        const finalize = (next) => {
-          // Avoid clobbering a newly-established session (e.g. user logs in) while hydration is in-flight.
-          const currentToken = get().token;
-          const currentUser = get().user;
-          const tokenChanged = Boolean(currentToken && currentToken !== startedToken);
-          if (tokenChanged) {
-            set({ token: currentToken, user: currentUser ?? null, status: 'idle', hydrated: true });
-            return;
-          }
-          // Also preserve any user state set during hydration even if token stayed the same.
-          const userChanged = currentUser && currentUser !== startedUser;
-          if (userChanged && next?.token === startedToken) {
-            set({ ...next, user: currentUser, status: 'idle', hydrated: true });
-            return;
-          }
-          set({ ...next, status: 'idle', hydrated: true });
-        };
+        const finalize = (next) => set({ ...next, status: 'idle', hydrated: true });
         try {
           const existingToken = get().token;
           if (existingToken) {
@@ -114,7 +96,7 @@ export const useAuthStore = create(
             } catch {
               // ignore
             }
-            set({ token: '', user: null, status: 'idle', error: err?.message ?? 'Session expired. Please log in again.' });
+            set({ token: '', user: null, status: 'idle', error: '' });
             return null;
           }
           // Transient failures should not log out the user on refresh.
@@ -130,11 +112,11 @@ export const useAuthStore = create(
         } catch {
           // ignore
         } finally {
-          set({ token: '', user: null, error: '', status: 'idle', hydrated: true });
+          set({ token: '', user: null, error: '', status: 'idle' });
         }
       },
 
-      setSession: ({ token, user }) => set({ token: token ?? '', user: user ?? null, status: 'idle', error: '', hydrated: true }),
+      setSession: ({ token, user }) => set({ token: token ?? '', user: user ?? null, status: 'idle', error: '' }),
     }),
     {
       name: 'love-and-flour-auth',
