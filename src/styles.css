@@ -141,6 +141,13 @@ body {
   -webkit-text-size-adjust: 100%;
   text-rendering: optimizeLegibility;
   line-height: var(--lh-normal);
+  overflow-x: clip;
+}
+
+@supports not (overflow: clip) {
+  body {
+    overflow-x: hidden;
+  }
 }
 
 ::selection {
@@ -877,16 +884,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .nav-link-action {
+  appearance: none;
+  -webkit-appearance: none;
   background: transparent;
   border: 1px solid transparent;
   color: inherit;
-}
-
-.nav-link-action:hover,
-.nav-link-action.is-active {
-  border-color: transparent;
-  background: rgba(241, 221, 205, 0.82);
-  color: var(--text);
 }
 
 .nav-link-icon {
@@ -1575,7 +1577,13 @@ h1, h2, h3, h4, h5, h6 {
   min-height: clamp(560px, 70vh, 780px);
   max-width: 1440px;
   margin: 0 auto;
-  padding: 0 24px;
+  padding: 0 var(--space-6);
+}
+
+@media (max-width: 560px) {
+  .hero-mosaic {
+    padding: 0 var(--space-4);
+  }
 }
 
 .hero-mosaic-panel {
