@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { sortByDateDesc } from '../utils/publicContent';
 import usePageTitle from '../utils/usePageTitle';
+import SelectMenu from '../components/SelectMenu';
 
 function normalizeRecipe(recipe) {
   if (!recipe) return null;
@@ -149,19 +150,17 @@ export default function RecipeLibraryPage() {
             </label>
             <label className="field">
               <span className="field-label">Category</span>
-              <select
-                className="input"
+              <SelectMenu
+                ariaLabel="Recipe category"
                 value={category}
-                onChange={(e) => onChangeCategory(e.target.value)}
                 disabled={categoryLoading}
-              >
-                <option value="">All categories</option>
-                {(categories ?? []).map((c) => (
-                  <option key={c.id ?? c.slug} value={c.slug ?? ''}>
-                    {c.name ?? c.slug}
-                  </option>
-                ))}
-              </select>
+                placeholder={categoryLoading ? 'Loading…' : 'All categories'}
+                options={[
+                  { value: '', label: 'All categories' },
+                  ...(categories ?? []).map((c) => ({ value: c.slug ?? '', label: c.name ?? c.slug ?? '' })),
+                ]}
+                onChange={(val) => onChangeCategory(val)}
+              />
             </label>
           </div>
           {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading recipes…</p> : null}

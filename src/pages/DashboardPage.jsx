@@ -4,6 +4,7 @@ import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, flushOfflineProgressQueue } from '../utils/offlineLearning';
 import usePageTitle from '../utils/usePageTitle';
+import SelectMenu from '../components/SelectMenu';
 
 function initialsFromName(name) {
   const safe = String(name ?? '').trim();
@@ -311,12 +312,17 @@ export default function DashboardPage() {
                   <div className="admin-split" style={{ marginTop: 10 }}>
                     <label className="field" style={{ margin: 0 }}>
                       <span className="field-label">Filter</span>
-                      <select className="input" value={courseFilter} onChange={(e) => setCourseFilter(e.target.value)}>
-                        <option value="active">Active</option>
-                        <option value="completed">Completed</option>
-                        <option value="expired">Expired</option>
-                        <option value="all">All</option>
-                      </select>
+                      <SelectMenu
+                        ariaLabel="Course filter"
+                        value={courseFilter}
+                        options={[
+                          { value: 'active', label: 'Active' },
+                          { value: 'completed', label: 'Completed' },
+                          { value: 'expired', label: 'Expired' },
+                          { value: 'all', label: 'All' },
+                        ]}
+                        onChange={(val) => setCourseFilter(String(val))}
+                      />
                     </label>
                     <label className="field" style={{ margin: 0 }}>
                       <span className="field-label">Search</span>

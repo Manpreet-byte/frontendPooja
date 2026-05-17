@@ -30,9 +30,10 @@ export default function LoginPage() {
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
-    const token = params.get('token');
+    const tokenRaw = params.get('token');
     const oauth = params.get('oauth');
-    if (!token || oauth !== 'google') return;
+    if (!tokenRaw || oauth !== 'google') return;
+    const token = String(tokenRaw).trim().replace(/\s+/g, '+');
     setSession({ token, user: null });
     navigate('/', { replace: true });
   }, [location.search, navigate, setSession]);

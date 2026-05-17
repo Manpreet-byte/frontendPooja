@@ -5,6 +5,7 @@ import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { sortByDateDesc } from '../utils/publicContent';
 import usePageTitle from '../utils/usePageTitle';
+import SelectMenu from '../components/SelectMenu';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,6 +13,8 @@ export default function CoursesPage() {
   const qParam = searchParams.get('q') || '';
   const [query, setQuery] = useState(qParam);
   const [courses, setCourses] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [categoryLoading, setCategoryLoading] = useState(false);
   const debounceRef = useRef(null);
   usePageTitle('Courses · Love & Flour');
 
@@ -36,6 +39,26 @@ export default function CoursesPage() {
     };
   }, []);
 
+  useEffect(() => {
+    let active = true;
+    setCategoryLoading(true);
+    api.public.categories
+      .list('course')
+      .then((data) => {
+        if (!active) return;
+        setCategories(data?.categories ?? []);
+      })
+      .catch(() => {
+        if (active) setCategories([]);
+      })
+      .finally(() => {
+        if (active) setCategoryLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   const onChangeQuery = (value) => {
     setQuery(value);
     if (debounceRef.current) window.clearTimeout(debounceRef.current);
@@ -46,6 +69,13 @@ export default function CoursesPage() {
       else next.delete('q');
       setSearchParams(next, { replace: true });
     }, 300);
+  };
+
+  const onChangeCategory = (nextCategory) => {
+    const next = new URLSearchParams(searchParams);
+    if (nextCategory) next.set('category', nextCategory);
+    else next.delete('category');
+    setSearchParams(next, { replace: true });
   };
 
   const filtered = useMemo(() => {
@@ -75,10 +105,26 @@ export default function CoursesPage() {
           subtitle={categoryName ? 'Browse workshops by format and category.' : 'Browse all workshops.'}
         />
         <div className="panel" style={{ marginBottom: 16 }}>
-          <label className="field">
-            <span className="field-label">Search</span>
-            <input className="input" value={query} onChange={(e) => onChangeQuery(e.target.value)} placeholder="Search workshops…" />
-          </label>
+          <div className="grid" style={{ gap: 12 }}>
+            <label className="field">
+              <span className="field-label">Search</span>
+              <input className="input" value={query} onChange={(e) => onChangeQuery(e.target.value)} placeholder="Search workshops…" />
+            </label>
+            <label className="field">
+              <span className="field-label">Category</span>
+              <SelectMenu
+                ariaLabel="Workshop category"
+                value={category}
+                disabled={categoryLoading}
+                placeholder={categoryLoading ? 'Loading…' : 'All categories'}
+                options={[
+                  { value: '', label: 'All categories' },
+                  ...(categories ?? []).map((c) => ({ value: c.slug ?? '', label: c.name ?? c.slug ?? '' })),
+                ]}
+                onChange={(val) => onChangeCategory(val)}
+              />
+            </label>
+          </div>
           {!filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No workshops found.</p> : null}
         </div>
         <div className="grid cards-grid">
