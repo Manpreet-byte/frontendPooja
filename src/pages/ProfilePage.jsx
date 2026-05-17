@@ -4,8 +4,10 @@ import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
 import { Link } from 'react-router-dom';
 import { ensurePushSubscribed } from '../utils/push';
+import usePageTitle from '../utils/usePageTitle';
 
 export default function ProfilePage() {
+  usePageTitle('Profile · Love & Flour');
   const user = useAuthStore((s) => s.user);
   const token = useAuthStore((s) => s.token);
   const logout = useAuthStore((s) => s.logout);

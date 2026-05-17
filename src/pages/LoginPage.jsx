@@ -15,8 +15,18 @@ export default function LoginPage() {
   const error = useAuthStore((s) => s.error);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
 
   const disabled = useMemo(() => status === 'loading', [status]);
+
+  const heroImages = useMemo(
+    () => [
+      '/seed-media/803645d1e47482b4290bf28a0d2804ed00088ecc.jpg',
+      '/seed-media/164a1a2765010bda4c89f1b0bfbbc7bda20ea99c.jpg',
+      '/seed-media/4794a4dc013ae8f0ef553acfd0b24f6fe193186e.jpg',
+    ],
+    [],
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -38,12 +48,54 @@ export default function LoginPage() {
     navigate(nextPath, { replace: true });
   };
 
+  useEffect(() => {
+    if (heroImages.length < 2) return undefined;
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return undefined;
+    const timer = window.setInterval(() => setHeroIndex((v) => (v + 1) % heroImages.length), 3200);
+    return () => window.clearInterval(timer);
+  }, [heroImages.length]);
+
   return (
-    <main className="section">
+    <main className="section auth-page">
       <div className="container auth-shell">
         <SectionHeading badge="Account" title="Login" subtitle="Welcome back. Continue your baking journey." />
 
-        <form className="panel auth-card" onSubmit={onSubmit}>
+        <div className="auth-layout">
+          <aside className="auth-visual" aria-hidden="true">
+            {heroImages.map((src, index) => (
+              <img
+                key={src}
+                className={`auth-visual-image${index === heroIndex ? ' is-active' : ''}`}
+                src={src}
+                alt=""
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchpriority={index === 0 ? 'high' : 'auto'}
+              />
+            ))}
+            <div className="auth-visual-content">
+              <div className="auth-visual-kicker">Love & Flour</div>
+              <h2 className="auth-visual-title">Welcome back</h2>
+              <p className="auth-visual-subtitle">Sign in to access your dashboard, orders, saved recipes, and workshop recordings.</p>
+            </div>
+          </aside>
+
+          <div className="auth-panel">
+            <div className="auth-panel-head">
+              <div className="auth-tabs" role="tablist" aria-label="Account pages">
+                <Link className="auth-tab is-active" to="/login" role="tab" aria-selected="true">
+                  Sign in
+                </Link>
+                <Link className="auth-tab" to="/signup" role="tab" aria-selected="false">
+                  Sign up
+                </Link>
+              </div>
+            </div>
+
+            <form className="panel auth-card" onSubmit={onSubmit}>
+              <h1 className="auth-card-title">Sign in</h1>
+              <p className="muted auth-card-subtitle">Continue your baking journey.</p>
+
           <button
             className="button button-google"
             type="button"
@@ -105,10 +157,12 @@ export default function LoginPage() {
             {disabled ? 'Logging in…' : 'Login'}
           </button>
 
-          <p className="muted auth-alt">
-            New here? <Link className="link" to="/signup">Create an account</Link>
-          </p>
-        </form>
+              <p className="muted auth-alt auth-note">
+                New here? <Link className="link" to="/signup">Create an account</Link>
+              </p>
+            </form>
+          </div>
+        </div>
       </div>
     </main>
   );

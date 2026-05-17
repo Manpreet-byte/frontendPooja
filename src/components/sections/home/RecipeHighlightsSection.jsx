@@ -89,7 +89,7 @@ export default function RecipeHighlightsSection() {
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % latest.length);
-    }, 5200);
+    }, 1000);
 
     return () => window.clearInterval(timer);
   }, [latest.length, paused]);

@@ -16,8 +16,18 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [heroIndex, setHeroIndex] = useState(0);
 
   const disabled = useMemo(() => status === 'loading', [status]);
+
+  const heroImages = useMemo(
+    () => [
+      '/seed-media/803645d1e47482b4290bf28a0d2804ed00088ecc.jpg',
+      '/seed-media/42849221d1bbdd7b1f8f4a1a4dd72ec14c4d431d.jpg',
+      '/seed-media/90fe0f7b913d409627162b8ac6619ec5ac5722c3.jpg',
+    ],
+    [],
+  );
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -48,12 +58,54 @@ export default function SignupPage() {
     navigate(nextPath, { replace: true });
   };
 
+  useEffect(() => {
+    if (heroImages.length < 2) return undefined;
+    if (typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches) return undefined;
+    const timer = window.setInterval(() => setHeroIndex((v) => (v + 1) % heroImages.length), 3200);
+    return () => window.clearInterval(timer);
+  }, [heroImages.length]);
+
   return (
-    <main className="section">
+    <main className="section auth-page">
       <div className="container auth-shell">
         <SectionHeading badge="Account" title="Sign up" subtitle="Create your account to enroll and save workshops." />
 
-        <form className="panel auth-card" onSubmit={onSubmit}>
+        <div className="auth-layout">
+          <aside className="auth-visual" aria-hidden="true">
+            {heroImages.map((src, index) => (
+              <img
+                key={src}
+                className={`auth-visual-image${index === heroIndex ? ' is-active' : ''}`}
+                src={src}
+                alt=""
+                loading={index === 0 ? 'eager' : 'lazy'}
+                decoding="async"
+                fetchpriority={index === 0 ? 'high' : 'auto'}
+              />
+            ))}
+            <div className="auth-visual-content">
+              <div className="auth-visual-kicker">Love & Flour</div>
+              <h2 className="auth-visual-title">Create your account</h2>
+              <p className="auth-visual-subtitle">Enroll in workshops, save recipes, and track your orders in one place.</p>
+            </div>
+          </aside>
+
+          <div className="auth-panel">
+            <div className="auth-panel-head">
+              <div className="auth-tabs" role="tablist" aria-label="Account pages">
+                <Link className="auth-tab" to="/login" role="tab" aria-selected="false">
+                  Sign in
+                </Link>
+                <Link className="auth-tab is-active" to="/signup" role="tab" aria-selected="true">
+                  Sign up
+                </Link>
+              </div>
+            </div>
+
+            <form className="panel auth-card" onSubmit={onSubmit}>
+              <h1 className="auth-card-title">Sign up</h1>
+              <p className="muted auth-card-subtitle">A fresh start for your baking goals.</p>
+
           <button
             className="button button-google"
             type="button"
@@ -127,10 +179,12 @@ export default function SignupPage() {
             {disabled ? 'Creating…' : 'Create account'}
           </button>
 
-          <p className="muted auth-alt">
-            Already have an account? <Link className="link" to="/login">Login</Link>
-          </p>
-        </form>
+              <p className="muted auth-alt auth-note">
+                Already have an account? <Link className="link" to="/login">Login</Link>
+              </p>
+            </form>
+          </div>
+        </div>
       </div>
     </main>
   );

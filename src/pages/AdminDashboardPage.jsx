@@ -2335,128 +2335,124 @@ export default function AdminDashboardPage() {
 
           {tab === 'orders' ? (
             <div className="admin-panel">
+              <h3 className="h3">Orders</h3>
               <div className="admin-split">
-                <div>
-                  <h3 className="h3">Orders</h3>
-                  <div className="admin-split">
-                    <label className="field">
-                      <span className="field-label">Status</span>
-                      <select
-                        className="input"
-                        value={ordersMeta.status}
-                        onChange={(e) => setOrdersMeta((s) => ({ ...s, status: e.target.value, page: 1 }))}
-                      >
-                        <option value="">All</option>
-                        <option value="payment_pending">Payment pending</option>
-                        <option value="paid">Paid</option>
-                        <option value="failed">Failed</option>
-                        <option value="refunded">Refunded</option>
-                        <option value="cancelled">Cancelled</option>
-                      </select>
-                    </label>
-                    <label className="field">
-                      <span className="field-label">Search</span>
-                      <input
-                        className="input"
-                        value={ordersMeta.q}
-                        onChange={(e) => setOrdersMeta((s) => ({ ...s, q: e.target.value, page: 1 }))}
-                        placeholder="Order id / email"
-                      />
-                    </label>
-                  </div>
-                  <div className="button-row">
-                    <button className="button button-solid" type="button" onClick={() => loadTabData('orders')} disabled={disabled}>
-                      {disabled ? 'Loading…' : 'Refresh'}
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      onClick={() => setOrdersMeta((s) => ({ ...s, page: Math.max(1, s.page - 1) }))}
-                      disabled={disabled || ordersMeta.page <= 1}
-                    >
-                      Prev
-                    </button>
-                    <button
-                      className="button button-ghost"
-                      type="button"
-                      onClick={() => setOrdersMeta((s) => ({ ...s, page: s.page + 1 }))}
-                      disabled={disabled || ordersMeta.page * ordersMeta.limit >= ordersMeta.total}
-                    >
-                      Next
-                    </button>
-                    <p className="muted" style={{ margin: 0 }}>
-                      Page {ordersMeta.page} · {ordersMeta.total} total
+                <label className="field">
+                  <span className="field-label">Status</span>
+                  <select
+                    className="input"
+                    value={ordersMeta.status}
+                    onChange={(e) => setOrdersMeta((s) => ({ ...s, status: e.target.value, page: 1 }))}
+                  >
+                    <option value="">All</option>
+                    <option value="payment_pending">Payment pending</option>
+                    <option value="paid">Paid</option>
+                    <option value="failed">Failed</option>
+                    <option value="refunded">Refunded</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </label>
+                <label className="field">
+                  <span className="field-label">Search</span>
+                  <input
+                    className="input"
+                    value={ordersMeta.q}
+                    onChange={(e) => setOrdersMeta((s) => ({ ...s, q: e.target.value, page: 1 }))}
+                    placeholder="Order id / email"
+                  />
+                </label>
+              </div>
+              <div className="button-row">
+                <button className="button button-solid" type="button" onClick={() => loadTabData('orders')} disabled={disabled}>
+                  {disabled ? 'Loading…' : 'Refresh'}
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setOrdersMeta((s) => ({ ...s, page: Math.max(1, s.page - 1) }))}
+                  disabled={disabled || ordersMeta.page <= 1}
+                >
+                  Prev
+                </button>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setOrdersMeta((s) => ({ ...s, page: s.page + 1 }))}
+                  disabled={disabled || ordersMeta.page * ordersMeta.limit >= ordersMeta.total}
+                >
+                  Next
+                </button>
+                <p className="muted" style={{ margin: 0 }}>
+                  Page {ordersMeta.page} · {ordersMeta.total} total
+                </p>
+              </div>
+
+              <div className="admin-table">
+                <div className="admin-row admin-head">
+                  <div>ID</div>
+                  <div>User</div>
+                  <div>Status</div>
+                  <div>Total</div>
+                  <div>Created</div>
+                </div>
+                {orders.map((o) => (
+                  <button
+                    key={o.id}
+                    type="button"
+                    className="admin-row admin-row-button"
+                    onClick={() => openOrder(o.id)}
+                    disabled={disabled}
+                  >
+                    <div>{o.id}</div>
+                    <div className="admin-cell-wrap">{o.email}</div>
+                    <div>{o.status}</div>
+                    <div>{formatMoney(o.total_cents, o.currency)}</div>
+                    <div className="admin-cell-wrap">{String(o.created_at).slice(0, 19).replace('T', ' ')}</div>
+                  </button>
+                ))}
+              </div>
+              {!orders.length ? <p className="muted">No orders found.</p> : null}
+
+              <div style={{ marginTop: 18 }}>
+                <h3 className="h3">Order detail</h3>
+                {selectedOrder && orderDetail ? (
+                  <div className="panel" style={{ margin: 0 }}>
+                    <p className="muted">
+                      Order #{orderDetail?.order?.id} · {orderDetail?.order?.status} · {formatMoney(orderDetail?.order?.total_cents, orderDetail?.order?.currency)}
                     </p>
-                  </div>
-
-                  <div className="admin-table">
-                    <div className="admin-row admin-head">
-                      <div>ID</div>
-                      <div>User</div>
-                      <div>Status</div>
-                      <div>Total</div>
-                      <div>Created</div>
-                    </div>
-                    {orders.map((o) => (
-                      <button
-                        key={o.id}
-                        type="button"
-                        className="admin-row admin-row-button"
-                        onClick={() => openOrder(o.id)}
-                        disabled={disabled}
-                      >
-                        <div>{o.id}</div>
-                        <div className="admin-cell-wrap">{o.email}</div>
-                        <div>{o.status}</div>
-                        <div>{formatMoney(o.total_cents, o.currency)}</div>
-                        <div className="admin-cell-wrap">{String(o.created_at).slice(0, 19).replace('T', ' ')}</div>
+                    <div className="button-row" style={{ marginTop: 12 }}>
+                      <button className="button button-solid" type="button" onClick={() => markOrderPaid(selectedOrder)} disabled={disabled}>
+                        Mark paid
                       </button>
-                    ))}
-                  </div>
-                  {!orders.length ? <p className="muted">No orders found.</p> : null}
-                </div>
-
-                <div>
-                  <h3 className="h3">Order detail</h3>
-                  {selectedOrder && orderDetail ? (
-                    <div className="panel" style={{ margin: 0 }}>
-                      <p className="muted">
-                        Order #{orderDetail?.order?.id} · {orderDetail?.order?.status} · {formatMoney(orderDetail?.order?.total_cents, orderDetail?.order?.currency)}
-                      </p>
-                      <div className="button-row" style={{ marginTop: 12 }}>
-                        <button className="button button-solid" type="button" onClick={() => markOrderPaid(selectedOrder)} disabled={disabled}>
-                          Mark paid
-                        </button>
-                        <button className="button button-ghost" type="button" onClick={() => refundOrder(selectedOrder)} disabled={disabled}>
-                          Refund
-                        </button>
-                        <button className="button" type="button" onClick={() => downloadInvoice(selectedOrder)} disabled={disabled}>
-                          Download invoice
-                        </button>
-                      </div>
-                      <h4 className="h4" style={{ marginTop: 16 }}>Items</h4>
-                      <ul className="list">
-                        {(orderDetail?.items ?? []).map((it) => (
-                          <li key={it.id}>
-                            <strong>{it.title}</strong> <span className="muted">× {it.quantity}</span>
-                          </li>
-                        ))}
-                      </ul>
-                      <h4 className="h4" style={{ marginTop: 16 }}>Payments</h4>
-                      <ul className="list">
-                        {(orderDetail?.payments ?? []).map((p) => (
-                          <li key={p.id}>
-                            <strong>{p.provider}</strong> <span className="muted">{p.status}</span> · {formatMoney(p.amount_cents, p.currency)}
-                          </li>
-                        ))}
-                      </ul>
+                      <button className="button button-ghost" type="button" onClick={() => refundOrder(selectedOrder)} disabled={disabled}>
+                        Refund
+                      </button>
+                      <button className="button" type="button" onClick={() => downloadInvoice(selectedOrder)} disabled={disabled}>
+                        Download invoice
+                      </button>
                     </div>
-                  ) : selectedOrder ? (
-                    <p className="muted">Loading order #{selectedOrder}…</p>
-                  ) : (
-                    <p className="muted">Select an order to view details.</p>
-                  )}
-                </div>
+                    <h4 className="h4" style={{ marginTop: 16 }}>Items</h4>
+                    <ul className="list">
+                      {(orderDetail?.items ?? []).map((it) => (
+                        <li key={it.id}>
+                          <strong>{it.title}</strong> <span className="muted">× {it.quantity}</span>
+                        </li>
+                      ))}
+                    </ul>
+                    <h4 className="h4" style={{ marginTop: 16 }}>Payments</h4>
+                    <ul className="list">
+                      {(orderDetail?.payments ?? []).map((p) => (
+                        <li key={p.id}>
+                          <strong>{p.provider}</strong> <span className="muted">{p.status}</span> · {formatMoney(p.amount_cents, p.currency)}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : selectedOrder ? (
+                  <p className="muted">Loading order #{selectedOrder}…</p>
+                ) : (
+                  <p className="muted">Select an order to view details.</p>
+                )}
               </div>
             </div>
           ) : null}
