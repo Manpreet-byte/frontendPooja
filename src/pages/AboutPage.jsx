@@ -4,8 +4,10 @@ import AboutSection from '../components/sections/AboutSection';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import mediaMap from '../data/seed/media-map.json';
+import usePageTitle from '../utils/usePageTitle';
 
 export default function AboutPage() {
+  usePageTitle('About · Love & Flour');
   const featuredImageOverride =
     mediaMap['https://loveandflourbypooja.com/wp-content/uploads/2025/10/Home-Banner-Image.webp'] ?? '/seed-media/accbad363cc9f4ff9ccbc04833046ebde7acb79d.webp';
   const [cms, setCms] = useState(null);

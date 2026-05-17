@@ -3,10 +3,12 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
+import usePageTitle from '../utils/usePageTitle';
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const location = useLocation();
+  usePageTitle('Login · Love & Flour');
   const login = useAuthStore((s) => s.login);
   const setSession = useAuthStore((s) => s.setSession);
   const status = useAuthStore((s) => s.status);
@@ -43,15 +45,28 @@ export default function LoginPage() {
 
         <form className="panel auth-card" onSubmit={onSubmit}>
           <button
-            className="button button-ghost"
+            className="button button-google"
             type="button"
             onClick={() => {
               window.location.assign(api.auth.googleStartUrl({ mode: 'login' }));
             }}
             disabled={disabled}
           >
+            <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18">
+              <path
+                fill="#EA4335"
+                d="M12 10.2v3.9h5.4c-.2 1.3-1.6 3.9-5.4 3.9-3.3 0-6-2.7-6-6s2.7-6 6-6c1.9 0 3.1.8 3.8 1.5l2.6-2.5C16.9 7.3 14.7 6 12 6 7.6 6 4 9.6 4 14s3.6 8 8 8c4.6 0 7.7-3.2 7.7-7.7 0-.5-.1-.9-.1-1.3H12Z"
+              />
+              <path fill="#34A853" d="M6.6 14.4l-3.2 2.4C4.9 19.6 8.2 22 12 22c2.7 0 4.9-.9 6.5-2.5l-3.1-2.4c-.9.6-2 .9-3.4.9-2.6 0-4.8-1.7-5.6-4.1Z" />
+              <path fill="#4A90E2" d="M20.6 12.9c.1-.4.1-.9.1-1.3 0-.5-.1-.9-.1-1.3H12v2.6h4.9c-.2 1-1 2.4-2.5 3.1l3.1 2.4c1.8-1.6 3.1-4 3.1-7.1Z" />
+              <path fill="#FBBC05" d="M6.4 13.9c-.2-.6-.3-1.2-.3-1.9s.1-1.3.3-1.9L3.2 7.7C2.4 9.3 2 11.1 2 12s.4 2.7 1.2 4.3l3.2-2.4Z" />
+            </svg>
             Continue with Google
           </button>
+
+          <div className="auth-divider" aria-hidden="true">
+            <span>or</span>
+          </div>
 
           <label className="field">
             <span className="field-label">Email</span>

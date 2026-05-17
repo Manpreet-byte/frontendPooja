@@ -11,9 +11,11 @@ import TestimonialsSection from '../components/sections/home/TestimonialsSection
 import NewsletterSection from '../components/sections/NewsletterSection';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
+import usePageTitle from '../utils/usePageTitle';
 
 export default function HomePage() {
   const [cms, setCms] = useState(null);
+  usePageTitle('Love & Flour by Pooja');
 
   useEffect(() => {
     let active = true;

@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { sortByDateDesc } from '../utils/publicContent';
+import usePageTitle from '../utils/usePageTitle';
 
 function normalizeRecipe(recipe) {
   if (!recipe) return null;
@@ -41,6 +42,7 @@ export default function RecipeLibraryPage() {
   const [error, setError] = useState('');
   const [posts, setPosts] = useState([]);
   const debounceRef = useRef(null);
+  usePageTitle('Recipe Library · Love & Flour');
 
   useEffect(() => {
     setQuery(qParam);

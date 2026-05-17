@@ -314,55 +314,114 @@ export default function SiteHeader({ onCartClick }) {
       </div>
 
       {mobileOpen && (
-        <nav className="mobile-nav is-open" aria-label="Mobile navigation">
-          <div className="container mobile-nav-inner">
-            <NavLink className="mobile-nav-link" to="/" onClick={() => setMobileOpen(false)} end>
-              Home
-            </NavLink>
-            <NavLink className="mobile-nav-link" to="/about" onClick={() => setMobileOpen(false)}>
-              About
-            </NavLink>
-            <NavLink className="mobile-nav-link" to="/courses" onClick={() => setMobileOpen(false)}>
-              Online Workshops
-            </NavLink>
-            {courseCategories.map((cat) => (
-              <NavLink
-                key={cat.slug}
-                className="mobile-nav-link mobile-nav-sublink"
-                to={`/courses?category=${encodeURIComponent(cat.slug)}`}
-                onClick={() => setMobileOpen(false)}
-              >
-                {cat.name}
+        <div className="mobile-nav-overlay" role="dialog" aria-modal="true" aria-label="Menu">
+          <button className="mobile-nav-backdrop" type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)} />
+          <nav className="mobile-nav-panel is-open" aria-label="Mobile navigation">
+            <div className="mobile-nav-head">
+              <span className="mobile-nav-title">Menu</span>
+              <button className="icon-button mobile-nav-close" type="button" aria-label="Close menu" onClick={() => setMobileOpen(false)}>
+                <span aria-hidden="true">×</span>
+              </button>
+            </div>
+
+            <div className="mobile-nav-inner">
+              <NavLink className="mobile-nav-link" to="/" onClick={() => setMobileOpen(false)} end>
+                Home
               </NavLink>
-            ))}
-            <NavLink
-              className="mobile-nav-link"
-              to="/courses?category=hands-on-classes"
-              onClick={() => setMobileOpen(false)}
-            >
-              Hands-On Classes
-            </NavLink>
-            <NavLink className="mobile-nav-link" to="/recipe-library" onClick={() => setMobileOpen(false)}>
-              Recipe Library
-            </NavLink>
-            <NavLink className="mobile-nav-link mobile-nav-sublink" to="/recipe-library" onClick={() => setMobileOpen(false)}>
-              All Recipes
-            </NavLink>
-            {recipeCategories.map((cat) => (
-              <NavLink
-                key={cat.slug}
-                className="mobile-nav-link mobile-nav-sublink"
-                to={`/recipe-library?category=${encodeURIComponent(cat.slug)}`}
-                onClick={() => setMobileOpen(false)}
-              >
-                {cat.name}
+              <NavLink className="mobile-nav-link" to="/about" onClick={() => setMobileOpen(false)}>
+                About
               </NavLink>
-            ))}
-            <NavLink className="mobile-nav-link" to="/contact" onClick={() => setMobileOpen(false)}>
-              Contact
-            </NavLink>
-          </div>
-        </nav>
+
+              <details className="mobile-nav-group">
+                <summary className="mobile-nav-link mobile-nav-summary">Online Workshops</summary>
+                <div className="mobile-nav-group-inner">
+                  <NavLink className="mobile-nav-link mobile-nav-sublink" to="/courses" onClick={() => setMobileOpen(false)}>
+                    Explore all
+                  </NavLink>
+                  {courseCategories.map((cat) => (
+                    <NavLink
+                      key={cat.slug}
+                      className="mobile-nav-link mobile-nav-sublink"
+                      to={`/courses?category=${encodeURIComponent(cat.slug)}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {cat.name}
+                    </NavLink>
+                  ))}
+                  <NavLink
+                    className="mobile-nav-link mobile-nav-sublink"
+                    to="/courses?category=hands-on-classes"
+                    onClick={() => setMobileOpen(false)}
+                  >
+                    Hands-On Classes
+                  </NavLink>
+                </div>
+              </details>
+
+              <details className="mobile-nav-group">
+                <summary className="mobile-nav-link mobile-nav-summary">Recipe Library</summary>
+                <div className="mobile-nav-group-inner">
+                  <NavLink className="mobile-nav-link mobile-nav-sublink" to="/recipe-library" onClick={() => setMobileOpen(false)}>
+                    All Recipes
+                  </NavLink>
+                  {recipeCategories.map((cat) => (
+                    <NavLink
+                      key={cat.slug}
+                      className="mobile-nav-link mobile-nav-sublink"
+                      to={`/recipe-library?category=${encodeURIComponent(cat.slug)}`}
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      {cat.name}
+                    </NavLink>
+                  ))}
+                </div>
+              </details>
+
+              <NavLink className="mobile-nav-link" to="/contact" onClick={() => setMobileOpen(false)}>
+                Contact
+              </NavLink>
+
+              <div className="mobile-nav-divider" aria-hidden="true" />
+
+              {token ? (
+                <div className="mobile-nav-account">
+                  {role === 'admin' || role === 'super_admin' ? (
+                    <NavLink className="mobile-nav-link" to="/admin/dashboard" onClick={() => setMobileOpen(false)}>
+                      Admin
+                    </NavLink>
+                  ) : null}
+                  {role === 'instructor' ? (
+                    <NavLink className="mobile-nav-link" to="/instructor/dashboard" onClick={() => setMobileOpen(false)}>
+                      Instructor
+                    </NavLink>
+                  ) : null}
+                  {role !== 'admin' && role !== 'super_admin' ? (
+                    <NavLink className="mobile-nav-link" to="/dashboard" onClick={() => setMobileOpen(false)}>
+                      Dashboard
+                    </NavLink>
+                  ) : null}
+                  <NavLink className="mobile-nav-link" to="/profile" onClick={() => setMobileOpen(false)}>
+                    Profile
+                  </NavLink>
+                  <button
+                    className="mobile-nav-link mobile-nav-action"
+                    type="button"
+                    onClick={() => {
+                      setMobileOpen(false);
+                      logout();
+                    }}
+                  >
+                    Logout
+                  </button>
+                </div>
+              ) : (
+                <NavLink className="mobile-nav-link" to="/login" onClick={() => setMobileOpen(false)}>
+                  Login
+                </NavLink>
+              )}
+            </div>
+          </nav>
+        </div>
       )}
     </header>
   );

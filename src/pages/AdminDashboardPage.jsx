@@ -7,6 +7,7 @@ import SparklineBarChart from '../components/admin/SparklineBarChart';
 import SparklineLineChart from '../components/admin/SparklineLineChart';
 import { computeRange } from '../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../utils/admin/exporters';
+import usePageTitle from '../utils/usePageTitle';
 
 function parseJsonMaybe(value) {
   if (value == null) return null;
@@ -56,6 +57,7 @@ function formatMoney(cents, currency = 'INR') {
 export default function AdminDashboardPage() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  usePageTitle('Admin · Love & Flour');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const importSource = 'loveandflourbypooja';
   const [status, setStatus] = useState('idle');

@@ -106,6 +106,14 @@ export default function App() {
   }, [location.pathname]);
 
   useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const reduceMotion = window.matchMedia?.('(prefers-reduced-motion: reduce)')?.matches;
+    window.scrollTo({ top: 0, left: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+    const content = document.getElementById('content');
+    if (content?.focus) content.focus({ preventScroll: true });
+  }, [location.pathname]);
+
+  useEffect(() => {
     const unsub = useAuthStore.persist.onFinishHydration(() => setPersistHydrated(true));
     // In case hydration already finished before this effect runs.
     if (useAuthStore.persist.hasHydrated()) setPersistHydrated(true);

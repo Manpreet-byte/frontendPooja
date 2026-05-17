@@ -4,6 +4,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
 import { sortByDateDesc } from '../utils/publicContent';
+import usePageTitle from '../utils/usePageTitle';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -12,6 +13,7 @@ export default function CoursesPage() {
   const [query, setQuery] = useState(qParam);
   const [courses, setCourses] = useState([]);
   const debounceRef = useRef(null);
+  usePageTitle('Courses · Love & Flour');
 
   useEffect(() => {
     setQuery(qParam);

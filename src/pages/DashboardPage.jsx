@@ -3,6 +3,7 @@ import { Link, NavLink } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, flushOfflineProgressQueue } from '../utils/offlineLearning';
+import usePageTitle from '../utils/usePageTitle';
 
 function initialsFromName(name) {
   const safe = String(name ?? '').trim();
@@ -16,6 +17,7 @@ function initialsFromName(name) {
 export default function DashboardPage() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  usePageTitle('Dashboard · Love & Flour');
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const hydrated = useAuthStore((s) => s.hydrated);
@@ -322,15 +324,15 @@ export default function DashboardPage() {
                     </label>
                   </div>
                   {filteredCourses.length ? (
-                    <ul className="list" style={{ marginTop: 12 }}>
+                    <ul className="list dashboard-course-list" style={{ marginTop: 12 }}>
                       {filteredCourses.slice(0, 8).map((c) => {
                         const pct = c?.progress?.progress_percentage ?? 0;
                         const isCompleted = Boolean(c?.progress?.is_completed);
                         return (
-                          <li key={c.course_id}>
-                            <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
-                              <strong>{c.title}</strong>
-                              <span className="muted">
+                          <li key={c.course_id} className="dashboard-course-item">
+                            <div className="dashboard-course-head">
+                              <strong className="dashboard-course-title">{c.title}</strong>
+                              <span className="muted dashboard-course-meta">
                                 {c._status === 'expired'
                                   ? c.expiry_date
                                     ? `(expired on ${String(c.expiry_date).slice(0, 10)})`
@@ -435,11 +437,21 @@ export default function DashboardPage() {
                   <div className="panel">
                     <h3 className="h3">Recommended for you</h3>
                     <p className="muted">Based on your learning and what’s trending.</p>
-                    <div className="grid" style={{ gap: 12, gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))' }}>
+                    <div className="dashboard-reco-grid">
                       {(recommended.length ? recommended : trending).slice(0, 6).map((c) => (
-                        <Link key={c.id} className="panel" style={{ textDecoration: 'none' }} to={`/courses/${encodeURIComponent(c.slug)}`}>
-                          <div style={{ fontWeight: 700 }}>{c.title}</div>
-                          {c.summary ? <div className="muted" style={{ marginTop: 6 }}>{String(c.summary).slice(0, 90)}{String(c.summary).length > 90 ? '…' : ''}</div> : null}
+                        <Link key={c.id} className="dashboard-reco-card" to={`/courses/${encodeURIComponent(c.slug)}`}>
+                          <div className="dashboard-reco-title">{c.title}</div>
+                          {c.summary ? (
+                            <div className="muted dashboard-reco-summary">
+                              {String(c.summary).slice(0, 90)}
+                              {String(c.summary).length > 90 ? '…' : ''}
+                            </div>
+                          ) : (
+                            <div className="muted dashboard-reco-summary">Open to see details and pricing.</div>
+                          )}
+                          <div className="dashboard-reco-cta" aria-hidden="true">
+                            View workshop →
+                          </div>
                         </Link>
                       ))}
                     </div>

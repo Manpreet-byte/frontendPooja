@@ -8,6 +8,7 @@ import FunnelAnalyticsPage from './admin/analytics/FunnelAnalyticsPage';
 import TopCoursesAnalyticsPage from './admin/analytics/TopCoursesAnalyticsPage';
 import RetentionAnalyticsPage from './admin/analytics/RetentionAnalyticsPage';
 import UsersAnalyticsPage from './admin/analytics/UsersAnalyticsPage';
+import usePageTitle from '../utils/usePageTitle';
 
 const nav = [
   { to: '/admin/dashboard', label: '← Admin dashboard' },
@@ -23,6 +24,7 @@ const nav = [
 export default function AdminAnalyticsPage() {
   const user = useAuthStore((s) => s.user);
   const location = useLocation();
+  usePageTitle('Admin analytics · Love & Flour');
   const [rangePreset, setRangePreset] = useState('last_30'); // today | last_7 | last_30 | custom
   const [rangeFrom, setRangeFrom] = useState('');
   const [rangeTo, setRangeTo] = useState('');
@@ -112,4 +114,3 @@ export default function AdminAnalyticsPage() {
     </main>
   );
 }
-

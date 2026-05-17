@@ -142,8 +142,18 @@ export default function CartDrawer({ open, onClose }) {
                         <p className="cart-item-title">{item.title}</p>
                         {item.priceText ? <p className="cart-item-price">{item.priceText}</p> : null}
                         <p className="cart-item-meta">Added to cart</p>
+                        <div className="cart-item-links">
+                          <Link className="cart-item-link" to={`/courses/${encodeURIComponent(item.slug ?? item.id)}`} onClick={onClose}>
+                            View details
+                          </Link>
+                        </div>
                       </div>
-                      <button className="cart-remove" type="button" onClick={() => removeCourse(item.id)}>
+                      <button
+                        className="cart-remove"
+                        type="button"
+                        onClick={() => removeCourse(item.id)}
+                        aria-label={`Remove ${item.title} from cart`}
+                      >
                         Remove
                       </button>
                     </div>
@@ -153,53 +163,61 @@ export default function CartDrawer({ open, onClose }) {
             </ul>
 
             <div className="cart-drawer-footer">
-            <div className="cart-summary">
-              <span>{items.length} workshop{items.length === 1 ? '' : 's'} selected</span>
-              <button className="button button-ghost" type="button" onClick={clearCart}>
-                Clear cart
-              </button>
-            </div>
-
-            <div className="field" style={{ marginTop: 12 }}>
-              <span className="field-label">Coupon</span>
-              <div className="checkout-row">
-                <input
-                  className="input"
-                  value={couponInput}
-                  onChange={(e) => setCouponInput(e.target.value)}
-                  placeholder="Optional"
-                />
-                <button className="button button-ghost" type="button" onClick={applyCoupon} disabled={!items.length || validating}>
-                  {validating ? 'Checking…' : 'Apply'}
+              <div className="cart-summary">
+                <span>{items.length} workshop{items.length === 1 ? '' : 's'} selected</span>
+                <button className="button button-ghost" type="button" onClick={clearCart}>
+                  Clear cart
                 </button>
               </div>
-              {couponMessage ? (
-                <p className="muted" role="status" aria-live="polite">
-                  {couponMessage}
-                </p>
-              ) : null}
-              {preview?.valid && preview?.final_total != null ? (
-                <p className="muted">Preview total: {formatMoney(preview.final_total, preview.currency ?? totals.currency)}</p>
-              ) : null}
-            </div>
 
-            <div className="checkout-totals" style={{ marginTop: 12 }}>
-              <div className="checkout-line">
-                <span className="muted">Subtotal</span>
-                <span>{formatMoney(totals.subtotal, totals.currency)}</span>
-              </div>
-              {preview?.valid && preview?.discount_amount != null ? (
-                <div className="checkout-line">
-                  <span className="muted">Discount</span>
-                  <span>-{formatMoney(preview.discount_amount, preview.currency ?? totals.currency)}</span>
+              <div className="field">
+                <span className="field-label">Coupon</span>
+                <div className="checkout-row">
+                  <input
+                    className="input"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value)}
+                    placeholder="Optional"
+                  />
+                  <button className="button button-ghost" type="button" onClick={applyCoupon} disabled={!items.length || validating}>
+                    {validating ? 'Checking…' : 'Apply'}
+                  </button>
                 </div>
-              ) : null}
-            </div>
+                {couponMessage ? (
+                  <p className="muted" role="status" aria-live="polite">
+                    {couponMessage}
+                  </p>
+                ) : null}
+              </div>
 
-            <Link className="button button-solid cart-checkout" to="/checkout" onClick={onClose}>
-              Proceed to checkout
-            </Link>
-          </div>
+              <div className="checkout-totals">
+                <div className="checkout-line">
+                  <span className="muted">Subtotal</span>
+                  <span>{formatMoney(totals.subtotal, totals.currency)}</span>
+                </div>
+                {preview?.valid && preview?.discount_amount != null ? (
+                  <div className="checkout-line">
+                    <span className="muted">Discount</span>
+                    <span>-{formatMoney(preview.discount_amount, preview.currency ?? totals.currency)}</span>
+                  </div>
+                ) : null}
+                <div className="checkout-line checkout-line-strong">
+                  <span>Total</span>
+                  <span>
+                    {formatMoney(
+                      preview?.valid && preview?.final_total != null ? preview.final_total : totals.subtotal,
+                      preview?.currency ?? totals.currency,
+                    )}
+                  </span>
+                </div>
+                {!token ? <p className="muted cart-note">Login at checkout to validate coupons.</p> : null}
+              </div>
+
+              <Link className="button button-solid cart-checkout" to="/checkout" onClick={onClose}>
+                Proceed to checkout
+              </Link>
+              <p className="muted cart-note">Secure payments · Instant access after purchase</p>
+            </div>
           </>
         ) : (
           <div className="cart-empty">
