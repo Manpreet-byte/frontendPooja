@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Playfair+Display:wght@500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Playfair+Display:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Minimal Elegant - New Palette provided by user */
@@ -49,8 +49,8 @@
   --radius-xl: 28px;
 
   /* Fonts */
-  --font-body: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Playfair Display', serif;
+  --font-body: 'Manrope', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-display: 'Playfair Display', Georgia, serif;
 
   /* Spacing scale */
   --space-1: 4px;
@@ -98,7 +98,7 @@
   }
 }
 
-/* Type scale: Playfair for headings, Poppins for body */
+/* Type scale: Display font for headings, Manrope for body */
 :root {
   /* Display & Hero typography */
   --type-hero: clamp(3.2rem, 5vw + 1.2rem, 5.2rem);
@@ -144,6 +144,13 @@ body {
   overflow-x: clip;
 }
 
+input,
+textarea,
+button,
+select {
+  font: inherit;
+}
+
 @supports not (overflow: clip) {
   body {
     overflow-x: hidden;
@@ -166,14 +173,15 @@ h6 {
   letter-spacing: -0.02em;
   margin: 0;
   color: var(--text);
+  font-weight: 600;
 }
 
-h1 { font-weight: 800; line-height: 1.08; }
-h2 { font-weight: 800; line-height: 1.12; }
-h3 { font-weight: 700; line-height: 1.2; }
-h4 { font-weight: 700; line-height: 1.25; }
-h5 { font-weight: 600; line-height: 1.3; }
-h6 { font-weight: 600; line-height: 1.35; }
+h1 { font-weight: 700; line-height: 1.08; letter-spacing: -0.03em; }
+h2 { font-weight: 700; line-height: 1.12; letter-spacing: -0.028em; }
+h3 { font-weight: 650; line-height: 1.2; letter-spacing: -0.025em; }
+h4 { font-weight: 600; line-height: 1.25; letter-spacing: -0.02em; }
+h5 { font-weight: 600; line-height: 1.3; letter-spacing: -0.015em; }
+h6 { font-weight: 600; line-height: 1.35; letter-spacing: -0.01em; }
 
 body::before {
   content: '';
@@ -378,11 +386,11 @@ iframe {
   gap: var(--space-6);
 }
 
-/* Typography System: Premium Bakery Brand */
-/* Typography System: Consistent & Accessible Hierarchy */
+/* Typography System: Premium Bakery Brand headings */
+/* Responsive heading hierarchy with optical sizing and refined letter-spacing */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
-  font-weight: 700;
+  font-weight: 600;
   margin: 0;
   letter-spacing: -0.02em;
   line-height: var(--lh-tight);
@@ -391,15 +399,15 @@ h1, h2, h3, h4, h5, h6 {
 .h1 {
   font-size: var(--type-hero);
   font-weight: 700;
-  letter-spacing: -0.025em;
-  line-height: 1.1;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
 }
 
 .h2,
 .hero-title,
 .footer-brand-name {
   font-family: var(--font-display);
-  letter-spacing: -0.025em;
+  letter-spacing: -0.028em;
   margin: 0;
   font-weight: 700;
   font-size: var(--type-display);
@@ -408,19 +416,19 @@ h1, h2, h3, h4, h5, h6 {
 
 .h3 {
   font-family: var(--font-display);
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
   margin: 0;
   font-size: var(--type-lg);
-  line-height: var(--lh-snug);
-  font-weight: 700;
+  line-height: 1.18;
+  font-weight: 650;
 }
 
 .h4 {
   font-family: var(--font-display);
   margin: 0 0 10px;
-  font-size: 1.4rem;
-  letter-spacing: -0.015em;
-  font-weight: 700;
+  font-size: 1.32rem;
+  letter-spacing: -0.02em;
+  font-weight: 600;
   line-height: var(--lh-snug);
 }
 
@@ -892,7 +900,19 @@ h1, h2, h3, h4, h5, h6 {
   -webkit-appearance: none;
   background: transparent;
   border: 1px solid transparent;
-  color: inherit;
+  color: var(--dark-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  line-height: 1;
+  padding-inline: 12px;
+}
+
+.nav-link-action:hover,
+.nav-link-action.is-active {
+  background: rgba(241, 221, 205, 0.82);
+  color: var(--text);
 }
 
 .nav-link-icon {
@@ -2433,7 +2453,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .pathway-card .h3 {
   line-height: 1.05;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
+  font-weight: 650;
 }
 
 .pathway-cta {
@@ -2793,6 +2814,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: clamp(2.2rem, 4vw, 3.4rem);
   line-height: 0.96;
   letter-spacing: -0.03em;
+  font-weight: 700;
 }
 
 .recipe-feature-overlay p {
@@ -2991,6 +3013,8 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-size: clamp(2rem, 3vw, 2.8rem);
   color: #4a2a1d;
+  font-weight: 700;
+  letter-spacing: -0.028em;
 }
 
 .bakery-showcase-bar {
@@ -3088,6 +3112,8 @@ h1, h2, h3, h4, h5, h6 {
   text-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  font-weight: 700;
+  letter-spacing: -0.03em;
 }
 
 .bakery-showcase-copy p {
@@ -3168,8 +3194,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .bakery-mini-card h4 {
   bottom: 40px;
-  font-size: 0.94rem;
+  font-size: clamp(0.9rem, 2vw, 1rem);
   color: #fff7e8;
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1.2;
 }
 
 .bakery-mini-card p {
@@ -3850,12 +3880,16 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, rgba(255, 250, 244, 0.98), rgba(235, 214, 187, 0.95));
   position: relative;
   overflow: hidden;
+  width: 100%;
 }
 
 .course-card-media img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
   transform: scale(1.02);
   transition: transform 0.6s cubic-bezier(.2,.8,.2,1), filter 0.45s ease;
@@ -3884,6 +3918,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .course-card-link {
   color: var(--text);
+  width: 100%;
+  min-width: 0;
 }
 
 .course-card-body .muted {
@@ -3903,13 +3939,18 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .course-card-link .h3 {
-  font-size: 1.18rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.14rem, 2.4vw, 1.28rem);
   line-height: 1.18;
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  word-break: break-word;
+  overflow-wrap: anywhere;
+  font-weight: 650;
+  letter-spacing: -0.025em;
 }
 
 .course-card-link:hover .h3 {

@@ -1,9 +1,12 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import SectionHeading from '../SectionHeading';
+import { api } from '../../api/client';
 
 export default function ContactSection() {
   const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [status, setStatus] = useState('idle');
+  const [error, setError] = useState('');
 
   return (
     <section id="contact" className="section section-contact">
@@ -78,11 +81,19 @@ export default function ContactSection() {
 
           <form
             className="panel contact-form contact-form-modern"
-            onSubmit={(e) => {
+            onSubmit={async (e) => {
               e.preventDefault();
-              // eslint-disable-next-line no-alert
-              alert("Thank you for your message! We'll get back to you soon.");
-              setForm({ name: '', email: '', subject: '', message: '' });
+              if (status === 'loading') return;
+              setStatus('loading');
+              setError('');
+              try {
+                await api.public.contact.send(form);
+                setStatus('success');
+                setForm({ name: '', email: '', subject: '', message: '' });
+              } catch (err) {
+                setStatus('error');
+                setError(err?.message || 'Failed to send message. Please try again.');
+              }
             }}
           >
             <div className="contact-form-head">
@@ -141,13 +152,24 @@ export default function ContactSection() {
             </label>
 
             <div className="button-row">
-              <button className="button button-solid" type="submit">
-                Send message
+              <button className="button button-solid" type="submit" disabled={status === 'loading'}>
+                {status === 'loading' ? 'Sending…' : 'Send message'}
               </button>
               <a className="button button-ghost" href="mailto:contact@loveandflourbypooja.com">
                 Email directly
               </a>
             </div>
+
+            {status === 'success' ? (
+              <p className="muted" role="status" style={{ marginTop: 10 }}>
+                Thanks! Your message has been sent.
+              </p>
+            ) : null}
+            {status === 'error' && error ? (
+              <p className="form-error" role="alert" style={{ marginTop: 10 }}>
+                {error}
+              </p>
+            ) : null}
           </form>
         </div>
       </div>

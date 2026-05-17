@@ -51,6 +51,7 @@ export default function RecipeHighlightsSection() {
   const [latest, setLatest] = useState([]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [hoverPauseEnabled, setHoverPauseEnabled] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -67,6 +68,19 @@ export default function RecipeHighlightsSection() {
     return () => {
       active = false;
     };
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') return undefined;
+    const query = window.matchMedia('(hover: hover) and (pointer: fine)');
+    const onChange = () => setHoverPauseEnabled(Boolean(query.matches));
+    onChange();
+    if (typeof query.addEventListener === 'function') {
+      query.addEventListener('change', onChange);
+      return () => query.removeEventListener('change', onChange);
+    }
+    query.addListener(onChange);
+    return () => query.removeListener(onChange);
   }, []);
 
   useEffect(() => {
@@ -142,8 +156,12 @@ export default function RecipeHighlightsSection() {
 
           <div
             className="recipe-showcase-carousel"
-            onPointerEnter={() => setPaused(true)}
-            onPointerLeave={() => setPaused(false)}
+            onPointerEnter={() => {
+              if (hoverPauseEnabled) setPaused(true);
+            }}
+            onPointerLeave={() => {
+              if (hoverPauseEnabled) setPaused(false);
+            }}
             onFocusCapture={() => setPaused(true)}
             onBlurCapture={() => setPaused(false)}
           >

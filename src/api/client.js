@@ -351,6 +351,9 @@ export const api = {
     newsletter: {
       subscribe: (payload) => request('/api/public/newsletter/subscribe', { method: 'POST', body: payload, _retry: false }),
     },
+    contact: {
+      send: (payload) => request('/api/public/contact', { method: 'POST', body: payload, _retry: false }),
+    },
     liveSessions: {
       list: () => request('/api/public/live-sessions'),
       detail: (slug) => request(`/api/public/live-sessions/${encodeURIComponent(slug)}`),
