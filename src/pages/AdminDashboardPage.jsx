@@ -60,6 +60,7 @@ export default function AdminDashboardPage() {
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
+  const setSession = useAuthStore((s) => s.setSession);
   usePageTitle('Admin · Love & Flour');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const importSource = 'loveandflourbypooja';
@@ -168,6 +169,9 @@ export default function AdminDashboardPage() {
   };
 
   const [courses, setCourses] = useState([]);
+  const [courseProgress, setCourseProgress] = useState(null);
+  const [courseProgressStatus, setCourseProgressStatus] = useState('idle'); // idle | loading | error
+  const [courseProgressError, setCourseProgressError] = useState('');
   const [workshops, setWorkshops] = useState([]);
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
@@ -221,10 +225,16 @@ export default function AdminDashboardPage() {
     content: '',
     featured_image_url: '',
     price_inr: '',
+    compare_at_inr: '',
+    sale_price_inr: '',
+    sale_starts_at: '',
+    sale_ends_at: '',
     category_ids: [],
     scheduled_at: '',
     zoom_meeting_id: '',
     zoom_join_url: '',
+    publish_at: '',
+    qa_enabled: true,
     is_published: true,
   });
 
@@ -234,10 +244,16 @@ export default function AdminDashboardPage() {
     content: '',
     featured_image_url: '',
     price_inr: '',
+    compare_at_inr: '',
+    sale_price_inr: '',
+    sale_starts_at: '',
+    sale_ends_at: '',
     category_ids: [],
     scheduled_at: '',
     zoom_meeting_id: '',
     zoom_join_url: '',
+    publish_at: '',
+    qa_enabled: true,
     is_published: true,
   });
 
@@ -261,8 +277,13 @@ export default function AdminDashboardPage() {
     featured_image_url: '',
     content: '',
     category_ids: [],
+    tag_ids: [],
+    publish_at: '',
     is_published: true,
   });
+
+  const [tags, setTags] = useState([]);
+  const [tagForm, setTagForm] = useState({ name: '' });
 
   const recipeSelectedCategoryNames = (recipeForm.category_ids || []).length
     ? (recipeForm.category_ids || [])
@@ -447,6 +468,8 @@ export default function AdminDashboardPage() {
     enrollments: null,
     ordersSummary: null,
     topCourses: null,
+    qa: null,
+    support: null,
   });
 
   const disabled = useMemo(() => status === 'loading', [status]);
@@ -707,10 +730,14 @@ export default function AdminDashboardPage() {
         const data = await api.admin.categories.list(token);
         setCategories(data.categories ?? []);
       } else if (nextTab === 'recipes') {
-        const data = await api.admin.recipes.list(token, { source: importSource });
+        const [data, cats, tagData] = await Promise.all([
+          api.admin.recipes.list(token, { source: importSource }),
+          api.admin.categories.list(token, 'recipe', { source: importSource }),
+          api.admin.tags.list(token, { type: 'recipe' }),
+        ]);
         setRecipes(data.recipes ?? []);
-        const cats = await api.admin.categories.list(token, 'recipe', { source: importSource });
         setRecipeCategories(cats.categories ?? []);
+        setTags(tagData?.tags ?? []);
       } else if (nextTab === 'imports') {
         setImportPreviewLoading(true);
         setImportPreviewError('');
@@ -1147,11 +1174,13 @@ export default function AdminDashboardPage() {
     setReportsError('');
     setMessage('');
     try {
-      const [rev, enr, ordersSum, top] = await Promise.all([
+      const [rev, enr, ordersSum, top, qa, support] = await Promise.all([
         api.admin.analytics.revenue(token, range),
         api.admin.analytics.enrollments(token, range),
         api.admin.analytics.ordersSummary(token, range),
         api.admin.analytics.topCourses(token, range),
+        api.admin.analytics.qa(token, range),
+        api.admin.analytics.support(token, range),
       ]);
       setReportsData({
         range,
@@ -1159,6 +1188,8 @@ export default function AdminDashboardPage() {
         enrollments: enr?.enrollments ?? enr ?? null,
         ordersSummary: ordersSum?.orders_summary ?? ordersSum ?? null,
         topCourses: top?.top_courses ?? top ?? null,
+        qa: qa?.qa ?? qa ?? null,
+        support: support?.support ?? support ?? null,
       });
       setReportsStatus('idle');
       setReportsError('');
@@ -1451,7 +1482,18 @@ export default function AdminDashboardPage() {
         content: courseForm.content || null,
         featured_image_url: courseForm.featured_image_url || null,
         category_ids: categoryIds,
-        price: courseForm.price_inr ? { currency: 'INR', amount_cents: Number(courseForm.price_inr) * 100 } : null,
+        price: courseForm.price_inr
+          ? {
+              currency: 'INR',
+              amount_cents: Number(courseForm.price_inr) * 100,
+              compare_at_amount_cents: courseForm.compare_at_inr ? Number(courseForm.compare_at_inr) * 100 : null,
+              sale_amount_cents: courseForm.sale_price_inr ? Number(courseForm.sale_price_inr) * 100 : null,
+              sale_starts_at: courseForm.sale_starts_at || null,
+              sale_ends_at: courseForm.sale_ends_at || null,
+            }
+          : null,
+        publish_at: courseForm.publish_at || null,
+        qa_enabled: Boolean(courseForm.qa_enabled),
         is_published: Boolean(courseForm.is_published),
       };
       if (editingCourseId) {
@@ -1473,10 +1515,16 @@ export default function AdminDashboardPage() {
         content: '',
         featured_image_url: '',
         price_inr: '',
+        compare_at_inr: '',
+        sale_price_inr: '',
+        sale_starts_at: '',
+        sale_ends_at: '',
         category_ids: [],
         scheduled_at: '',
         zoom_meeting_id: '',
         zoom_join_url: '',
+        publish_at: '',
+        qa_enabled: true,
         is_published: true,
       });
       await loadTabData('courses');
@@ -1484,6 +1532,21 @@ export default function AdminDashboardPage() {
       setMessage(err?.message ?? 'Failed to save course');
     } finally {
       setStatus('idle');
+    }
+  };
+
+  const loadCourseProgress = async (courseId) => {
+    if (!token || !courseId) return;
+    setCourseProgressStatus('loading');
+    setCourseProgressError('');
+    try {
+      const data = await api.admin.courses.progress(token, courseId);
+      setCourseProgress(data ?? null);
+      setCourseProgressStatus('idle');
+    } catch (err) {
+      setCourseProgress(null);
+      setCourseProgressStatus('error');
+      setCourseProgressError(err?.message ?? 'Failed to load course progress');
     }
   };
 
@@ -1495,10 +1558,16 @@ export default function AdminDashboardPage() {
       content: course.content ?? '',
       featured_image_url: course.featured_image_url ?? '',
       price_inr: course.amount_cents ? String(Math.round(course.amount_cents / 100)) : '',
+      compare_at_inr: course.compare_at_amount_cents ? String(Math.round(course.compare_at_amount_cents / 100)) : '',
+      sale_price_inr: course.sale_amount_cents ? String(Math.round(course.sale_amount_cents / 100)) : '',
+      sale_starts_at: course.sale_starts_at ? String(course.sale_starts_at) : '',
+      sale_ends_at: course.sale_ends_at ? String(course.sale_ends_at) : '',
       category_ids: Array.isArray(course.category_ids) ? course.category_ids : [],
       scheduled_at: '',
       zoom_meeting_id: '',
       zoom_join_url: '',
+      publish_at: course.publish_at ? String(course.publish_at) : '',
+      qa_enabled: course.qa_enabled == null ? true : Boolean(course.qa_enabled),
       is_published: Boolean(course.is_published),
     });
     setTab('courses');
@@ -1512,10 +1581,16 @@ export default function AdminDashboardPage() {
       content: '',
       featured_image_url: '',
       price_inr: '',
+      compare_at_inr: '',
+      sale_price_inr: '',
+      sale_starts_at: '',
+      sale_ends_at: '',
       category_ids: [],
       scheduled_at: '',
       zoom_meeting_id: '',
       zoom_join_url: '',
+      publish_at: '',
+      qa_enabled: true,
       is_published: true,
     });
   };
@@ -1551,7 +1626,18 @@ export default function AdminDashboardPage() {
         content: workshopForm.content || null,
         featured_image_url: workshopForm.featured_image_url || null,
         category_ids: categoryIds,
-        price: workshopForm.price_inr ? { currency: 'INR', amount_cents: Number(workshopForm.price_inr) * 100 } : null,
+        price: workshopForm.price_inr
+          ? {
+              currency: 'INR',
+              amount_cents: Number(workshopForm.price_inr) * 100,
+              compare_at_amount_cents: workshopForm.compare_at_inr ? Number(workshopForm.compare_at_inr) * 100 : null,
+              sale_amount_cents: workshopForm.sale_price_inr ? Number(workshopForm.sale_price_inr) * 100 : null,
+              sale_starts_at: workshopForm.sale_starts_at || null,
+              sale_ends_at: workshopForm.sale_ends_at || null,
+            }
+          : null,
+        publish_at: workshopForm.publish_at || null,
+        qa_enabled: Boolean(workshopForm.qa_enabled),
         is_published: Boolean(workshopForm.is_published),
       };
       if (editingWorkshopId) {
@@ -1573,10 +1659,16 @@ export default function AdminDashboardPage() {
         content: '',
         featured_image_url: '',
         price_inr: '',
+        compare_at_inr: '',
+        sale_price_inr: '',
+        sale_starts_at: '',
+        sale_ends_at: '',
         category_ids: [],
         scheduled_at: '',
         zoom_meeting_id: '',
         zoom_join_url: '',
+        publish_at: '',
+        qa_enabled: true,
         is_published: true,
       });
       await loadTabData('workshops');
@@ -1595,10 +1687,16 @@ export default function AdminDashboardPage() {
       content: workshop.content ?? '',
       featured_image_url: workshop.featured_image_url ?? '',
       price_inr: workshop.amount_cents ? String(Math.round(workshop.amount_cents / 100)) : '',
+      compare_at_inr: workshop.compare_at_amount_cents ? String(Math.round(workshop.compare_at_amount_cents / 100)) : '',
+      sale_price_inr: workshop.sale_amount_cents ? String(Math.round(workshop.sale_amount_cents / 100)) : '',
+      sale_starts_at: workshop.sale_starts_at ? String(workshop.sale_starts_at) : '',
+      sale_ends_at: workshop.sale_ends_at ? String(workshop.sale_ends_at) : '',
       category_ids: Array.isArray(workshop.category_ids) ? workshop.category_ids : [],
       scheduled_at: '',
       zoom_meeting_id: '',
       zoom_join_url: '',
+      publish_at: workshop.publish_at ? String(workshop.publish_at) : '',
+      qa_enabled: workshop.qa_enabled == null ? true : Boolean(workshop.qa_enabled),
       is_published: Boolean(workshop.is_published),
     });
     setTab('workshops');
@@ -1612,10 +1710,16 @@ export default function AdminDashboardPage() {
       content: '',
       featured_image_url: '',
       price_inr: '',
+      compare_at_inr: '',
+      sale_price_inr: '',
+      sale_starts_at: '',
+      sale_ends_at: '',
       category_ids: [],
       scheduled_at: '',
       zoom_meeting_id: '',
       zoom_join_url: '',
+      publish_at: '',
+      qa_enabled: true,
       is_published: true,
     });
   };
@@ -1630,6 +1734,48 @@ export default function AdminDashboardPage() {
       await loadTabData('workshops');
     } catch (err) {
       setMessage(err?.message ?? 'Failed to delete workshop');
+    } finally {
+      setStatus('idle');
+    }
+  };
+
+  const exportAllUsers = async () => {
+    if (!token) return;
+    setStatus('loading');
+    setMessage('');
+    try {
+      const data = await api.admin.users.list(token, { limit: 50000, offset: 0 });
+      const list = data?.users ?? [];
+      downloadCsv({
+        filename: `users_${new Date().toISOString().slice(0, 10)}.csv`,
+        headers: ['id', 'name', 'email', 'role', 'created_at'],
+        rows: list.map((u) => [u.id, u.name ?? '', u.email ?? '', u.role ?? '', u.created_at ?? '']),
+      });
+      setMessage(`Exported ${list.length} users.`);
+    } catch (err) {
+      setMessage(err?.message ?? 'Failed to export users');
+    } finally {
+      setStatus('idle');
+    }
+  };
+
+  const impersonateFromAdmin = async (targetUser) => {
+    if (!token || !targetUser?.id) return;
+    const label = `${String(targetUser.email ?? targetUser.name ?? targetUser.id)} (${String(targetUser.role ?? 'user')})`;
+    const ok = typeof window !== 'undefined' ? window.confirm(`Switch to: ${label}?\n\nYou can return to admin from the navbar.`) : true;
+    if (!ok) return;
+    setStatus('loading');
+    setMessage('');
+    try {
+      if (typeof window !== 'undefined') {
+        sessionStorage.setItem('lf:return_admin', JSON.stringify({ token, user }));
+      }
+      const data = await api.admin.users.impersonate(token, targetUser.id);
+      setSession({ token: data?.token, user: data?.user });
+      navigate('/dashboard', { replace: true });
+    } catch (err) {
+      if (typeof window !== 'undefined') sessionStorage.removeItem('lf:return_admin');
+      setMessage(err?.message ?? 'Failed to switch user');
     } finally {
       setStatus('idle');
     }
@@ -1707,13 +1853,18 @@ export default function AdminDashboardPage() {
       const categoryIds = (recipeForm.category_ids ?? [])
         .map((value) => Number(value))
         .filter((n) => Number.isFinite(n) && n > 0);
+      const tagIds = (recipeForm.tag_ids ?? [])
+        .map((value) => Number(value))
+        .filter((n) => Number.isFinite(n) && n > 0);
       const payload = {
         title: recipeForm.title,
         summary: recipeForm.summary || null,
         featured_image_url: recipeForm.featured_image_url || null,
         content: recipeForm.content || null,
         category_ids: categoryIds,
+        tag_ids: tagIds,
         is_published: Boolean(recipeForm.is_published),
+        publish_at: recipeForm.publish_at || null,
       };
       if (editingRecipeId) {
         await api.admin.recipes.update(token, editingRecipeId, payload);
@@ -1723,7 +1874,7 @@ export default function AdminDashboardPage() {
         await api.admin.recipes.create(token, payload);
         setMessage('Recipe created.');
       }
-      setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], is_published: true });
+      setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
       await loadTabData('recipes');
     } catch (err) {
       setMessage(err?.message ?? 'Failed to save recipe');
@@ -1744,6 +1895,8 @@ export default function AdminDashboardPage() {
       featured_image_url: recipe.featured_image_url ?? '',
       content: recipe.content ?? '',
       category_ids: ids,
+      tag_ids: (recipe?.tag_ids ?? []).map((n) => String(n)),
+      publish_at: recipe?.publish_at ? String(recipe.publish_at) : '',
       is_published: Boolean(recipe.is_published),
     });
     setTab('recipes');
@@ -1751,7 +1904,7 @@ export default function AdminDashboardPage() {
 
   const cancelRecipeEdit = () => {
     setEditingRecipeId(null);
-    setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], is_published: true });
+    setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
   };
 
   const deleteRecipe = async (id) => {
@@ -2094,6 +2247,40 @@ export default function AdminDashboardPage() {
       await loadTabData('enrollments');
     } catch (err) {
       setMessage(err?.message ?? 'Failed to remove enrollment');
+    } finally {
+      setStatus('idle');
+    }
+  };
+
+  const exportEnrollmentsCsv = () => {
+    downloadCsv({
+      filename: `enrollments_${new Date().toISOString().slice(0, 10)}.csv`,
+      headers: ['enrollment_id', 'user_id', 'user_email', 'course_id', 'course_title', 'status', 'expiry_date', 'enrolled_at'],
+      rows: (enrollments ?? []).map((e) => [
+        e.id,
+        e.user_id,
+        e.user_email,
+        e.course_id,
+        e.course_title,
+        e.status,
+        e.expiry_date,
+        e.enrolled_at,
+      ]),
+    });
+  };
+
+  const extendEnrollment = async (enrollment) => {
+    if (!token || !enrollment?.id) return;
+    const next = typeof window !== 'undefined' ? window.prompt('New expiry date (YYYY-MM-DD):', String(enrollment.expiry_date ?? '')) : null;
+    if (!next) return;
+    setStatus('loading');
+    setMessage('');
+    try {
+      await api.admin.enrollments.patch(token, enrollment.id, { expiry_date: next });
+      setMessage('Enrollment updated.');
+      await loadTabData('enrollments');
+    } catch (err) {
+      setMessage(err?.message ?? 'Failed to update enrollment');
     } finally {
       setStatus('idle');
     }
@@ -3605,6 +3792,44 @@ export default function AdminDashboardPage() {
                       ))}
                     </div>
                   </div>
+
+                  <div className="panel" style={{ margin: 0 }}>
+                    <h4 className="h4">Q&amp;A report</h4>
+                    <p className="muted">Course questions opened/answered/resolved for this range.</p>
+                    <div className="admin-table" style={{ marginTop: 12 }}>
+                      <div className="admin-row admin-head">
+                        <div>Open</div>
+                        <div>Answered</div>
+                        <div>Resolved</div>
+                        <div>Closed</div>
+                      </div>
+                      <div className="admin-row">
+                        <div>{Number(reportsData?.qa?.counts?.open ?? 0)}</div>
+                        <div>{Number(reportsData?.qa?.counts?.answered ?? 0)}</div>
+                        <div>{Number(reportsData?.qa?.counts?.resolved ?? 0)}</div>
+                        <div>{Number(reportsData?.qa?.counts?.closed ?? 0)}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="panel" style={{ margin: 0 }}>
+                    <h4 className="h4">Support report</h4>
+                    <p className="muted">Support ticket status counts for this range.</p>
+                    <div className="admin-table" style={{ marginTop: 12 }}>
+                      <div className="admin-row admin-head">
+                        <div>Open</div>
+                        <div>Pending</div>
+                        <div>Resolved</div>
+                        <div>Closed</div>
+                      </div>
+                      <div className="admin-row">
+                        <div>{Number(reportsData?.support?.counts?.open ?? 0)}</div>
+                        <div>{Number(reportsData?.support?.counts?.pending ?? 0)}</div>
+                        <div>{Number(reportsData?.support?.counts?.resolved ?? 0)}</div>
+                        <div>{Number(reportsData?.support?.counts?.closed ?? 0)}</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               ) : null}
             </div>
@@ -3845,6 +4070,26 @@ export default function AdminDashboardPage() {
                   <span className="field-label">Price (INR)</span>
                   <input className="input" value={courseForm.price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="999" />
                 </label>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Compare-at (INR, optional)</span>
+                    <input className="input" value={courseForm.compare_at_inr} onChange={(e) => setCourseForm((s) => ({ ...s, compare_at_inr: e.target.value }))} placeholder="1299" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Sale price (INR, optional)</span>
+                    <input className="input" value={courseForm.sale_price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, sale_price_inr: e.target.value }))} placeholder="899" />
+                  </label>
+                </div>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Sale starts (ISO, optional)</span>
+                    <input className="input" value={courseForm.sale_starts_at} onChange={(e) => setCourseForm((s) => ({ ...s, sale_starts_at: e.target.value }))} placeholder="2026-06-01T10:00:00.000Z" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Sale ends (ISO, optional)</span>
+                    <input className="input" value={courseForm.sale_ends_at} onChange={(e) => setCourseForm((s) => ({ ...s, sale_ends_at: e.target.value }))} placeholder="2026-06-10T10:00:00.000Z" />
+                  </label>
+                </div>
                 <label className="field">
                   <span className="field-label">Image URL</span>
                   <input className="input" value={courseForm.featured_image_url} onChange={(e) => setCourseForm((s) => ({ ...s, featured_image_url: e.target.value }))} placeholder="https://..." />
@@ -3852,6 +4097,19 @@ export default function AdminDashboardPage() {
                 <label className="field field-inline">
                   <input type="checkbox" checked={courseForm.is_published} onChange={(e) => setCourseForm((s) => ({ ...s, is_published: e.target.checked }))} />
                   <span className="field-label">Publish on save</span>
+                </label>
+                <label className="field">
+                  <span className="field-label">Schedule publish at (ISO datetime, optional)</span>
+                  <input
+                    className="input"
+                    value={courseForm.publish_at}
+                    onChange={(e) => setCourseForm((s) => ({ ...s, publish_at: e.target.value }))}
+                    placeholder="2026-06-01T10:00:00.000Z"
+                  />
+                </label>
+                <label className="field field-inline">
+                  <input type="checkbox" checked={courseForm.qa_enabled} onChange={(e) => setCourseForm((s) => ({ ...s, qa_enabled: e.target.checked }))} />
+                  <span className="field-label">Enable Q&amp;A for this course</span>
                 </label>
                 {editingCourseId ? <p className="muted">Zoom fields below are kept for new course creation. Use the Live Sessions tab to edit an existing session.</p> : null}
                 <div className="admin-split">
@@ -3879,6 +4137,32 @@ export default function AdminDashboardPage() {
               </form>
 
               <h3 className="h3">Courses</h3>
+              {courseProgressStatus === 'error' ? <p className="form-error">{courseProgressError}</p> : null}
+              {courseProgressStatus === 'loading' ? <p className="muted">Loading course progress…</p> : null}
+              {courseProgress?.users?.length ? (
+                <div className="panel" style={{ marginTop: 12 }}>
+                  <h4 className="h4">Student progress (course #{courseProgress.course_id})</h4>
+                  <div className="admin-table" style={{ marginTop: 10 }}>
+                    <div className="admin-row admin-head">
+                      <div>User</div>
+                      <div>Progress</div>
+                      <div>Completed</div>
+                      <div>Expiry</div>
+                    </div>
+                    {(courseProgress.users ?? []).slice(0, 50).map((u) => (
+                      <div key={u.enrollment_id} className="admin-row">
+                        <div>{u.email}</div>
+                        <div>{u.progress_percentage}%</div>
+                        <div>
+                          {u.completed_lessons}/{u.total_lessons}
+                        </div>
+                        <div>{String(u.expiry_date ?? '')}</div>
+                      </div>
+                    ))}
+                  </div>
+                  {(courseProgress.users ?? []).length > 50 ? <p className="muted">Showing first 50 students.</p> : null}
+                </div>
+              ) : null}
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <div>ID</div>
@@ -3896,6 +4180,9 @@ export default function AdminDashboardPage() {
                     <div>
                       <button className="button" type="button" onClick={() => beginCourseEdit(c)} disabled={disabled}>
                         Edit
+                      </button>
+                      <button className="button" type="button" onClick={() => loadCourseProgress(c.id)} disabled={disabled}>
+                        Progress
                       </button>
                       <button className="button button-solid admin-danger" type="button" onClick={() => removeCourse(c.id)} disabled={disabled}>
                         Delete
@@ -3993,6 +4280,26 @@ export default function AdminDashboardPage() {
                   <span className="field-label">Price (INR)</span>
                   <input className="input" value={workshopForm.price_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="2000" />
                 </label>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Compare-at (INR, optional)</span>
+                    <input className="input" value={workshopForm.compare_at_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, compare_at_inr: e.target.value }))} placeholder="2500" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Sale price (INR, optional)</span>
+                    <input className="input" value={workshopForm.sale_price_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_price_inr: e.target.value }))} placeholder="1800" />
+                  </label>
+                </div>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Sale starts (ISO, optional)</span>
+                    <input className="input" value={workshopForm.sale_starts_at} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_starts_at: e.target.value }))} placeholder="2026-06-01T10:00:00.000Z" />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Sale ends (ISO, optional)</span>
+                    <input className="input" value={workshopForm.sale_ends_at} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_ends_at: e.target.value }))} placeholder="2026-06-10T10:00:00.000Z" />
+                  </label>
+                </div>
                 <label className="field">
                   <span className="field-label">Image URL</span>
                   <input className="input" value={workshopForm.featured_image_url} onChange={(e) => setWorkshopForm((s) => ({ ...s, featured_image_url: e.target.value }))} placeholder="https://..." />
@@ -4000,6 +4307,19 @@ export default function AdminDashboardPage() {
                 <label className="field field-inline">
                   <input type="checkbox" checked={workshopForm.is_published} onChange={(e) => setWorkshopForm((s) => ({ ...s, is_published: e.target.checked }))} />
                   <span className="field-label">Publish on save</span>
+                </label>
+                <label className="field">
+                  <span className="field-label">Schedule publish at (ISO datetime, optional)</span>
+                  <input
+                    className="input"
+                    value={workshopForm.publish_at}
+                    onChange={(e) => setWorkshopForm((s) => ({ ...s, publish_at: e.target.value }))}
+                    placeholder="2026-06-01T10:00:00.000Z"
+                  />
+                </label>
+                <label className="field field-inline">
+                  <input type="checkbox" checked={workshopForm.qa_enabled} onChange={(e) => setWorkshopForm((s) => ({ ...s, qa_enabled: e.target.checked }))} />
+                  <span className="field-label">Enable Q&amp;A for this workshop</span>
                 </label>
                 {editingWorkshopId ? <p className="muted">Zoom fields below are kept for new workshop creation. Use the Live Sessions tab to edit an existing session.</p> : null}
                 <div className="admin-split">
@@ -4357,6 +4677,54 @@ export default function AdminDashboardPage() {
                     <input className="input" value={recipeSelectedCategoryNames} readOnly placeholder="No categories selected" />
                   </label>
                 </label>
+                <label className="field">
+                  <span className="field-label">Tags</span>
+                  <select
+                    className="input"
+                    multiple
+                    value={recipeForm.tag_ids}
+                    onChange={(e) => {
+                      const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
+                      setRecipeForm((s) => ({ ...s, tag_ids: selected }));
+                    }}
+                  >
+                    {tags.map((t) => (
+                      <option key={t.id} value={String(t.id)}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  <p className="muted">Tip: Hold Ctrl/Cmd to select multiple tags.</p>
+                  <div className="admin-split" style={{ alignItems: 'end' }}>
+                    <label className="field" style={{ margin: 0 }}>
+                      <span className="field-label">New tag</span>
+                      <input className="input" value={tagForm.name} onChange={(e) => setTagForm({ name: e.target.value })} placeholder="eg: gluten-free" />
+                    </label>
+                    <button
+                      className="button button-ghost"
+                      type="button"
+                      disabled={disabled || !tagForm.name}
+                      onClick={async () => {
+                        if (!token) return;
+                        setStatus('loading');
+                        setMessage('');
+                        try {
+                          await api.admin.tags.create(token, { tag_type: 'recipe', name: tagForm.name });
+                          setTagForm({ name: '' });
+                          const tagData = await api.admin.tags.list(token, { type: 'recipe' });
+                          setTags(tagData?.tags ?? []);
+                          setMessage('Tag created.');
+                        } catch (err) {
+                          setMessage(err?.message ?? 'Failed to create tag');
+                        } finally {
+                          setStatus('idle');
+                        }
+                      }}
+                    >
+                      Add tag
+                    </button>
+                  </div>
+                </label>
                 <details className="admin-inline-add">
                   <summary className="link">Add a new recipe category</summary>
                   <div className="admin-inline-add-body">
@@ -4407,6 +4775,16 @@ export default function AdminDashboardPage() {
                 <label className="field">
                   <span className="field-label">Image URL</span>
                   <input className="input" value={recipeForm.featured_image_url} onChange={(e) => setRecipeForm((s) => ({ ...s, featured_image_url: e.target.value }))} placeholder="https://..." />
+                </label>
+                <label className="field">
+                  <span className="field-label">Schedule publish at (ISO datetime, optional)</span>
+                  <input
+                    className="input"
+                    value={recipeForm.publish_at}
+                    onChange={(e) => setRecipeForm((s) => ({ ...s, publish_at: e.target.value }))}
+                    placeholder="2026-06-01T10:00:00.000Z"
+                  />
+                  <p className="muted">If set, keep “Publish on save” unchecked to schedule.</p>
                 </label>
                 <label className="field">
                   <span className="field-label">Content (optional)</span>
@@ -4638,20 +5016,35 @@ export default function AdminDashboardPage() {
 
           {tab === 'users' ? (
             <div className="admin-panel">
-              <h3 className="h3">Users</h3>
+              <div className="admin-split" style={{ alignItems: 'center' }}>
+                <h3 className="h3" style={{ margin: 0 }}>Users</h3>
+                <div className="button-row" style={{ justifyContent: 'flex-end' }}>
+                  <button className="button button-ghost" type="button" onClick={exportAllUsers} disabled={disabled}>
+                    Export users (CSV)
+                  </button>
+                </div>
+              </div>
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <div>ID</div>
+                  <div>Name</div>
                   <div>Email</div>
                   <div>Role</div>
                   <div>Created</div>
+                  <div />
                 </div>
                 {users.map((u) => (
                   <div key={u.id} className="admin-row">
                     <div>{u.id}</div>
+                    <div>{u.name || '—'}</div>
                     <div>{u.email}</div>
                     <div>{u.role}</div>
                     <div>{String(u.created_at)}</div>
+                    <div>
+                      <button className="button" type="button" onClick={() => impersonateFromAdmin(u)} disabled={disabled}>
+                        Preview as
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -4660,7 +5053,14 @@ export default function AdminDashboardPage() {
 
           {tab === 'enrollments' ? (
             <div className="admin-panel">
-              <h3 className="h3">Enroll user</h3>
+              <div className="admin-split" style={{ alignItems: 'center' }}>
+                <h3 className="h3" style={{ margin: 0 }}>Enroll user</h3>
+                <div className="button-row" style={{ justifyContent: 'flex-end' }}>
+                  <button className="button button-ghost" type="button" onClick={exportEnrollmentsCsv} disabled={!enrollments?.length}>
+                    Export enrollments (CSV)
+                  </button>
+                </div>
+              </div>
               <form className="contact-form" onSubmit={submitEnrollment}>
                 <div className="admin-split">
                   <label className="field">
@@ -4695,6 +5095,9 @@ export default function AdminDashboardPage() {
                     <div>{e.course_title}</div>
                     <div>{String(e.expiry_date)}</div>
                     <div>
+                      <button className="button" type="button" onClick={() => extendEnrollment(e)} disabled={disabled}>
+                        Extend
+                      </button>
                       <button className="button button-solid admin-danger" type="button" onClick={() => removeEnrollment(e.id)} disabled={disabled}>
                         Remove
                       </button>

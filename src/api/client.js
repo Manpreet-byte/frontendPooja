@@ -469,6 +469,20 @@ export const api = {
         const qs = params.toString();
         return request(qs ? `/api/admin/analytics/retention?${qs}` : '/api/admin/analytics/retention', { token });
       },
+      qa: (token, { from, to } = {}) => {
+        const params = new URLSearchParams();
+        if (from) params.set('from', String(from));
+        if (to) params.set('to', String(to));
+        const qs = params.toString();
+        return request(qs ? `/api/admin/analytics/qa?${qs}` : '/api/admin/analytics/qa', { token });
+      },
+      support: (token, { from, to } = {}) => {
+        const params = new URLSearchParams();
+        if (from) params.set('from', String(from));
+        if (to) params.set('to', String(to));
+        const qs = params.toString();
+        return request(qs ? `/api/admin/analytics/support?${qs}` : '/api/admin/analytics/support', { token });
+      },
     },
     createAdmin: (token, payload) => request('/api/admin/admins', { method: 'POST', token, body: payload }),
     super: {
@@ -590,6 +604,7 @@ export const api = {
       },
       create: (token, payload) => request('/api/admin/courses', { method: 'POST', token, body: payload }),
       update: (token, id, payload) => request(`/api/admin/courses/${id}`, { method: 'PATCH', token, body: payload }),
+      progress: (token, id) => request(`/api/admin/courses/${encodeURIComponent(id)}/progress`, { token }),
       remove: (token, id) => request(`/api/admin/courses/${id}`, { method: 'DELETE', token }),
     },
 
@@ -632,6 +647,17 @@ export const api = {
       remove: (token, id) => request(`/api/admin/recipes/${encodeURIComponent(id)}`, { method: 'DELETE', token }),
     },
 
+    tags: {
+      list: (token, { type = 'recipe' } = {}) => {
+        const params = new URLSearchParams();
+        if (type) params.set('type', String(type));
+        const qs = params.toString();
+        return request(qs ? `/api/admin/tags?${qs}` : '/api/admin/tags', { token });
+      },
+      create: (token, payload) => request('/api/admin/tags', { method: 'POST', token, body: payload }),
+      remove: (token, id) => request(`/api/admin/tags/${encodeURIComponent(id)}`, { method: 'DELETE', token }),
+    },
+
     orders: {
       list: (token, { status, q, page, limit } = {}) => {
         const params = new URLSearchParams();
@@ -644,6 +670,7 @@ export const api = {
       },
       get: (token, id) => request(`/api/admin/orders/${encodeURIComponent(id)}`, { token }),
       update: (token, id, payload) => request(`/api/admin/orders/${encodeURIComponent(id)}`, { method: 'PATCH', token, body: payload }),
+      reconcile: (token, id) => request(`/api/admin/orders/${encodeURIComponent(id)}/reconcile`, { method: 'POST', token }),
       refund: (token, id, payload) => request(`/api/admin/orders/${encodeURIComponent(id)}/refund`, { method: 'POST', token, body: payload }),
       invoice: (token, id) => download(`/api/admin/orders/${encodeURIComponent(id)}/invoice`, { token }),
     },
@@ -692,12 +719,20 @@ export const api = {
     },
 
     users: {
-      list: (token) => request('/api/admin/users', { token }),
+      list: (token, { limit, offset } = {}) => {
+        const params = new URLSearchParams();
+        if (limit) params.set('limit', String(limit));
+        if (offset) params.set('offset', String(offset));
+        const qs = params.toString();
+        return request(qs ? `/api/admin/users?${qs}` : '/api/admin/users', { token });
+      },
+      impersonate: (token, id) => request(`/api/admin/users/${encodeURIComponent(id)}/impersonate`, { method: 'POST', token }),
     },
 
     enrollments: {
       list: (token) => request('/api/admin/enrollments', { token }),
       create: (token, payload) => request('/api/admin/enrollments', { method: 'POST', token, body: payload }),
+      patch: (token, id, payload) => request(`/api/admin/enrollments/${encodeURIComponent(id)}`, { method: 'PATCH', token, body: payload }),
       remove: (token, id) => request(`/api/admin/enrollments/${id}`, { method: 'DELETE', token }),
     },
 

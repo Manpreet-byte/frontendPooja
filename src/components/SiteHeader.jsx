@@ -30,7 +30,37 @@ export default function SiteHeader({ onCartClick }) {
   const cartCount = useCartStore((state) => state.items.length);
   const token = useAuthStore((state) => state.token);
   const logout = useAuthStore((state) => state.logout);
+  const setSession = useAuthStore((state) => state.setSession);
   const role = useAuthStore((state) => state.user?.role ?? '');
+  const [returnAdminSession, setReturnAdminSession] = useState(null);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      const raw = sessionStorage.getItem('lf:return_admin');
+      setReturnAdminSession(raw ? JSON.parse(raw) : null);
+    } catch {
+      setReturnAdminSession(null);
+    }
+  }, [token]);
+
+  const canReturnToAdmin = Boolean(
+    token &&
+      returnAdminSession?.token &&
+      (returnAdminSession?.user?.role === 'admin' || returnAdminSession?.user?.role === 'super_admin') &&
+      role !== 'admin' &&
+      role !== 'super_admin',
+  );
+
+  const returnToAdmin = () => {
+    if (!canReturnToAdmin) return;
+    try {
+      if (typeof window !== 'undefined') sessionStorage.removeItem('lf:return_admin');
+    } catch {
+      // ignore
+    }
+    setSession({ token: returnAdminSession.token, user: returnAdminSession.user });
+  };
 
   useEffect(() => {
     let active = true;
@@ -267,6 +297,11 @@ export default function SiteHeader({ onCartClick }) {
           </button>
           {token ? (
             <>
+              {canReturnToAdmin ? (
+                <button className="nav-link nav-link-action" type="button" onClick={returnToAdmin}>
+                  Return to admin
+                </button>
+              ) : null}
               {role === 'admin' || role === 'super_admin' ? <NotificationsBell token={token} enabled /> : null}
               {role === 'admin' || role === 'super_admin' ? (
                 <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/admin/dashboard">

@@ -2086,13 +2086,14 @@ h1, h2, h3, h4, h5, h6 {
 .hero-premium-overlay {
   position: absolute;
   inset: 0;
-  background: linear-gradient(
-    90deg,
-    rgba(255, 250, 244, 0.74) 0%,
-    rgba(255, 250, 244, 0.52) 42%,
-    rgba(255, 250, 244, 0.16) 62%,
-    rgba(255, 250, 244, 0.0) 76%
-  );
+  background:
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.62) 0%,
+      rgba(0, 0, 0, 0.34) 44%,
+      rgba(0, 0, 0, 0.08) 66%,
+      rgba(0, 0, 0, 0.0) 78%
+    );
   z-index: 1;
 }
 
@@ -2166,18 +2167,19 @@ h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-display);
   font-size: clamp(2rem, 6vw, var(--type-hero));
   line-height: var(--lh-tight);
-  color: var(--text);
-  font-weight: 700;
+  color: rgba(255, 255, 255, 0.98);
+  font-weight: 900;
   letter-spacing: -0.02em;
   animation: fadeInUp 800ms var(--ease-out) both;
   animation-delay: 150ms;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  text-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
 }
 
 .hero-premium-subtitle {
   margin: 0 0 clamp(20px, 4vw, 32px);
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.9);
   font-size: clamp(0.95rem, 3vw, 1.15rem);
   line-height: var(--lh-relaxed);
   font-weight: 400;
@@ -2186,6 +2188,7 @@ h1, h2, h3, h4, h5, h6 {
   animation-delay: 200ms;
   word-wrap: break-word;
   overflow-wrap: break-word;
+  text-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
 }
 
 .hero-premium-actions {
@@ -2252,10 +2255,10 @@ h1, h2, h3, h4, h5, h6 {
   .hero-premium-overlay {
     background: linear-gradient(
       90deg,
-      rgba(255, 250, 244, 0.82) 0%,
-      rgba(255, 250, 244, 0.6) 52%,
-      rgba(255, 250, 244, 0.22) 72%,
-      rgba(255, 250, 244, 0.02) 88%
+      rgba(0, 0, 0, 0.72) 0%,
+      rgba(0, 0, 0, 0.42) 55%,
+      rgba(0, 0, 0, 0.16) 74%,
+      rgba(0, 0, 0, 0.02) 88%
     );
   }
 

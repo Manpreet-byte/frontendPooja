@@ -350,6 +350,12 @@ export default function CourseLearnPage() {
       })
       .catch((err) => {
         if (!active) return;
+        if (err?.status === 403) {
+          setQuestions([]);
+          setQaStatus('idle');
+          setQaError('Q&A is disabled for this course.');
+          return;
+        }
         setQaStatus('error');
         setQaError(err?.message ?? 'Failed to load questions');
       });
@@ -397,7 +403,11 @@ export default function CourseLearnPage() {
       setQuestionBody('');
       api.analytics.track({ event_type: 'course_question.posted', entity_type: 'course', entity_id: course.id }).catch(() => null);
     } catch (err) {
+      if (err?.status === 403) {
+        setQaError('Q&A is disabled for this course.');
+      } else {
       setQaError(err?.message ?? 'Failed to post question');
+      }
     } finally {
       setQuestionSending(false);
     }
@@ -415,7 +425,11 @@ export default function CourseLearnPage() {
       setReplyDraft('');
       api.analytics.track({ event_type: 'course_reply.posted', entity_type: 'question', entity_id: openQuestionId }).catch(() => null);
     } catch (err) {
+      if (err?.status === 403) {
+        setRepliesError('Q&A is disabled for this course.');
+      } else {
       setRepliesError(err?.message ?? 'Failed to post reply');
+      }
     } finally {
       setReplySending(false);
     }
