@@ -46,6 +46,8 @@ const tabs = [
   { id: 'super_admin', label: 'Super Admin' },
 ];
 
+const CURRENCY_OPTIONS = ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED'];
+
 function formatMoney(cents, currency = 'INR') {
   const amount = Number(cents ?? 0) / 100;
   try {
@@ -224,6 +226,7 @@ export default function AdminDashboardPage() {
     summary: '',
     content: '',
     featured_image_url: '',
+    currency: 'INR',
     price_inr: '',
     compare_at_inr: '',
     sale_price_inr: '',
@@ -243,6 +246,7 @@ export default function AdminDashboardPage() {
     summary: '',
     content: '',
     featured_image_url: '',
+    currency: 'INR',
     price_inr: '',
     compare_at_inr: '',
     sale_price_inr: '',
@@ -1484,7 +1488,7 @@ export default function AdminDashboardPage() {
         category_ids: categoryIds,
         price: courseForm.price_inr
           ? {
-              currency: 'INR',
+              currency: String(courseForm.currency || 'INR').trim().toUpperCase(),
               amount_cents: Number(courseForm.price_inr) * 100,
               compare_at_amount_cents: courseForm.compare_at_inr ? Number(courseForm.compare_at_inr) * 100 : null,
               sale_amount_cents: courseForm.sale_price_inr ? Number(courseForm.sale_price_inr) * 100 : null,
@@ -1514,6 +1518,7 @@ export default function AdminDashboardPage() {
         summary: '',
         content: '',
         featured_image_url: '',
+        currency: 'INR',
         price_inr: '',
         compare_at_inr: '',
         sale_price_inr: '',
@@ -1557,6 +1562,7 @@ export default function AdminDashboardPage() {
       summary: course.summary ?? '',
       content: course.content ?? '',
       featured_image_url: course.featured_image_url ?? '',
+      currency: String(course.currency ?? 'INR').trim().toUpperCase(),
       price_inr: course.amount_cents ? String(Math.round(course.amount_cents / 100)) : '',
       compare_at_inr: course.compare_at_amount_cents ? String(Math.round(course.compare_at_amount_cents / 100)) : '',
       sale_price_inr: course.sale_amount_cents ? String(Math.round(course.sale_amount_cents / 100)) : '',
@@ -1580,6 +1586,7 @@ export default function AdminDashboardPage() {
       summary: '',
       content: '',
       featured_image_url: '',
+      currency: 'INR',
       price_inr: '',
       compare_at_inr: '',
       sale_price_inr: '',
@@ -1628,7 +1635,7 @@ export default function AdminDashboardPage() {
         category_ids: categoryIds,
         price: workshopForm.price_inr
           ? {
-              currency: 'INR',
+              currency: String(workshopForm.currency || 'INR').trim().toUpperCase(),
               amount_cents: Number(workshopForm.price_inr) * 100,
               compare_at_amount_cents: workshopForm.compare_at_inr ? Number(workshopForm.compare_at_inr) * 100 : null,
               sale_amount_cents: workshopForm.sale_price_inr ? Number(workshopForm.sale_price_inr) * 100 : null,
@@ -1658,6 +1665,7 @@ export default function AdminDashboardPage() {
         summary: '',
         content: '',
         featured_image_url: '',
+        currency: 'INR',
         price_inr: '',
         compare_at_inr: '',
         sale_price_inr: '',
@@ -1686,6 +1694,7 @@ export default function AdminDashboardPage() {
       summary: workshop.summary ?? '',
       content: workshop.content ?? '',
       featured_image_url: workshop.featured_image_url ?? '',
+      currency: String(workshop.currency ?? 'INR').trim().toUpperCase(),
       price_inr: workshop.amount_cents ? String(Math.round(workshop.amount_cents / 100)) : '',
       compare_at_inr: workshop.compare_at_amount_cents ? String(Math.round(workshop.compare_at_amount_cents / 100)) : '',
       sale_price_inr: workshop.sale_amount_cents ? String(Math.round(workshop.sale_amount_cents / 100)) : '',
@@ -1709,6 +1718,7 @@ export default function AdminDashboardPage() {
       summary: '',
       content: '',
       featured_image_url: '',
+      currency: 'INR',
       price_inr: '',
       compare_at_inr: '',
       sale_price_inr: '',
@@ -1970,6 +1980,24 @@ export default function AdminDashboardPage() {
       await openOrder(orderId);
     } catch (err) {
       setMessage(err?.message ?? 'Failed to refund order');
+    } finally {
+      setStatus('idle');
+    }
+  };
+
+  const reconcileOrder = async (orderId) => {
+    if (!token || !orderId) return;
+    const ok = typeof window === 'undefined' ? true : window.confirm(`Reconcile order #${orderId} with the payment gateway?`);
+    if (!ok) return;
+    setStatus('loading');
+    setMessage('');
+    try {
+      await api.admin.orders.reconcile(token, orderId);
+      setMessage('Reconciliation triggered.');
+      await loadTabData('orders');
+      await openOrder(orderId);
+    } catch (err) {
+      setMessage(err?.message ?? 'Failed to reconcile order');
     } finally {
       setStatus('idle');
     }
@@ -2252,7 +2280,7 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const exportEnrollmentsCsv = () => {
+  const exportEnrollmentsListCsv = () => {
     downloadCsv({
       filename: `enrollments_${new Date().toISOString().slice(0, 10)}.csv`,
       headers: ['enrollment_id', 'user_id', 'user_email', 'course_id', 'course_title', 'status', 'expiry_date', 'enrolled_at'],
@@ -2741,6 +2769,9 @@ export default function AdminDashboardPage() {
                     <div className="button-row" style={{ marginTop: 12 }}>
                       <button className="button button-solid" type="button" onClick={() => markOrderPaid(selectedOrder)} disabled={disabled}>
                         Mark paid
+                      </button>
+                      <button className="button" type="button" onClick={() => reconcileOrder(selectedOrder)} disabled={disabled}>
+                        Reconcile
                       </button>
                       <button className="button button-ghost" type="button" onClick={() => refundOrder(selectedOrder)} disabled={disabled}>
                         Refund
@@ -4066,17 +4097,29 @@ export default function AdminDashboardPage() {
                     </button>
                   </div>
                 </details>
-                <label className="field">
-                  <span className="field-label">Price (INR)</span>
-                  <input className="input" value={courseForm.price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="999" />
-                </label>
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Compare-at (INR, optional)</span>
+                    <span className="field-label">Currency</span>
+                    <select className="input" value={courseForm.currency} onChange={(e) => setCourseForm((s) => ({ ...s, currency: e.target.value }))}>
+                      {CURRENCY_OPTIONS.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Price</span>
+                    <input className="input" value={courseForm.price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="999" />
+                  </label>
+                </div>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Compare-at (optional)</span>
                     <input className="input" value={courseForm.compare_at_inr} onChange={(e) => setCourseForm((s) => ({ ...s, compare_at_inr: e.target.value }))} placeholder="1299" />
                   </label>
                   <label className="field">
-                    <span className="field-label">Sale price (INR, optional)</span>
+                    <span className="field-label">Sale price (optional)</span>
                     <input className="input" value={courseForm.sale_price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, sale_price_inr: e.target.value }))} placeholder="899" />
                   </label>
                 </div>
@@ -4276,17 +4319,29 @@ export default function AdminDashboardPage() {
                     </button>
                   </div>
                 </details>
-                <label className="field">
-                  <span className="field-label">Price (INR)</span>
-                  <input className="input" value={workshopForm.price_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="2000" />
-                </label>
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Compare-at (INR, optional)</span>
+                    <span className="field-label">Currency</span>
+                    <select className="input" value={workshopForm.currency} onChange={(e) => setWorkshopForm((s) => ({ ...s, currency: e.target.value }))}>
+                      {CURRENCY_OPTIONS.map((c) => (
+                        <option key={c} value={c}>
+                          {c}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Price</span>
+                    <input className="input" value={workshopForm.price_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, price_inr: e.target.value }))} placeholder="2000" />
+                  </label>
+                </div>
+                <div className="admin-split">
+                  <label className="field">
+                    <span className="field-label">Compare-at (optional)</span>
                     <input className="input" value={workshopForm.compare_at_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, compare_at_inr: e.target.value }))} placeholder="2500" />
                   </label>
                   <label className="field">
-                    <span className="field-label">Sale price (INR, optional)</span>
+                    <span className="field-label">Sale price (optional)</span>
                     <input className="input" value={workshopForm.sale_price_inr} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_price_inr: e.target.value }))} placeholder="1800" />
                   </label>
                 </div>
@@ -5056,7 +5111,7 @@ export default function AdminDashboardPage() {
               <div className="admin-split" style={{ alignItems: 'center' }}>
                 <h3 className="h3" style={{ margin: 0 }}>Enroll user</h3>
                 <div className="button-row" style={{ justifyContent: 'flex-end' }}>
-                  <button className="button button-ghost" type="button" onClick={exportEnrollmentsCsv} disabled={!enrollments?.length}>
+                  <button className="button button-ghost" type="button" onClick={exportEnrollmentsListCsv} disabled={!enrollments?.length}>
                     Export enrollments (CSV)
                   </button>
                 </div>

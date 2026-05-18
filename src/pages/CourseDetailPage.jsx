@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useCartStore } from '../store/cartStore';
+import { useAuthStore } from '../store/authStore';
 import SafeImage from '../components/SafeImage';
 import { sanitizeHtmlForApp } from '../utils/htmlSanitize';
 
@@ -38,6 +39,9 @@ export default function CourseDetailPage() {
   const buyNowCourse = useCartStore((state) => state.buyNowCourse);
   const cartCount = useCartStore((state) => state.items.length);
   const [activeImage, setActiveImage] = useState(null);
+  const token = useAuthStore((s) => s.token);
+  const [waitlistStatus, setWaitlistStatus] = useState('idle');
+  const [waitlistMessage, setWaitlistMessage] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -224,6 +228,44 @@ export default function CourseDetailPage() {
                   <span className="course-purchase-dot" aria-hidden="true" />
                   <span>Recording visible in dashboard for 1 year</span>
                 </div>
+              </div>
+
+              <div style={{ marginTop: 14 }}>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  style={{ width: '100%' }}
+                  disabled={waitlistStatus === 'loading'}
+                  onClick={async () => {
+                    if (!course?.id) return;
+                    setWaitlistMessage('');
+                    if (!token) {
+                      navigate('/login');
+                      return;
+                    }
+                    setWaitlistStatus('loading');
+                    try {
+                      const data = await api.user.waitlist.join(token, course.id);
+                      if (data?.created) setWaitlistMessage('Added to waitlist. We will notify you when a seat opens.');
+                      else setWaitlistMessage('You are already on the waitlist for this workshop.');
+                    } catch (err) {
+                      if (err?.status === 401) {
+                        navigate('/login');
+                        return;
+                      }
+                      setWaitlistMessage(err?.message ?? 'Failed to join waitlist.');
+                    } finally {
+                      setWaitlistStatus('idle');
+                    }
+                  }}
+                >
+                  {waitlistStatus === 'loading' ? 'Joining…' : 'Join waitlist'}
+                </button>
+                {waitlistMessage ? (
+                  <p className="fineprint" style={{ marginTop: 10 }}>
+                    {waitlistMessage}
+                  </p>
+                ) : null}
               </div>
             </div>
           </aside>

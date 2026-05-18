@@ -204,6 +204,10 @@ export const api = {
   user: {
     dashboard: (token) => request('/api/user/dashboard', { token }),
     activity: (token) => request('/api/user/activity', { token }),
+    waitlist: {
+      join: (token, courseId) =>
+        request('/api/user/waitlist', { method: 'POST', token, body: { course_id: courseId } }),
+    },
     courses: {
       list: (token, { include_expired, include_inactive } = {}) => {
         const params = new URLSearchParams();
