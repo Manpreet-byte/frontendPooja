@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
 import ChartCard from '../components/admin/ChartCard';
@@ -43,6 +43,7 @@ const tabs = [
   { id: 'reports', label: 'Reports' },
   { id: 'settings', label: 'Site Settings' },
   { id: 'admins', label: 'Admins' },
+  { id: 'super_admin', label: 'Super Admin' },
 ];
 
 function formatMoney(cents, currency = 'INR') {
@@ -55,8 +56,10 @@ function formatMoney(cents, currency = 'INR') {
 }
 
 export default function AdminDashboardPage() {
+  const navigate = useNavigate();
   const token = useAuthStore((s) => s.token);
   const user = useAuthStore((s) => s.user);
+  const logout = useAuthStore((s) => s.logout);
   usePageTitle('Admin · Love & Flour');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
   const importSource = 'loveandflourbypooja';
@@ -447,7 +450,29 @@ export default function AdminDashboardPage() {
   });
 
   const disabled = useMemo(() => status === 'loading', [status]);
-  const isAdmin = user?.role === 'admin';
+  const isSuperAdmin = user?.role === 'super_admin';
+  const isAdmin = user?.role === 'admin' || isSuperAdmin;
+
+  const visibleTabs = useMemo(() => {
+    const base = tabs.filter((t) => t.id !== 'super_admin' && t.id !== 'admins');
+    if (isSuperAdmin) return [...base, { id: 'admins', label: 'Admins' }, { id: 'super_admin', label: 'Super Admin' }];
+    return base;
+  }, [isSuperAdmin]);
+
+  const [superAdmins, setSuperAdmins] = useState([]);
+  const [superAdminsStatus, setSuperAdminsStatus] = useState('idle'); // idle | loading | error
+  const [superAdminsError, setSuperAdminsError] = useState('');
+  const [superModal, setSuperModal] = useState(null); // { type, admin }
+  const [superModalBusy, setSuperModalBusy] = useState(false);
+  const [superPasswordDraft, setSuperPasswordDraft] = useState('');
+  const [superTransferTarget, setSuperTransferTarget] = useState('');
+
+  const closeSuperModal = () => {
+    setSuperModal(null);
+    setSuperPasswordDraft('');
+    setSuperTransferTarget('');
+    setSuperModalBusy(false);
+  };
 
   const uploadMediaAndGetUrl = async (file, { isPublic = true } = {}) => {
     if (!token || !isAdmin) throw new Error('Unauthorized');
@@ -492,6 +517,103 @@ export default function AdminDashboardPage() {
   useEffect(() => {
     refreshProfile();
   }, [refreshProfile]);
+
+  useEffect(() => {
+    if (tab !== 'super_admin') return;
+    if (!token || !isAdmin) return;
+    if (!isSuperAdmin) {
+      setSuperAdmins([]);
+      setSuperAdminsStatus('error');
+      setSuperAdminsError('Forbidden.');
+      return;
+    }
+    let active = true;
+    setSuperAdminsStatus('loading');
+    setSuperAdminsError('');
+    api.admin.super.admins
+      .list(token)
+      .then((data) => {
+        if (!active) return;
+        setSuperAdmins(data?.admins ?? []);
+        setSuperAdminsStatus('idle');
+      })
+      .catch((err) => {
+        if (!active) return;
+        const statusCode = err?.status;
+        if (statusCode === 403) setSuperAdminsError('Forbidden. Super admin access required.');
+        else setSuperAdminsError(err?.message ?? 'Failed to load admins.');
+        setSuperAdminsStatus('error');
+      });
+    return () => {
+      active = false;
+    };
+  }, [tab, token, isAdmin, isSuperAdmin]);
+
+  const superDoRevoke = async (adminRow) => {
+    if (!token) return;
+    if (!adminRow?.id) return;
+    setSuperModalBusy(true);
+    setMessage('');
+    try {
+      await api.admin.super.admins.revoke(token, adminRow.id);
+      setMessage('Admin access revoked.');
+      const data = await api.admin.super.admins.list(token);
+      setSuperAdmins(data?.admins ?? []);
+      closeSuperModal();
+    } catch (err) {
+      if (err?.status === 403) setMessage('Forbidden. Super admin access required.');
+      else setMessage(err?.message ?? 'Failed to revoke admin.');
+      setSuperModalBusy(false);
+    }
+  };
+
+  const superDoResetPassword = async (adminRow) => {
+    if (!token) return;
+    if (!adminRow?.id) return;
+    const nextPassword = String(superPasswordDraft ?? '').trim();
+    if (nextPassword.length < 8) {
+      setMessage('Password must be at least 8 characters.');
+      return;
+    }
+    setSuperModalBusy(true);
+    setMessage('');
+    try {
+      await api.admin.super.admins.resetPassword(token, adminRow.id, { password: nextPassword });
+      setMessage('Password reset. The admin will be logged out on their next request.');
+      // If we reset our own password, our token gets revoked via token_version bump.
+      if (Number(adminRow.id) === Number(user?.id)) {
+        await logout();
+        navigate('/login', { replace: true });
+        return;
+      }
+      closeSuperModal();
+    } catch (err) {
+      if (err?.status === 403) setMessage('Forbidden. Super admin access required.');
+      else setMessage(err?.message ?? 'Failed to reset password.');
+      setSuperModalBusy(false);
+    }
+  };
+
+  const superDoTransfer = async () => {
+    if (!token) return;
+    const targetUserId = Number(superTransferTarget);
+    if (!Number.isFinite(targetUserId) || targetUserId <= 0) {
+      setMessage('Pick a valid target admin.');
+      return;
+    }
+    setSuperModalBusy(true);
+    setMessage('');
+    try {
+      await api.admin.super.transfer(token, { targetUserId });
+      // This action revokes our current token_version and changes our role -> force logout.
+      await logout();
+      navigate('/login', { replace: true });
+    } catch (err) {
+      if (err?.status === 403) setMessage('Forbidden. Super admin access required.');
+      else setMessage(err?.message ?? 'Failed to transfer super admin.');
+      setSuperModalBusy(false);
+    }
+  };
 
   useEffect(() => {
     if (tab !== 'overview') return;
@@ -729,8 +851,17 @@ export default function AdminDashboardPage() {
   };
 
   const onTab = async (next) => {
-    setTab(next);
-    await loadTabData(next);
+    const nextId = String(next ?? '');
+    if (!visibleTabs.some((t) => t.id === nextId)) {
+      setMessage('Forbidden.');
+      return;
+    }
+    if ((nextId === 'admins' || nextId === 'super_admin') && !isSuperAdmin) {
+      setMessage('Forbidden. Super admin access required.');
+      return;
+    }
+    setTab(nextId);
+    await loadTabData(nextId);
   };
 
   const saveHomepage = async () => {
@@ -2015,7 +2146,7 @@ export default function AdminDashboardPage() {
               {!token ? <p className="form-error" style={{ marginTop: 10 }}>Login as an admin to access this page.</p> : null}
               {!isAdmin && token ? <p className="form-error" style={{ marginTop: 10 }}>Your account is not an admin.</p> : null}
               <div role="tablist" aria-label="Admin sections" className="admin-nav">
-                {tabs.map((t) => (
+                {visibleTabs.map((t) => (
                   <button
                     key={t.id}
                     type="button"
@@ -4800,7 +4931,7 @@ export default function AdminDashboardPage() {
                         <option value="instructor">Instructor</option>
                         <option value="support_agent">Support agent</option>
                         <option value="content_editor">Content editor</option>
-                        <option value="admin">Admin</option>
+                        {isSuperAdmin ? <option value="admin">Admin</option> : null}
                       </select>
                     </label>
                     <label className="field">
@@ -4861,8 +4992,8 @@ export default function AdminDashboardPage() {
                             <option value="instructor">Instructor</option>
                             <option value="support_agent">Support agent</option>
                             <option value="content_editor">Content editor</option>
-                            <option value="admin">Admin</option>
-                            <option value="super_admin">Super admin</option>
+                            {isSuperAdmin ? <option value="admin">Admin</option> : null}
+                            {isSuperAdmin ? <option value="super_admin">Super admin</option> : null}
                             <option value="user">User</option>
                           </select>
                         </label>
@@ -4891,6 +5022,13 @@ export default function AdminDashboardPage() {
 
           {tab === 'admins' ? (
             <div className="admin-panel">
+              {!isSuperAdmin ? (
+                <div className="panel">
+                  <p className="form-error" role="alert" style={{ margin: 0 }}>
+                    Forbidden. Super admin access required.
+                  </p>
+                </div>
+              ) : (
               <div className="admin-two-col">
                 <div>
                   <h3 className="h3">Add admin</h3>
@@ -4934,6 +5072,211 @@ export default function AdminDashboardPage() {
                   {!admins.length ? <p className="muted">No admins found.</p> : null}
                 </div>
               </div>
+              )}
+            </div>
+          ) : null}
+
+          {tab === 'super_admin' ? (
+            <div className="admin-panel">
+              {!isSuperAdmin ? (
+                <div className="panel">
+                  <p className="form-error" role="alert" style={{ margin: 0 }}>
+                    Forbidden. Super admin access required.
+                  </p>
+                </div>
+              ) : (
+                <>
+                  <div className="panel">
+                    <h3 className="h3" style={{ marginTop: 0 }}>Super Admin</h3>
+                    <p className="muted" style={{ marginBottom: 0 }}>
+                      Manage admin accounts. Actions here can revoke access and force re-login.
+                    </p>
+                  </div>
+
+                  <div className="panel">
+                    <h3 className="h3" style={{ marginTop: 0 }}>Admins & super admins</h3>
+                    {superAdminsStatus === 'loading' ? <p className="muted">Loading admins…</p> : null}
+                    {superAdminsError ? <p className="form-error">{superAdminsError}</p> : null}
+                    {superAdminsStatus !== 'loading' && !superAdminsError ? (
+                      <div className="admin-table" style={{ marginTop: 12 }}>
+                        <div className="admin-row admin-head">
+                          <div>ID</div>
+                          <div>Name</div>
+                          <div>Email</div>
+                          <div>Role</div>
+                          <div>Last login</div>
+                          <div />
+                        </div>
+                        {(superAdmins ?? []).map((a) => (
+                          <div key={a.id} className="admin-row">
+                            <div>{a.id}</div>
+                            <div className="admin-cell-wrap">{a.name}</div>
+                            <div className="admin-cell-wrap">{a.email}</div>
+                            <div>{a.role}</div>
+                            <div className="admin-cell-wrap">{a.last_login_at ? String(a.last_login_at) : '—'}</div>
+                            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                              <button
+                                className="button button-ghost"
+                                type="button"
+                                onClick={() => setSuperModal({ type: 'reset_password', admin: a })}
+                                disabled={disabled}
+                              >
+                                Reset password
+                              </button>
+                              {String(a.role) !== 'super_admin' ? (
+                                <button
+                                  className="button"
+                                  type="button"
+                                  onClick={() => setSuperModal({ type: 'revoke', admin: a })}
+                                  disabled={disabled}
+                                >
+                                  Revoke access
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="panel">
+                    <h3 className="h3" style={{ marginTop: 0 }}>Transfer super admin ownership</h3>
+                    <p className="muted" style={{ marginTop: 6 }}>
+                      Transfer ownership to another admin. This will log you out immediately.
+                    </p>
+                    <div className="admin-split" style={{ marginTop: 12 }}>
+                      <label className="field">
+                        <span className="field-label">New super admin</span>
+                        <select
+                          className="input"
+                          value={superTransferTarget}
+                          onChange={(e) => setSuperTransferTarget(e.target.value)}
+                          disabled={disabled || superAdminsStatus === 'loading'}
+                        >
+                          <option value="">Select an admin…</option>
+                          {(superAdmins ?? [])
+                            .filter((a) => String(a.role) === 'admin')
+                            .map((a) => (
+                              <option key={a.id} value={a.id}>
+                                {a.name || a.email} (#{a.id})
+                              </option>
+                            ))}
+                        </select>
+                      </label>
+                      <div className="button-row" style={{ alignItems: 'end' }}>
+                        <button
+                          className="button button-solid"
+                          type="button"
+                          onClick={() => setSuperModal({ type: 'transfer', admin: null })}
+                          disabled={disabled || !superTransferTarget}
+                        >
+                          Transfer ownership
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
+
+              {superModal ? (
+                <div className="modal-overlay" role="dialog" aria-modal="true" aria-label="Confirm action">
+                  <div className="modal">
+                    <div className="modal-head">
+                      <h3 className="h3 modal-title" style={{ margin: 0 }}>
+                        {superModal.type === 'revoke'
+                          ? 'Revoke admin access'
+                          : superModal.type === 'transfer'
+                            ? 'Transfer super admin'
+                            : 'Reset password'}
+                      </h3>
+                      <button className="icon-button" type="button" onClick={closeSuperModal} disabled={superModalBusy} aria-label="Close">
+                        ×
+                      </button>
+                    </div>
+
+                    <div className="modal-body">
+                      {superModal.type === 'revoke' ? (
+                        <>
+                          <p className="muted" style={{ margin: 0 }}>
+                            This will downgrade <strong>{superModal.admin?.email}</strong> to a normal user and force logout.
+                          </p>
+                          <div className="button-row">
+                            <button
+                              className="button button-solid"
+                              type="button"
+                              onClick={() => superDoRevoke(superModal.admin)}
+                              disabled={superModalBusy}
+                            >
+                              {superModalBusy ? 'Working…' : 'Confirm revoke'}
+                            </button>
+                            <button className="button button-ghost" type="button" onClick={closeSuperModal} disabled={superModalBusy}>
+                              Cancel
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+
+                      {superModal.type === 'reset_password' ? (
+                        <>
+                          <p className="muted" style={{ margin: 0 }}>
+                            Set a new password for <strong>{superModal.admin?.email}</strong>. This will force logout.
+                          </p>
+                          <label className="field">
+                            <span className="field-label">New password</span>
+                            <input
+                              className="input"
+                              type="password"
+                              minLength={8}
+                              value={superPasswordDraft}
+                              onChange={(e) => setSuperPasswordDraft(e.target.value)}
+                              placeholder="At least 8 characters"
+                              disabled={superModalBusy}
+                            />
+                          </label>
+                          <div className="button-row">
+                            <button
+                              className="button button-solid"
+                              type="button"
+                              onClick={() => superDoResetPassword(superModal.admin)}
+                              disabled={superModalBusy || superPasswordDraft.trim().length < 8}
+                            >
+                              {superModalBusy ? 'Working…' : 'Confirm reset'}
+                            </button>
+                            <button className="button button-ghost" type="button" onClick={closeSuperModal} disabled={superModalBusy}>
+                              Cancel
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+
+                      {superModal.type === 'transfer' ? (
+                        <>
+                          <p className="form-error" style={{ margin: 0 }}>
+                            This will immediately log you out and transfer super admin ownership.
+                          </p>
+                          <p className="muted" style={{ margin: 0 }}>
+                            New super admin: <strong>#{superTransferTarget}</strong>
+                          </p>
+                          <div className="button-row">
+                            <button
+                              className="button button-solid"
+                              type="button"
+                              onClick={superDoTransfer}
+                              disabled={superModalBusy}
+                            >
+                              {superModalBusy ? 'Working…' : 'Confirm transfer'}
+                            </button>
+                            <button className="button button-ghost" type="button" onClick={closeSuperModal} disabled={superModalBusy}>
+                              Cancel
+                            </button>
+                          </div>
+                        </>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+              ) : null}
             </div>
           ) : null}
 

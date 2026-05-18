@@ -13,6 +13,8 @@ export default function CoursesPage() {
   const qParam = searchParams.get('q') || '';
   const [query, setQuery] = useState(qParam);
   const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoryLoading, setCategoryLoading] = useState(false);
   const debounceRef = useRef(null);
@@ -24,6 +26,8 @@ export default function CoursesPage() {
 
   useEffect(() => {
     let active = true;
+    setLoading(true);
+    setError('');
     api.public.courses
       .list()
       .then((data) => {
@@ -31,7 +35,12 @@ export default function CoursesPage() {
         setCourses(sortByDateDesc(data.courses ?? []));
       })
       .catch(() => {
-        if (active) setCourses([]);
+        if (!active) return;
+        setCourses([]);
+        setError('Unable to load workshops right now.');
+      })
+      .finally(() => {
+        if (active) setLoading(false);
       });
 
     return () => {
@@ -125,7 +134,9 @@ export default function CoursesPage() {
               />
             </label>
           </div>
-          {!filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No workshops found.</p> : null}
+          {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading workshops…</p> : null}
+          {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
+          {!loading && !error && !filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No workshops found.</p> : null}
         </div>
         <div className="grid cards-grid">
           {filtered.map((course) => (

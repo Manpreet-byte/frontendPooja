@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, flushOfflineProgressQueue } from '../utils/offlineLearning';
@@ -21,7 +21,9 @@ export default function DashboardPage() {
   usePageTitle('Dashboard · Love & Flour');
   const userId = useAuthStore((s) => s.user?.id ?? null);
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
+  const logout = useAuthStore((s) => s.logout);
   const hydrated = useAuthStore((s) => s.hydrated);
+  const [tab, setTab] = useState('overview'); // overview | orders | profile | support | certificates
   const [recordings, setRecordings] = useState([]);
   const [enrollments, setEnrollments] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -35,6 +37,24 @@ export default function DashboardPage() {
   const [reco, setReco] = useState(null);
   const lastLoadKey = useRef(0);
 
+  const [ordersStatus, setOrdersStatus] = useState('idle'); // idle | loading | error
+  const [ordersError, setOrdersError] = useState('');
+  const [orders, setOrders] = useState([]);
+
+  const [profileStatus, setProfileStatus] = useState('idle'); // idle | saving
+  const [profileMsg, setProfileMsg] = useState('');
+  const [profileName, setProfileName] = useState('');
+  const [profilePhone, setProfilePhone] = useState('');
+
+  const [supportStatus, setSupportStatus] = useState('idle'); // idle | loading | error | creating
+  const [supportError, setSupportError] = useState('');
+  const [supportTickets, setSupportTickets] = useState([]);
+  const [supportForm, setSupportForm] = useState({ category: 'general', subject: '', message_text: '' });
+
+  const [certStatus, setCertStatus] = useState('idle'); // idle | loading | error
+  const [certError, setCertError] = useState('');
+  const [certificates, setCertificates] = useState([]);
+
   useEffect(() => {
     if (!hydrated) return;
     if (!token) return;
@@ -46,22 +66,16 @@ export default function DashboardPage() {
     Promise.allSettled([
       api.user.dashboard(token),
       api.feed.enrollments(token),
-      api.user.recordings.list(token),
       api.user.courses.list(token, { include_expired: true, include_inactive: true }),
-      api.user.activity(token),
-      api.recommendations.mine(token),
     ])
       .then((results) => {
         if (!active) return;
         if (key !== lastLoadKey.current) return;
 
-        const [dashR, enrR, recR, coursesR, actR, recoR] = results;
+        const [dashR, enrR, coursesR] = results;
         if (dashR.status === 'fulfilled') setDashboard(dashR.value?.dashboard ?? dashR.value ?? null);
         if (enrR.status === 'fulfilled') setEnrollments(enrR.value?.enrollments ?? []);
-        if (recR.status === 'fulfilled') setRecordings(recR.value?.recordings ?? []);
         if (coursesR.status === 'fulfilled') setCourses(coursesR.value?.courses ?? []);
-        if (actR.status === 'fulfilled') setActivity(actR.value ?? null);
-        if (recoR.status === 'fulfilled') setReco(recoR.value ?? null);
 
         const errors = results
           .filter((r) => r.status === 'rejected')
@@ -77,11 +91,87 @@ export default function DashboardPage() {
         setStatus('idle');
       });
 
+    // Defer non-critical calls to reduce perceived lag on mobile.
+    setTimeout(() => {
+      if (!active) return;
+      api.user.recordings.list(token).then((data) => {
+        if (!active) return;
+        setRecordings(data?.recordings ?? []);
+      }).catch(() => null);
+      api.user.activity(token).then((data) => {
+        if (!active) return;
+        setActivity(data ?? null);
+      }).catch(() => null);
+      api.recommendations.mine(token).then((data) => {
+        if (!active) return;
+        setReco(data ?? null);
+      }).catch(() => null);
+    }, 250);
+
     refreshProfile().catch(() => null);
     return () => {
       active = false;
     };
   }, [hydrated, token, refreshProfile]);
+
+  useEffect(() => {
+    if (!user) return;
+    setProfileName(user?.name ?? '');
+    setProfilePhone(user?.phone ?? '');
+  }, [user?.id]);
+
+  const loadOrders = async () => {
+    if (!token) return;
+    setOrdersStatus('loading');
+    setOrdersError('');
+    try {
+      const data = await api.orders.listMine(token);
+      setOrders(data?.orders ?? []);
+      setOrdersStatus('idle');
+    } catch (err) {
+      setOrders([]);
+      setOrdersError(err?.message ?? 'Failed to load orders.');
+      setOrdersStatus('error');
+    }
+  };
+
+  const loadSupport = async () => {
+    if (!token) return;
+    setSupportStatus('loading');
+    setSupportError('');
+    try {
+      const data = await api.support.tickets.listMine(token, { limit: 50 });
+      setSupportTickets(data?.tickets ?? []);
+      setSupportStatus('idle');
+    } catch (err) {
+      setSupportTickets([]);
+      setSupportError(err?.message ?? 'Failed to load support tickets.');
+      setSupportStatus('error');
+    }
+  };
+
+  const loadCertificates = async () => {
+    if (!token) return;
+    setCertStatus('loading');
+    setCertError('');
+    try {
+      const data = await api.user.certificates.list(token);
+      setCertificates(data?.certificates ?? []);
+      setCertStatus('idle');
+    } catch (err) {
+      setCertificates([]);
+      setCertError(err?.message ?? 'Failed to load certificates.');
+      setCertStatus('error');
+    }
+  };
+
+  useEffect(() => {
+    if (!token) return;
+    if (tab === 'orders' && ordersStatus === 'idle' && !orders.length) loadOrders();
+    if (tab === 'support' && supportStatus === 'idle' && !supportTickets.length) loadSupport();
+    if (tab === 'certificates' && certStatus === 'idle' && !certificates.length) loadCertificates();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab, token]);
 
   const now = useMemo(() => new Date(), []);
   const activeEnrollments = useMemo(() => {
@@ -128,6 +218,17 @@ export default function DashboardPage() {
     return `Welcome back, ${first}.`;
   }, [user?.name]);
 
+  const dashboardTabs = useMemo(
+    () => [
+      { id: 'overview', label: 'Overview' },
+      { id: 'orders', label: 'Orders' },
+      { id: 'profile', label: 'Profile' },
+      { id: 'support', label: 'Support' },
+      { id: 'certificates', label: 'Certificates' },
+    ],
+    [],
+  );
+
   return (
     <main className="section dashboard-page">
       <div className="container admin-dashboard">
@@ -161,24 +262,24 @@ export default function DashboardPage() {
             <div className="admin-sidebar-body">
               <p className="section-kicker">Dashboard</p>
               <div className="admin-nav" aria-label="Dashboard navigation">
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/dashboard">
-                  Overview
-                </NavLink>
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/courses">
+                {dashboardTabs.map((t) => (
+                  <button
+                    key={t.id}
+                    className={`admin-nav-link${tab === t.id ? ' is-active' : ''}`}
+                    type="button"
+                    onClick={() => setTab(t.id)}
+                    disabled={!token}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+                <div className="mobile-nav-divider" aria-hidden="true" />
+                <Link className="admin-nav-link" to="/courses">
                   Browse workshops
-                </NavLink>
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/recipe-library">
+                </Link>
+                <Link className="admin-nav-link" to="/recipe-library">
                   Recipe library
-                </NavLink>
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/orders">
-                  Orders
-                </NavLink>
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/support">
-                  Support
-                </NavLink>
-                <NavLink className={({ isActive }) => `admin-nav-link${isActive ? ' is-active' : ''}`} to="/certificates">
-                  Certificates
-                </NavLink>
+                </Link>
               </div>
             </div>
           </aside>
@@ -187,7 +288,11 @@ export default function DashboardPage() {
             <div className="panel admin-topbar">
               <div className="admin-topbar-left">
                 <div>
-                  <div className="h3" style={{ margin: 0 }}>Your dashboard</div>
+                  <div className="h3" style={{ margin: 0 }}>
+                    {tab === 'overview'
+                      ? 'Your dashboard'
+                      : dashboardTabs.find((t) => t.id === tab)?.label ?? 'Dashboard'}
+                  </div>
                   <div className="muted" style={{ marginTop: 4 }}>{headerSubtitle}</div>
                 </div>
               </div>
@@ -240,6 +345,7 @@ export default function DashboardPage() {
               </div>
             ) : null}
 
+            {tab === 'overview' ? (
             <div className="panel admin-shell" style={{ marginTop: 16 }}>
               <div className="admin-metrics-grid">
                 <div className={`admin-metric-card${isLoading ? ' dashboard-skeleton' : ''}`} aria-busy={isLoading}>
@@ -503,6 +609,241 @@ export default function DashboardPage() {
                 </div>
               </div>
             </div>
+            ) : null}
+
+            {tab === 'orders' ? (
+              <div className="panel admin-shell" style={{ marginTop: 16 }}>
+                <h3 className="h3" style={{ marginTop: 0 }}>Your orders</h3>
+                {ordersStatus === 'loading' ? <p className="muted">Loading orders…</p> : null}
+                {ordersError ? <p className="form-error">{ordersError}</p> : null}
+                {ordersStatus !== 'loading' && !ordersError ? (
+                  <>
+                    <div className="button-row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+                      <button className="button button-ghost" type="button" onClick={loadOrders} disabled={!token || ordersStatus === 'loading'}>
+                        Refresh
+                      </button>
+                      <Link className="button button-solid" to="/checkout">
+                        Go to checkout
+                      </Link>
+                    </div>
+                    <div className="admin-table" style={{ marginTop: 12 }}>
+                      <div className="admin-row admin-head">
+                        <div>ID</div>
+                        <div>Status</div>
+                        <div>Total</div>
+                        <div>Created</div>
+                        <div />
+                      </div>
+                      {(orders ?? []).map((o) => (
+                        <div key={o.id} className="admin-row">
+                          <div>{o.id}</div>
+                          <div>{o.status}</div>
+                          <div>{o.total_cents != null ? `${o.currency ?? ''} ${(Number(o.total_cents) / 100).toFixed(2)}` : '—'}</div>
+                          <div className="admin-cell-wrap">{String(o.created_at ?? '').slice(0, 19).replace('T', ' ')}</div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Link className="button button-ghost" to={`/orders/${encodeURIComponent(o.id)}`}>
+                              View
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!orders?.length ? <p className="muted" style={{ marginTop: 10 }}>No orders yet.</p> : null}
+                  </>
+                ) : null}
+              </div>
+            ) : null}
+
+            {tab === 'profile' ? (
+              <div className="panel admin-shell" style={{ marginTop: 16 }}>
+                <h3 className="h3" style={{ marginTop: 0 }}>Profile</h3>
+                {profileMsg ? (
+                  <p className={profileMsg.includes('updated') ? 'muted' : 'form-error'} role="status" aria-live="polite">
+                    {profileMsg}
+                  </p>
+                ) : null}
+                <div className="admin-split" style={{ marginTop: 12 }}>
+                  <label className="field">
+                    <span className="field-label">Name</span>
+                    <input className="input" value={profileName} onChange={(e) => setProfileName(e.target.value)} disabled={!token || profileStatus !== 'idle'} />
+                  </label>
+                  <label className="field">
+                    <span className="field-label">Phone</span>
+                    <input className="input" value={profilePhone} onChange={(e) => setProfilePhone(e.target.value)} placeholder="Optional" disabled={!token || profileStatus !== 'idle'} />
+                  </label>
+                </div>
+                <div className="button-row" style={{ marginTop: 12 }}>
+                  <button
+                    className="button button-solid"
+                    type="button"
+                    disabled={!token || profileStatus !== 'idle'}
+                    onClick={async () => {
+                      if (!token || profileStatus !== 'idle') return;
+                      setProfileStatus('saving');
+                      setProfileMsg('');
+                      try {
+                        await api.profile.update(token, { name: profileName, phone: profilePhone });
+                        await refreshProfile();
+                        setProfileMsg('Profile updated.');
+                      } catch (err) {
+                        setProfileMsg(err?.message ?? 'Unable to save profile.');
+                      } finally {
+                        setProfileStatus('idle');
+                      }
+                    }}
+                  >
+                    {profileStatus === 'saving' ? 'Saving…' : 'Save changes'}
+                  </button>
+                  <button className="button button-ghost" type="button" onClick={logout} disabled={profileStatus === 'saving'}>
+                    Logout
+                  </button>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === 'support' ? (
+              <div className="panel admin-shell" style={{ marginTop: 16 }}>
+                <h3 className="h3" style={{ marginTop: 0 }}>Support</h3>
+                <p className="muted">Create a ticket or check your previous requests.</p>
+                {supportError ? <p className="form-error">{supportError}</p> : null}
+                <div className="admin-two-col" style={{ marginTop: 12 }}>
+                  <div>
+                    <h4 className="h4">New ticket</h4>
+                    <div className="admin-split">
+                      <label className="field">
+                        <span className="field-label">Category</span>
+                        <SelectMenu
+                          ariaLabel="Support category"
+                          value={supportForm.category}
+                          options={[
+                            { value: 'general', label: 'General' },
+                            { value: 'payment', label: 'Payment' },
+                            { value: 'access', label: 'Course access' },
+                            { value: 'certificate', label: 'Certificate' },
+                          ]}
+                          onChange={(val) => setSupportForm((s) => ({ ...s, category: String(val) }))}
+                        />
+                      </label>
+                      <label className="field">
+                        <span className="field-label">Subject</span>
+                        <input className="input" value={supportForm.subject} onChange={(e) => setSupportForm((s) => ({ ...s, subject: e.target.value }))} />
+                      </label>
+                    </div>
+                    <label className="field" style={{ marginTop: 12 }}>
+                      <span className="field-label">Message</span>
+                      <textarea className="input textarea" rows={5} value={supportForm.message_text} onChange={(e) => setSupportForm((s) => ({ ...s, message_text: e.target.value }))} />
+                    </label>
+                    <div className="button-row" style={{ marginTop: 12 }}>
+                      <button
+                        className="button button-solid"
+                        type="button"
+                        disabled={!token || supportStatus === 'creating' || !supportForm.subject.trim() || !supportForm.message_text.trim()}
+                        onClick={async () => {
+                          if (!token) return;
+                          setSupportStatus('creating');
+                          setSupportError('');
+                          try {
+                            await api.support.tickets.create(token, supportForm);
+                            setSupportForm({ category: 'general', subject: '', message_text: '' });
+                            await loadSupport();
+                          } catch (err) {
+                            setSupportError(err?.message ?? 'Failed to create ticket.');
+                          } finally {
+                            setSupportStatus('idle');
+                          }
+                        }}
+                      >
+                        {supportStatus === 'creating' ? 'Creating…' : 'Create ticket'}
+                      </button>
+                      <button className="button button-ghost" type="button" onClick={loadSupport} disabled={!token || supportStatus === 'loading'}>
+                        Refresh
+                      </button>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="h4">My tickets</h4>
+                    {supportStatus === 'loading' ? <p className="muted">Loading tickets…</p> : null}
+                    <div className="admin-table">
+                      <div className="admin-row admin-head">
+                        <div>ID</div>
+                        <div>Subject</div>
+                        <div>Status</div>
+                        <div />
+                      </div>
+                      {(supportTickets ?? []).map((t) => (
+                        <div key={t.id} className="admin-row">
+                          <div>{t.id}</div>
+                          <div className="admin-cell-wrap">{t.subject}</div>
+                          <div>{t.status}</div>
+                          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
+                            <Link className="button button-ghost" to={`/support/${encodeURIComponent(t.id)}`}>
+                              View
+                            </Link>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    {!supportTickets?.length ? <p className="muted" style={{ marginTop: 10 }}>No support tickets yet.</p> : null}
+                  </div>
+                </div>
+              </div>
+            ) : null}
+
+            {tab === 'certificates' ? (
+              <div className="panel admin-shell" style={{ marginTop: 16 }}>
+                <h3 className="h3" style={{ marginTop: 0 }}>Certificates</h3>
+                {certStatus === 'loading' ? <p className="muted">Loading certificates…</p> : null}
+                {certError ? <p className="form-error">{certError}</p> : null}
+                <div className="admin-table" style={{ marginTop: 12 }}>
+                  <div className="admin-row admin-head">
+                    <div>ID</div>
+                    <div>Course</div>
+                    <div>Issued</div>
+                    <div />
+                  </div>
+                  {(certificates ?? []).map((c) => (
+                    <div key={c.id ?? c.certificate_id ?? c.course_id} className="admin-row">
+                      <div>{c.id ?? c.certificate_id ?? '—'}</div>
+                      <div className="admin-cell-wrap">{c.course_title ?? c.title ?? `Course #${c.course_id ?? ''}`}</div>
+                      <div className="admin-cell-wrap">{c.issued_at ? String(c.issued_at).slice(0, 10) : '—'}</div>
+                      <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
+                        {c.id ? (
+                          <button
+                            className="button button-ghost"
+                            type="button"
+                            disabled={!token}
+                            onClick={async () => {
+                              if (!token) return;
+                              try {
+                                const blob = await api.user.certificates.downloadBlob(token, c.id);
+                                const url = URL.createObjectURL(blob);
+                                const a = document.createElement('a');
+                                a.href = url;
+                                a.download = `certificate_${c.id}.pdf`;
+                                document.body.appendChild(a);
+                                a.click();
+                                a.remove();
+                                URL.revokeObjectURL(url);
+                              } catch {
+                                // ignore
+                              }
+                            }}
+                          >
+                            Download
+                          </button>
+                        ) : null}
+                        <Link className="button" to="/certificates">
+                          Open certificates page
+                        </Link>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                {!certificates?.length && certStatus !== 'loading' && !certError ? (
+                  <p className="muted" style={{ marginTop: 10 }}>No certificates yet.</p>
+                ) : null}
+              </div>
+            ) : null}
           </section>
         </div>
       </div>

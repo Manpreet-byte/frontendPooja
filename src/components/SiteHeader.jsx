@@ -267,7 +267,7 @@ export default function SiteHeader({ onCartClick }) {
           </button>
           {token ? (
             <>
-              <NotificationsBell token={token} enabled={role === 'admin' || role === 'super_admin'} />
+              {role === 'admin' || role === 'super_admin' ? <NotificationsBell token={token} enabled /> : null}
               {role === 'admin' || role === 'super_admin' ? (
                 <NavLink className={({ isActive }) => `nav-link nav-link-action${isActive ? ' is-active' : ''}`} to="/admin/dashboard">
                   Admin

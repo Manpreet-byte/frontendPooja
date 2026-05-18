@@ -471,6 +471,15 @@ export const api = {
       },
     },
     createAdmin: (token, payload) => request('/api/admin/admins', { method: 'POST', token, body: payload }),
+    super: {
+      admins: {
+        list: (token) => request('/api/admin/super/admins', { token }),
+        revoke: (token, id) => request(`/api/admin/super/admins/${encodeURIComponent(id)}`, { method: 'DELETE', token }),
+        resetPassword: (token, id, payload) =>
+          request(`/api/admin/super/admins/${encodeURIComponent(id)}/reset-password`, { method: 'POST', token, body: payload }),
+      },
+      transfer: (token, payload) => request('/api/admin/super/transfer-super-admin', { method: 'POST', token, body: payload }),
+    },
     system: {
       health: (token) => request('/api/admin/system/health', { token }),
       metrics: (token) => request('/api/admin/system/metrics', { token }),
