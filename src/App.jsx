@@ -67,7 +67,7 @@ function AdminRoute({ children }) {
   const location = useLocation();
   if (!hydrated) return null;
   if (!token) return <Navigate to="/login" replace state={{ from: location }} />;
-  if (user?.role !== 'admin') return <Navigate to="/dashboard" replace />;
+  if (user?.role !== 'admin' && user?.role !== 'super_admin') return <Navigate to="/dashboard" replace />;
   return children;
 }
 
