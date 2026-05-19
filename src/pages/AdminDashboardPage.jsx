@@ -26,7 +26,7 @@ const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'orders', label: 'Orders' },
   { id: 'coupons', label: 'Coupons' },
-  { id: 'courses', label: 'Courses' },
+  { id: 'courses', label: 'Hands-On Classes' },
   { id: 'workshops', label: 'Workshops' },
   { id: 'imports', label: 'Import Preview' },
   { id: 'categories', label: 'Categories' },
@@ -47,6 +47,11 @@ const tabs = [
 ];
 
 const CURRENCY_OPTIONS = ['INR', 'USD', 'EUR', 'GBP', 'AUD', 'CAD', 'SGD', 'AED'];
+const WORKSHOP_BUCKETS = [
+  { slug: 'upcoming-live-workshops', label: 'Upcoming Live Workshops' },
+  { slug: 'recorded-live-workshop', label: 'Recorded Live Workshops' },
+  { slug: 'e-book', label: 'E-Books' },
+];
 
 function formatMoney(cents, currency = 'INR') {
   const amount = Number(cents ?? 0) / 100;
@@ -721,22 +726,24 @@ export default function AdminDashboardPage() {
         const data = await api.admin.coupons.list(token);
         setCoupons(data?.coupons ?? []);
       } else if (nextTab === 'courses') {
-        const data = await api.admin.courses.list(token);
-        setCourses(data.courses ?? []);
-        const cats = await api.admin.categories.list(token, 'course');
-        setCourseCategories(cats.categories ?? []);
+        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'workshop' }), api.admin.categories.list(token, 'workshop')]);
+        const list = data?.courses ?? [];
+        setCourseCategories(cats?.categories ?? []);
+        const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
+        if (handsOnId) setCourses(list.filter((c) => (c?.category_ids ?? []).map((n) => Number(n)).includes(Number(handsOnId))));
+        else setCourses([]);
       } else if (nextTab === 'workshops') {
-        const data = await api.admin.courses.list(token, { kind: 'workshop', source: importSource });
+        const data = await api.admin.courses.list(token, { kind: 'workshop' });
         setWorkshops(data.courses ?? []);
-        const cats = await api.admin.categories.list(token, 'workshop', { source: importSource });
+        const cats = await api.admin.categories.list(token, 'workshop');
         setWorkshopCategories(cats.categories ?? []);
       } else if (nextTab === 'categories') {
         const data = await api.admin.categories.list(token);
         setCategories(data.categories ?? []);
       } else if (nextTab === 'recipes') {
         const [data, cats, tagData] = await Promise.all([
-          api.admin.recipes.list(token, { source: importSource }),
-          api.admin.categories.list(token, 'recipe', { source: importSource }),
+          api.admin.recipes.list(token),
+          api.admin.categories.list(token, 'recipe'),
           api.admin.tags.list(token, { type: 'recipe' }),
         ]);
         setRecipes(data.recipes ?? []);
@@ -1472,6 +1479,46 @@ export default function AdminDashboardPage() {
     });
   }, [rangeOrderTotals.summary]);
 
+  const workshopCategoryById = useMemo(() => {
+    const map = new Map();
+    for (const c of workshopCategories ?? []) {
+      map.set(String(c.id), { slug: String(c.slug ?? ''), name: String(c.name ?? '') });
+    }
+    return map;
+  }, [workshopCategories]);
+
+  const workshopCategoryIdBySlug = useMemo(() => {
+    const map = new Map();
+    for (const c of workshopCategories ?? []) {
+      if (!c?.slug) continue;
+      map.set(String(c.slug), Number(c.id));
+    }
+    return map;
+  }, [workshopCategories]);
+
+  const handsOnCategoryId = useMemo(() => {
+    const fromWorkshop = workshopCategoryIdBySlug.get('hands-on-classes');
+    if (fromWorkshop) return fromWorkshop;
+    const fromCourse = (courseCategories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
+    return fromCourse ? Number(fromCourse) : null;
+  }, [courseCategories, workshopCategoryIdBySlug]);
+
+  const deriveWorkshopBucketSlug = (workshop) => {
+    const ids = (workshop?.category_ids ?? []).map((n) => String(n));
+    const slugs = ids.map((id) => workshopCategoryById.get(id)?.slug).filter(Boolean);
+    const joined = `${workshop?.title ?? ''} ${workshop?.summary ?? ''} ${workshop?.content ?? ''} ${slugs.join(' ')}`.toLowerCase();
+    if (slugs.includes('e-book') || joined.includes('e-book') || joined.includes('ebook') || joined.includes('e book')) return 'e-book';
+    if (
+      slugs.includes('recorded-live-workshop') ||
+      joined.includes('recorded') ||
+      joined.includes('pre-recorded') ||
+      joined.includes('pre recorded') ||
+      joined.includes('recording')
+    )
+      return 'recorded-live-workshop';
+    return 'upcoming-live-workshops';
+  };
+
   const submitCourse = async (e) => {
     e.preventDefault();
     if (!token) return;
@@ -1481,12 +1528,14 @@ export default function AdminDashboardPage() {
       const categoryIds = (courseForm.category_ids ?? [])
         .map((value) => Number(value))
         .filter((n) => Number.isFinite(n) && n > 0);
+      const forcedCategoryIds = handsOnCategoryId ? Array.from(new Set([...categoryIds, Number(handsOnCategoryId)])) : categoryIds;
       const payload = {
+        kind: 'workshop',
         title: courseForm.title,
         summary: courseForm.summary || null,
         content: courseForm.content || null,
         featured_image_url: courseForm.featured_image_url || null,
-        category_ids: categoryIds,
+        category_ids: forcedCategoryIds,
         price: courseForm.price_inr
           ? {
               currency: String(courseForm.currency || 'INR').trim().toUpperCase(),
@@ -1503,7 +1552,7 @@ export default function AdminDashboardPage() {
       };
       if (editingCourseId) {
         await api.admin.courses.update(token, editingCourseId, payload);
-        setMessage('Course updated.');
+        setMessage('Hands-on class updated.');
         setEditingCourseId(null);
       } else {
         await api.admin.courses.create(token, {
@@ -1512,7 +1561,7 @@ export default function AdminDashboardPage() {
           zoom_meeting_id: courseForm.zoom_meeting_id || null,
           zoom_join_url: courseForm.zoom_join_url || null,
         });
-        setMessage('Course created.');
+        setMessage('Hands-on class created.');
       }
       setCourseForm({
         title: '',
@@ -1535,7 +1584,7 @@ export default function AdminDashboardPage() {
       });
       await loadTabData('courses');
     } catch (err) {
-      setMessage(err?.message ?? 'Failed to save course');
+      setMessage(err?.message ?? 'Failed to save hands-on class');
     } finally {
       setStatus('idle');
     }
@@ -4014,7 +4063,7 @@ export default function AdminDashboardPage() {
 
           {tab === 'courses' ? (
             <div className="admin-panel">
-              <h3 className="h3">{editingCourseId ? 'Edit course' : 'Add course'}</h3>
+              <h3 className="h3">{editingCourseId ? 'Edit hands-on class' : 'Add hands-on class'}</h3>
               <form className="contact-form" onSubmit={submitCourse}>
                 <label className="field">
                   <span className="field-label">Title</span>
@@ -4029,7 +4078,7 @@ export default function AdminDashboardPage() {
                   <textarea className="input textarea" rows={6} value={courseForm.content} onChange={(e) => setCourseForm((s) => ({ ...s, content: e.target.value }))} />
                 </label>
                 <label className="field">
-                  <span className="field-label">Categories</span>
+                  <span className="field-label">Categories (Hands-On Classes always applied)</span>
                   <select
                     className="input"
                     multiple
@@ -4052,7 +4101,7 @@ export default function AdminDashboardPage() {
                   </label>
                 </label>
                 <details className="admin-inline-add">
-                  <summary className="link">Add a new course category</summary>
+                  <summary className="link">Add a new class category</summary>
                   <div className="admin-inline-add-body">
                     <div className="admin-split">
                       <label className="field">
@@ -4153,7 +4202,7 @@ export default function AdminDashboardPage() {
                 </label>
                 <label className="field field-inline">
                   <input type="checkbox" checked={courseForm.qa_enabled} onChange={(e) => setCourseForm((s) => ({ ...s, qa_enabled: e.target.checked }))} />
-                  <span className="field-label">Enable Q&amp;A for this course</span>
+                  <span className="field-label">Enable Q&amp;A for this class</span>
                 </label>
                 {editingCourseId ? <p className="muted">Zoom fields below are kept for new course creation. Use the Live Sessions tab to edit an existing session.</p> : null}
                 <div className="admin-split">
@@ -4171,7 +4220,7 @@ export default function AdminDashboardPage() {
                   <input className="input" value={courseForm.zoom_join_url} onChange={(e) => setCourseForm((s) => ({ ...s, zoom_join_url: e.target.value }))} placeholder="https://zoom.us/j/..." />
                 </label>
                 <div className="button-row">
-                  <button className="button button-solid" type="submit" disabled={disabled}>{disabled ? 'Saving…' : editingCourseId ? 'Update course' : 'Create course'}</button>
+                  <button className="button button-solid" type="submit" disabled={disabled}>{disabled ? 'Saving…' : editingCourseId ? 'Update class' : 'Create class'}</button>
                   {editingCourseId ? (
                     <button className="button" type="button" onClick={cancelCourseEdit} disabled={disabled}>
                       Cancel edit
@@ -4180,7 +4229,7 @@ export default function AdminDashboardPage() {
                 </div>
               </form>
 
-              <h3 className="h3">Courses</h3>
+              <h3 className="h3">Hands-On Classes</h3>
               {courseProgressStatus === 'error' ? <p className="form-error">{courseProgressError}</p> : null}
               {courseProgressStatus === 'loading' ? <p className="muted">Loading course progress…</p> : null}
               {courseProgress?.users?.length ? (

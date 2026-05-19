@@ -20,6 +20,18 @@ export default function CoursesPage() {
   const debounceRef = useRef(null);
   usePageTitle('Courses · Love & Flour');
 
+  const allowedCategorySlugs = useMemo(() => ['upcoming-live-workshops', 'upcoming-live-session', 'recorded-live-workshop', 'e-book'], []);
+  const categoryLabelBySlug = useMemo(
+    () =>
+      new Map([
+        ['upcoming-live-workshops', 'Upcoming Live Workshops'],
+        ['upcoming-live-session', 'Upcoming Live Workshops'],
+        ['recorded-live-workshop', 'Recorded Live Workshops'],
+        ['e-book', 'E-Books'],
+      ]),
+    [],
+  );
+
   useEffect(() => {
     setQuery(qParam);
   }, [qParam]);
@@ -52,10 +64,11 @@ export default function CoursesPage() {
     let active = true;
     setCategoryLoading(true);
     api.public.categories
-      .list('course')
+      .list('workshop')
       .then((data) => {
         if (!active) return;
-        setCategories(data?.categories ?? []);
+        const list = data?.categories ?? [];
+        setCategories(list.filter((c) => allowedCategorySlugs.includes(String(c.slug))));
       })
       .catch(() => {
         if (active) setCategories([]);
@@ -66,7 +79,7 @@ export default function CoursesPage() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [allowedCategorySlugs]);
 
   const onChangeQuery = (value) => {
     setQuery(value);
@@ -87,11 +100,33 @@ export default function CoursesPage() {
     setSearchParams(next, { replace: true });
   };
 
+  const deriveWorkshopCategorySlug = (course) => {
+    const taxSlugs = (course?.taxonomies?.['course-category'] ?? []).map((t) => String(t?.slug ?? '').toLowerCase());
+    const joined =
+      `${course?.title ?? ''} ${course?.summary ?? ''} ${course?.excerptHtml ?? ''} ${course?.contentHtml ?? ''} ${taxSlugs.join(' ')}`.toLowerCase();
+
+    if (joined.includes('e-book') || joined.includes('ebook') || joined.includes('e book')) return 'e-book';
+    if (
+      joined.includes('recorded') ||
+      joined.includes('pre-recorded') ||
+      joined.includes('pre recorded') ||
+      joined.includes('recording') ||
+      taxSlugs.includes('recorded-live-workshop') ||
+      taxSlugs.includes('pre-recorded-courses')
+    ) {
+      return 'recorded-live-workshop';
+    }
+    return 'upcoming-live-workshops';
+  };
+
   const filtered = useMemo(() => {
     const list = Array.isArray(courses) ? courses : [];
     const q = String(qParam ?? '').trim().toLowerCase();
     return list.filter((c) => {
-      if (category && !(c.taxonomies?.['course-category'] ?? []).some((t) => t.slug === category)) return false;
+      if (category) {
+        const matches = (c.taxonomies?.['course-category'] ?? []).some((t) => t.slug === category);
+        if (!matches && deriveWorkshopCategorySlug(c) !== category) return false;
+      }
       if (!q) return true;
       const hay =
         `${c.title ?? ''} ${c.summary ?? ''} ${c.excerptHtml ?? ''} ${c.contentHtml ?? ''}`.replace(/<[^>]*>/g, ' ').toLowerCase();
@@ -99,11 +134,31 @@ export default function CoursesPage() {
     });
   }, [category, courses, qParam]);
 
-  const categoryName = category
-    ? filtered
-        .find((c) => (c.taxonomies?.['course-category'] ?? []).some((t) => t.slug === category))
-        ?.taxonomies?.['course-category']?.find((t) => t.slug === category)?.name ?? category
-    : null;
+  const normalizedCategories = useMemo(() => {
+    const list = Array.isArray(categories) ? categories : [];
+    const picked = allowedCategorySlugs
+      .map((slug) => list.find((c) => String(c.slug) === slug))
+      .filter(Boolean);
+    // Keep only one "upcoming live" entry.
+    const hasUpcoming = picked.some((c) => c.slug === 'upcoming-live-workshops');
+    if (hasUpcoming) return picked.filter((c) => c.slug !== 'upcoming-live-session');
+    return picked;
+  }, [allowedCategorySlugs, categories]);
+
+  const showGroupedByCategory = useMemo(() => !category && !String(qParam ?? '').trim(), [category, qParam]);
+  const groupedByCategory = useMemo(() => {
+    const groups = new Map();
+    for (const c of filtered) {
+      const slug = deriveWorkshopCategorySlug(c);
+      if (!allowedCategorySlugs.includes(slug)) continue;
+      const list = groups.get(slug) ?? [];
+      list.push(c);
+      groups.set(slug, list);
+    }
+    return groups;
+  }, [allowedCategorySlugs, filtered]);
+
+  const categoryName = category ? categoryLabelBySlug.get(category) ?? category : null;
 
   return (
     <main className="section">
@@ -128,7 +183,10 @@ export default function CoursesPage() {
                 placeholder={categoryLoading ? 'Loading…' : 'All categories'}
                 options={[
                   { value: '', label: 'All categories' },
-                  ...(categories ?? []).map((c) => ({ value: c.slug ?? '', label: c.name ?? c.slug ?? '' })),
+                  ...(normalizedCategories ?? []).map((c) => ({
+                    value: c.slug ?? '',
+                    label: categoryLabelBySlug.get(c.slug) ?? c.name ?? c.slug ?? '',
+                  })),
                 ]}
                 onChange={(val) => onChangeCategory(val)}
               />
@@ -138,11 +196,33 @@ export default function CoursesPage() {
           {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
           {!loading && !error && !filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No workshops found.</p> : null}
         </div>
-        <div className="grid cards-grid">
-          {filtered.map((course) => (
-            <CourseCard key={course.id} course={course} />
-          ))}
-        </div>
+        {showGroupedByCategory ? (
+          <div style={{ display: 'grid', gap: 22 }}>
+            {normalizedCategories.map((cat) => {
+              const slug = String(cat.slug);
+              const list = groupedByCategory.get(slug) ?? [];
+              if (!list.length) return null;
+              return (
+                <section key={slug} aria-label={cat.name ?? slug}>
+                  <div className="h3" style={{ margin: '0 0 12px 0' }}>
+                    {categoryLabelBySlug.get(slug) ?? cat.name ?? slug}
+                  </div>
+                  <div className="grid cards-grid">
+                    {list.map((course) => (
+                      <CourseCard key={course.id} course={course} />
+                    ))}
+                  </div>
+                </section>
+              );
+            })}
+          </div>
+        ) : (
+          <div className="grid cards-grid">
+            {filtered.map((course) => (
+              <CourseCard key={course.id} course={course} />
+            ))}
+          </div>
+        )}
       </div>
     </main>
   );

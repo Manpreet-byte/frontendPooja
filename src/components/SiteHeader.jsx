@@ -7,12 +7,20 @@ import { useAuthStore } from '../store/authStore';
 import NotificationsBell from './NotificationsBell';
 
 const courseCategoryOrder = [
+  'recorded-live-workshop',
+  'e-book',
   'upcoming-live-workshops',
   'upcoming-live-session',
-  'recorded-live-workshop',
   'hands-on-classes',
-  'e-book',
 ];
+
+const onlineWorkshopCategorySlugs = ['upcoming-live-workshops', 'upcoming-live-session', 'recorded-live-workshop', 'e-book'];
+const onlineWorkshopLabelBySlug = new Map([
+  ['upcoming-live-workshops', 'Upcoming Live Workshops'],
+  ['upcoming-live-session', 'Upcoming Live Workshops'],
+  ['recorded-live-workshop', 'Recorded Live Workshops'],
+  ['e-book', 'E-Books'],
+]);
 
 export default function SiteHeader({ onCartClick }) {
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -64,7 +72,7 @@ export default function SiteHeader({ onCartClick }) {
 
   useEffect(() => {
     let active = true;
-    Promise.all([api.public.categories.list('course'), api.public.categories.list('recipe')])
+    Promise.all([api.public.categories.list('workshop'), api.public.categories.list('recipe')])
       .then(([courseData, recipeData]) => {
         if (!active) return;
         const courseMap = new Map((terms?.courseCategories ?? []).map((item) => [item.slug, item]));
@@ -110,6 +118,22 @@ export default function SiteHeader({ onCartClick }) {
     const map = new Map();
     for (const cat of courseCategories) map.set(cat.slug, `/courses?category=${encodeURIComponent(cat.slug)}`);
     return map;
+  }, [courseCategories]);
+
+  const onlineWorkshopCategories = useMemo(() => {
+    const seen = new Set();
+    const picked = [];
+    for (const slug of onlineWorkshopCategorySlugs) {
+      const cat = courseCategories.find((c) => String(c.slug) === slug);
+      if (!cat) continue;
+      if (seen.has(slug)) continue;
+      picked.push(cat);
+      seen.add(slug);
+    }
+    // If the backend uses one of the "upcoming live" slugs, keep only one in the dropdown.
+    const hasUpcoming = picked.some((c) => c.slug === 'upcoming-live-workshops');
+    if (hasUpcoming) return picked.filter((c) => c.slug !== 'upcoming-live-session');
+    return picked;
   }, [courseCategories]);
 
   useEffect(() => {
@@ -168,6 +192,16 @@ export default function SiteHeader({ onCartClick }) {
   }
 
   const overlayHeader = location.pathname === '/' && !scrolled && !mobileOpen;
+  const coursesCategory = useMemo(() => {
+    try {
+      const params = new URLSearchParams(location.search);
+      return params.get('category') || '';
+    } catch {
+      return '';
+    }
+  }, [location.search]);
+  const isHandsOnActive = location.pathname === '/courses' && coursesCategory === 'hands-on-classes';
+  const isOnlineWorkshopsActive = location.pathname === '/courses' && !isHandsOnActive;
 
   return (
     <header className={`site-header${scrolled ? ' is-scrolled' : ''}${overlayHeader ? ' is-overlay' : ''}`}>
@@ -204,7 +238,7 @@ export default function SiteHeader({ onCartClick }) {
             onBlurCapture={handleDropdownBlur}
           >
             <button
-              className="nav-link nav-link-button"
+              className={`nav-link nav-link-button${isOnlineWorkshopsActive ? ' is-active' : ''}`}
               type="button"
               aria-haspopup="menu"
               aria-expanded={openMenu === 'courses'}
@@ -214,27 +248,21 @@ export default function SiteHeader({ onCartClick }) {
             </button>
             {openMenu === 'courses' ? (
               <div className="dropdown-panel" role="menu">
-                <NavLink className="dropdown-link dropdown-link-strong" to="/courses" onClick={() => setOpenMenu(null)}>
-                  Explore all
-                </NavLink>
-                {courseCategories.map((cat) => (
+                {onlineWorkshopCategories.map((cat) => (
                   <NavLink
                     key={cat.slug}
                     className="dropdown-link"
                     to={courseHrefBySlug.get(cat.slug)}
                     onClick={() => setOpenMenu(null)}
                   >
-                    {cat.name}
+                    {onlineWorkshopLabelBySlug.get(cat.slug) ?? cat.name}
                   </NavLink>
                 ))}
               </div>
             ) : null}
           </div>
 
-          <NavLink
-            className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
-            to="/courses?category=hands-on-classes"
-          >
+          <NavLink className={() => `nav-link${isHandsOnActive ? ' is-active' : ''}`} to="/courses?category=hands-on-classes">
             Hands-On Classes
           </NavLink>
 
@@ -370,26 +398,16 @@ export default function SiteHeader({ onCartClick }) {
               <details className="mobile-nav-group">
                 <summary className="mobile-nav-link mobile-nav-summary">Online Workshops</summary>
                 <div className="mobile-nav-group-inner">
-                  <NavLink className="mobile-nav-link mobile-nav-sublink" to="/courses" onClick={() => setMobileOpen(false)}>
-                    Explore all
-                  </NavLink>
-                  {courseCategories.map((cat) => (
+                  {onlineWorkshopCategories.map((cat) => (
                     <NavLink
                       key={cat.slug}
                       className="mobile-nav-link mobile-nav-sublink"
                       to={`/courses?category=${encodeURIComponent(cat.slug)}`}
                       onClick={() => setMobileOpen(false)}
                     >
-                      {cat.name}
+                      {onlineWorkshopLabelBySlug.get(cat.slug) ?? cat.name}
                     </NavLink>
                   ))}
-                  <NavLink
-                    className="mobile-nav-link mobile-nav-sublink"
-                    to="/courses?category=hands-on-classes"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Hands-On Classes
-                  </NavLink>
                 </div>
               </details>
 
