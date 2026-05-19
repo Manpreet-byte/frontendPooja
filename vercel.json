@@ -1,7 +1,26 @@
 {
+  "redirects": [
+    {
+      "source": "/",
+      "destination": "/bakery/",
+      "permanent": false
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/bakery/assets/(.*)",
+      "destination": "/assets/$1"
+    },
+    {
+      "source": "/bakery/sw.js",
+      "destination": "/sw.js"
+    },
+    {
+      "source": "/bakery/manifest.webmanifest",
+      "destination": "/manifest.webmanifest"
+    },
+    {
+      "source": "/bakery/(.*)",
       "destination": "/index.html"
     }
   ]

@@ -4,7 +4,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
-  // Deploy under a sub-path (e.g. https://example.com/bakery/)
+  // AWS path contract: app must live under /bakery/
   base: '/bakery/',
   plugins: [react()],
   resolve: {
