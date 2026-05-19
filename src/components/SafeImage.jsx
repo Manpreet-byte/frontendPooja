@@ -4,6 +4,8 @@ function normalizeImageSrc(src) {
   const raw = String(src ?? '').trim();
   if (!raw) return '';
 
+  const base = String(import.meta.env.BASE_URL ?? '/');
+
   // Keep already-safe schemes.
   if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
 
@@ -28,10 +30,15 @@ function normalizeImageSrc(src) {
   }
 
   // Absolute path stays as-is.
-  if (raw.startsWith('/')) return raw;
+  if (raw.startsWith('/')) {
+    if (base && base !== '/' && !raw.startsWith(base)) {
+      return `${base.replace(/\/?$/, '/')}${raw.replace(/^\/+/, '')}`;
+    }
+    return raw;
+  }
 
   // Avoid route-relative paths (e.g. /recipes/foo + "img.png" => /recipes/img.png).
-  return `/${raw.replace(/^\.?\//, '')}`;
+  return `${base.replace(/\/?$/, '/')}${raw.replace(/^\.?\//, '')}`;
 }
 
 export default function SafeImage({ src, alt = '', className, loading = 'lazy', ...rest }) {
@@ -51,4 +58,3 @@ export default function SafeImage({ src, alt = '', className, loading = 'lazy', 
     />
   );
 }
-

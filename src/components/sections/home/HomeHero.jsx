@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SafeImage from '../../SafeImage';
 
 const heroImage = '/hero.jpeg';
 
@@ -20,7 +21,7 @@ export default function HomeHero({ cms }) {
   return (
     <section className="hero-premium" aria-label="Hero">
       <div className="hero-premium-media" aria-hidden="true">
-        <img src={imageUrl} alt="" loading="eager" />
+        <SafeImage src={imageUrl} alt="" loading="eager" />
       </div>
       <div className="hero-premium-overlay" />
       <div className="container hero-premium-inner">

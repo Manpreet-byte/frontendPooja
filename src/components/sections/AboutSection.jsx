@@ -1,5 +1,6 @@
 import SectionHeading from '../SectionHeading';
 import mediaMap from '../../data/seed/media-map.json';
+import SafeImage from '../SafeImage';
 
 const DEFAULT_ABOUT_IMAGE =
   mediaMap['https://loveandflourbypooja.com/wp-content/uploads/2025/10/Home-Banner-Image.webp'] ??
@@ -33,13 +34,7 @@ export default function AboutSection({ featuredImage } = {}) {
         </div>
 
         <div className="about-media">
-          <img
-            src={
-              featuredImage || DEFAULT_ABOUT_IMAGE
-            }
-            alt="Baking workspace"
-            loading="lazy"
-          />
+          <SafeImage src={featuredImage || DEFAULT_ABOUT_IMAGE} alt="Baking workspace" loading="lazy" />
           <div className="about-float">
             <p className="about-float-number">10K+</p>
             <p className="about-float-label">Happy Bakers</p>

@@ -4,6 +4,7 @@ import SectionHeading from '../components/SectionHeading';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
 import usePageTitle from '../utils/usePageTitle';
+import SafeImage from '../components/SafeImage';
 
 export default function LoginPage() {
   const navigate = useNavigate();
@@ -64,7 +65,7 @@ export default function LoginPage() {
         <div className="auth-layout">
           <aside className="auth-visual" aria-hidden="true">
             {heroImages.map((src, index) => (
-              <img
+              <SafeImage
                 key={src}
                 className={`auth-visual-image${index === heroIndex ? ' is-active' : ''}`}
                 src={src}

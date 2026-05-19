@@ -218,7 +218,7 @@ export default function SiteHeader({ onCartClick }) {
 
         <NavLink className="brand" to="/" onClick={() => setMobileOpen(false)}>
           <span className="brand-lockup">
-            <img className="brand-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" />
+            <img className="brand-logo" src={`${import.meta.env.BASE_URL}brand/logo.png`} alt="Love & Flour by Pooja" />
           </span>
         </NavLink>
 

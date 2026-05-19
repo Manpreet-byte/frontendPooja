@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SafeImage from '../../SafeImage';
 
 const cards = [
   {
@@ -32,11 +33,11 @@ export default function BakeryShowcaseSection() {
           </div>
 
           <div className="bakery-showcase-bar">
-            <img src="/brand/logo.png" alt="Love & Flour by Pooja" />
+            <SafeImage src="/brand/logo.png" alt="Love & Flour by Pooja" loading="lazy" />
           </div>
 
           <div className="bakery-showcase-hero">
-            <img src="/hero.jpeg" alt="Whole grain bread" loading="lazy" />
+            <SafeImage src="/hero.jpeg" alt="Whole grain bread" loading="lazy" />
             <div className="bakery-showcase-overlay" />
             <div className="bakery-showcase-copy">
               <h3>
@@ -57,7 +58,7 @@ export default function BakeryShowcaseSection() {
               {cards.map((card) => (
                 <article key={card.id} className="bakery-mini-card">
                   <span className="bakery-mini-price">$3</span>
-                  <img src={card.image} alt={card.title} loading="lazy" />
+                  <SafeImage src={card.image} alt={card.title} loading="lazy" />
                   <h4>{card.title}</h4>
                   <p>{card.copy}</p>
                 </article>

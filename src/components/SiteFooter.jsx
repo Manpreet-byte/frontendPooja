@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import SafeImage from './SafeImage';
 
 export default function SiteFooter() {
   return (
@@ -6,7 +7,7 @@ export default function SiteFooter() {
       <div className="container footer-grid">
         <div>
           <div className="footer-brand">
-            <img className="footer-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" />
+            <SafeImage className="footer-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" loading="lazy" />
           </div>
           <p className="footer-muted">Curated workshops, refined recipes, and modern baking guidance with a warm handmade touch.</p>
           <p className="footer-fineprint">© 2026 Love &amp; Flour by Pooja. All rights reserved.</p>

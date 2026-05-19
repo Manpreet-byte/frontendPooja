@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import SectionHeading from '../../SectionHeading';
+import SafeImage from '../../SafeImage';
 
 const highlights = [
   { title: '1-Year Access', desc: 'Revisit videos and notes anytime.' },
@@ -26,7 +27,7 @@ export default function CourseValueSection() {
           <div className="course-value-collage" aria-label="Workshop highlights">
             {collage.map((img, idx) => (
               <div key={img.src} className={`course-value-tile tile-${idx + 1}`}>
-                <img src={img.src} alt={img.alt} loading="lazy" />
+                <SafeImage src={img.src} alt={img.alt} loading="lazy" />
               </div>
             ))}
           </div>
@@ -60,4 +61,3 @@ export default function CourseValueSection() {
     </section>
   );
 }
-

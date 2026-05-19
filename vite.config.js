@@ -4,8 +4,6 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export default defineConfig({
-  // AWS path contract: app must live under /bakery/
-  base: '/bakery/',
   plugins: [react()],
   resolve: {
     // Prevent "Invalid hook call" issues caused by bundling more than one copy of React.
