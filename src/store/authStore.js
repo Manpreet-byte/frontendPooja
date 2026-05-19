@@ -43,7 +43,15 @@ export const useAuthStore = create(
         // 1) if token exists -> validate via /api/profile
         // 2) else (or if invalid) -> silent refresh via cookie, then validate
         set({ status: 'loading', error: '' });
-        const finalize = (next) => set({ ...next, status: 'idle', hydrated: true });
+        const startToken = get().token;
+        const finalize = (next) => {
+          // Avoid clobbering a fresh login/signup that happened while hydration was in-flight.
+          const currentToken = get().token;
+          if (!startToken && currentToken) {
+            return set({ status: 'idle', hydrated: true });
+          }
+          return set({ ...next, status: 'idle', hydrated: true });
+        };
         try {
           const existingToken = get().token;
           if (existingToken) {

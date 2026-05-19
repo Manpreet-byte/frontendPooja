@@ -4,7 +4,6 @@ import { api } from '../api/client';
 
 export default function NotificationsBell({ token, enabled = true }) {
   if (!enabled) return null;
-  const notificationType = 'admin_new_user';
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -26,10 +25,13 @@ export default function NotificationsBell({ token, enabled = true }) {
     setLoading(true);
     setError('');
     try {
-      const data = await api.user.notifications.list(token, { limit: 50, notification_type: notificationType });
+      const data = await api.user.notifications.list(token, { limit: 50 });
       setNotifications(data?.notifications ?? []);
       setUnread(Number(data?.unread_count ?? 0));
     } catch (err) {
+      if (err?.status === 403) setError('Forbidden.');
+      else if (err?.status === 401) setError('Session expired. Please log in again.');
+      else
       setError(err?.message ?? 'Failed to load notifications');
     } finally {
       setLoading(false);
@@ -39,10 +41,10 @@ export default function NotificationsBell({ token, enabled = true }) {
   useEffect(() => {
     if (!token) return;
     let active = true;
-    // Keep unread badge fresh (admin realtime polling).
+    // Keep unread badge fresh (near realtime polling for admin).
     const tick = () =>
       api.user.notifications
-        .list(token, { limit: 1, notification_type: notificationType })
+        .list(token, { limit: 1 })
         .then((data) => {
           if (!active) return;
           setUnread(Number(data?.unread_count ?? 0));
@@ -50,7 +52,7 @@ export default function NotificationsBell({ token, enabled = true }) {
         .catch(() => {});
 
     tick();
-    const id = window.setInterval(tick, 10_000);
+    const id = window.setInterval(tick, 3_000);
     return () => {
       active = false;
       window.clearInterval(id);
@@ -93,10 +95,32 @@ export default function NotificationsBell({ token, enabled = true }) {
     };
   }, [open]);
 
+  useEffect(() => {
+    if (!open) return undefined;
+    if (!token) return undefined;
+    let active = true;
+    const tick = () => {
+      if (!active) return;
+      load().catch(() => {});
+    };
+    tick();
+    const id = window.setInterval(tick, 3_000);
+    const onVis = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      active = false;
+      window.clearInterval(id);
+      document.removeEventListener('visibilitychange', onVis);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, token]);
+
   const markAllRead = async () => {
     if (!token) return;
     try {
-      await api.user.notifications.readAll(token, { notification_type: notificationType });
+      await api.user.notifications.readAll(token);
       setUnread(0);
       setNotifications((list) => (Array.isArray(list) ? list.map((n) => ({ ...n, read_at: n.read_at ?? new Date().toISOString() })) : list));
     } catch (err) {

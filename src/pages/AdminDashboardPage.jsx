@@ -902,7 +902,8 @@ export default function AdminDashboardPage() {
     try {
       await api.admin.cms.patchHomepage(token, {
         title: homepageForm.title || 'Home',
-        is_published: homepageForm.is_published,
+        // Keep homepage hero consistent for all visitors: always publish on save.
+        is_published: true,
         content: {
           hero: {
             badge: homepageForm.hero_badge,
