@@ -162,7 +162,7 @@ export default function CoursesPage() {
 
   return (
     <main className="section">
-      <div className="container-wide">
+      <div className="container">
         <SectionHeading
           badge="Online Workshops"
           title={categoryName ? `Courses: ${categoryName}` : 'All Courses'}
@@ -241,7 +241,7 @@ export default function CoursesPage() {
                   return (
                     <section key={slug} aria-label={cat.name ?? slug}>
                       <div className="h3 courses-group-title">{categoryLabelBySlug.get(slug) ?? cat.name ?? slug}</div>
-                      <div className="grid cards-grid courses-cards-grid">
+                      <div className="grid cards-grid">
                         {list.map((course) => (
                           <CourseCard key={course.id} course={course} />
                         ))}
@@ -251,7 +251,7 @@ export default function CoursesPage() {
                 })}
               </div>
             ) : (
-              <div className="grid cards-grid courses-cards-grid">
+              <div className="grid cards-grid">
                 {filtered.map((course) => (
                   <CourseCard key={course.id} course={course} />
                 ))}

@@ -2752,7 +2752,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-course-value .section-heading .h2 {
-  font-weight: 300;
+  font-weight: 200;
 }
 
 .course-value-grid {
@@ -4101,35 +4101,6 @@ h1, h2, h3, h4, h5, h6 {
   .cards-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-}
-
-.courses-cards-grid {
-  grid-template-columns: repeat(1, 1fr);
-}
-
-@media (min-width: 680px) {
-  .courses-cards-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1040px) {
-  .courses-cards-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.courses-cards-grid .course-card-body {
-  gap: 8px;
-}
-
-.courses-cards-grid .course-card-link {
-  gap: 7px;
-}
-
-.courses-cards-grid .course-card-body .muted {
-  line-height: 1.45;
-  min-height: calc(2 * 1.45em);
 }
 
 .recipe-card-media {
@@ -7076,6 +7047,26 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 12px;
 }
 
+.recipe-filters {
+  margin-bottom: 16px;
+}
+
+.recipe-filters-grid {
+  display: grid;
+  gap: 12px;
+}
+
+@media (min-width: 720px) {
+  .recipe-filters-grid {
+    grid-template-columns: minmax(0, 1.35fr) minmax(0, 0.65fr);
+    align-items: end;
+  }
+}
+
+.recipe-filters-status {
+  margin-top: 10px;
+}
+
 .courses-results {
   min-width: 0;
 }
@@ -7195,6 +7186,11 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, rgba(44, 27, 21, 0.92), rgba(27, 17, 14, 0.92));
   color: #fffaf4;
   box-shadow: 0 18px 46px rgba(27, 17, 14, 0.18);
+}
+
+.section-contact .h3,
+.section-contact .h4 {
+  font-weight: 520;
 }
 
 .contact-card-hero .h3,

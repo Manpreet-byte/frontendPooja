@@ -142,8 +142,8 @@ export default function RecipeLibraryPage() {
           title={categoryName ? `Recipes: ${categoryName}` : 'All Recipes'}
           subtitle={categoryName ? 'Browse recipes in this category.' : 'Browse the full recipe library.'}
         />
-        <div className="panel" style={{ marginBottom: 16 }}>
-          <div className="grid" style={{ gap: 12 }}>
+        <div className="panel recipe-filters">
+          <div className="recipe-filters-grid">
             <label className="field">
               <span className="field-label">Search</span>
               <input className="input" value={query} onChange={(e) => onChangeQuery(e.target.value)} placeholder="Search recipes…" />
@@ -163,9 +163,9 @@ export default function RecipeLibraryPage() {
               />
             </label>
           </div>
-          {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading recipes…</p> : null}
-          {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
-          {!loading && !filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No recipes found.</p> : null}
+          {loading ? <p className="muted recipe-filters-status">Loading recipes…</p> : null}
+          {error ? <p className="form-error recipe-filters-status">{error}</p> : null}
+          {!loading && !filtered.length ? <p className="muted recipe-filters-status">No recipes found.</p> : null}
         </div>
         <div className="grid cards-grid">
           {filtered.map((post) => (
