@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import SectionHeading from '../SectionHeading';
 import mediaMap from '../../data/seed/media-map.json';
 import SafeImage from '../SafeImage';
@@ -11,6 +11,7 @@ function AnimatedCount({ end, suffix = '', duration = 1200 }) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
+    if (!duration) return undefined;
     let frameId = 0;
     const startedAt = performance.now();
 
@@ -40,8 +41,33 @@ function AnimatedCount({ end, suffix = '', duration = 1200 }) {
 }
 
 export default function AboutSection({ featuredImage } = {}) {
+  const sectionRef = useRef(null);
+  const [countsStarted, setCountsStarted] = useState(false);
+
+  useEffect(() => {
+    const node = sectionRef.current;
+    if (!node || countsStarted) return undefined;
+
+    if (typeof IntersectionObserver === 'undefined') {
+      setCountsStarted(true);
+      return undefined;
+    }
+
+    const obs = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting && e.intersectionRatio >= 0.25)) {
+          setCountsStarted(true);
+        }
+      },
+      { threshold: [0, 0.25, 0.5, 1] },
+    );
+
+    obs.observe(node);
+    return () => obs.disconnect();
+  }, [countsStarted]);
+
   return (
-    <section id="about" className="section section-about">
+    <section ref={sectionRef} id="about" className="section section-about">
       <div className="container about-grid">
         <div className="about-content">
           <SectionHeading
@@ -69,7 +95,9 @@ export default function AboutSection({ featuredImage } = {}) {
         <div className="about-media">
           <SafeImage src={featuredImage || DEFAULT_ABOUT_IMAGE} alt="Baking workspace" loading="lazy" />
           <div className="about-float">
-            <p className="about-float-number"><AnimatedCount end={10000} suffix="+" /></p>
+            <p className="about-float-number">
+              {countsStarted ? <AnimatedCount end={10000} suffix="+" /> : <span>0+</span>}
+            </p>
             <p className="about-float-label">Happy Bakers</p>
           </div>
         </div>
@@ -93,7 +121,9 @@ export default function AboutSection({ featuredImage } = {}) {
               />
             </svg>
           </div>
-          <h3 className="h3"><AnimatedCount end={162} suffix="+" /> Recipes</h3>
+          <h3 className="h3">
+            {countsStarted ? <AnimatedCount end={162} suffix="+" /> : <span>0+</span>} Recipes
+          </h3>
           <p className="muted">Tested and perfected recipes for every occasion.</p>
         </div>
         <div className="stat-card">
@@ -121,7 +151,9 @@ export default function AboutSection({ featuredImage } = {}) {
               />
             </svg>
           </div>
-          <h3 className="h3"><AnimatedCount end={50000} suffix="+" /> Community</h3>
+          <h3 className="h3">
+            {countsStarted ? <AnimatedCount end={50000} suffix="+" /> : <span>0+</span>} Community
+          </h3>
           <p className="muted">Baking enthusiasts sharing their creations.</p>
         </div>
         <div className="stat-card">
@@ -135,7 +167,9 @@ export default function AboutSection({ featuredImage } = {}) {
               />
             </svg>
           </div>
-          <h3 className="h3"><AnimatedCount end={100} suffix="%" /> Love</h3>
+          <h3 className="h3">
+            {countsStarted ? <AnimatedCount end={100} suffix="%" /> : <span>0%</span>} Love
+          </h3>
           <p className="muted">Every recipe made with care and attention.</p>
         </div>
       </div>
