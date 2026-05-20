@@ -3,7 +3,8 @@ import SectionHeading from '../components/SectionHeading';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
-import { sortByDateDesc } from '../utils/publicContent';
+import { posts as seededPosts, terms } from '../data/seededContent';
+import { mergeBySlug, sortByDateDesc } from '../utils/publicContent';
 import usePageTitle from '../utils/usePageTitle';
 import SelectMenu from '../components/SelectMenu';
 
@@ -56,11 +57,19 @@ export default function RecipeLibraryPage() {
       .list()
       .then((data) => {
         if (!active) return;
-        setCategories(data?.categories ?? data?.recipe_categories ?? data?.recipeCategories ?? []);
+        const apiCats = data?.categories ?? data?.recipe_categories ?? data?.recipeCategories ?? [];
+        const merged = [...apiCats, ...(terms?.postCategories ?? [])];
+        const bySlug = new Map();
+        for (const item of merged) {
+          const slug = String(item?.slug ?? '');
+          if (!slug || slug === 'uncategorized') continue;
+          if (!bySlug.has(slug)) bySlug.set(slug, item);
+        }
+        setCategories(Array.from(bySlug.values()));
       })
       .catch(() => {
         if (!active) return;
-        setCategories([]);
+        setCategories((terms?.postCategories ?? []).filter((c) => String(c?.slug ?? '') !== 'uncategorized'));
       })
       .finally(() => {
         if (active) setCategoryLoading(false);
@@ -79,12 +88,15 @@ export default function RecipeLibraryPage() {
       try {
         const data = await api.public.recipes.list();
         if (!active) return;
-        const normalized = (data.recipes ?? []).map(normalizeRecipe).filter(Boolean);
-        setPosts(sortByDateDesc(normalized));
+        const normalizedApi = (data.recipes ?? []).map(normalizeRecipe).filter(Boolean);
+        const normalizedSeed = (seededPosts ?? []).map(normalizeRecipe).filter(Boolean);
+        const merged = mergeBySlug(normalizedApi, normalizedSeed);
+        setPosts(sortByDateDesc(merged));
       } catch (err) {
         if (!active) return;
-        setError(err?.message || 'Unable to load recipes.');
-        setPosts([]);
+        setError(err?.message || 'Unable to load recipes. Showing offline list.');
+        const normalizedSeed = (seededPosts ?? []).map(normalizeRecipe).filter(Boolean);
+        setPosts(sortByDateDesc(normalizedSeed));
       } finally {
         if (active) setLoading(false);
       }

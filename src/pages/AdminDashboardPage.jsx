@@ -62,6 +62,27 @@ function formatMoney(cents, currency = 'INR') {
   }
 }
 
+function isoToDatetimeLocal(value) {
+  const iso = String(value ?? '').trim();
+  if (!iso) return '';
+  const dt = new Date(iso);
+  if (Number.isNaN(dt.getTime())) return '';
+  const yyyy = String(dt.getFullYear()).padStart(4, '0');
+  const mm = String(dt.getMonth() + 1).padStart(2, '0');
+  const dd = String(dt.getDate()).padStart(2, '0');
+  const hh = String(dt.getHours()).padStart(2, '0');
+  const min = String(dt.getMinutes()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+}
+
+function datetimeLocalToIso(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  const dt = new Date(raw);
+  if (Number.isNaN(dt.getTime())) return '';
+  return dt.toISOString();
+}
+
 export default function AdminDashboardPage() {
   const navigate = useNavigate();
   const token = useAuthStore((s) => s.token);
@@ -2910,12 +2931,24 @@ export default function AdminDashboardPage() {
                 </label>
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Starts at (ISO datetime)</span>
-                    <input className="input" value={couponForm.starts_at} onChange={(e) => setCouponForm((s) => ({ ...s, starts_at: e.target.value }))} placeholder="2026-05-13T00:00:00.000Z" />
+                    <span className="field-label">Starts at (date &amp; time)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(couponForm.starts_at)}
+                      onChange={(e) => setCouponForm((s) => ({ ...s, starts_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                   <label className="field">
-                    <span className="field-label">Ends at (ISO datetime)</span>
-                    <input className="input" value={couponForm.ends_at} onChange={(e) => setCouponForm((s) => ({ ...s, ends_at: e.target.value }))} placeholder="2026-06-13T00:00:00.000Z" />
+                    <span className="field-label">Ends at (date &amp; time)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(couponForm.ends_at)}
+                      onChange={(e) => setCouponForm((s) => ({ ...s, ends_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                 </div>
                 <label className="field field-inline">

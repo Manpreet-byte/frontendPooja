@@ -7,6 +7,7 @@ import { useAuthStore } from '../store/authStore';
 import SafeImage from '../components/SafeImage';
 import { sanitizeHtmlForApp } from '../utils/htmlSanitize';
 import { formatDateStandard } from '../utils/formatDate';
+import { findCourseBySlug } from '../data/seededContent';
 
 function extractGalleryFromHtml(contentHtml) {
   if (!contentHtml || typeof DOMParser === 'undefined') {
@@ -53,7 +54,9 @@ export default function CourseDetailPage() {
         if (active) setCourse(data.course ?? null);
       })
       .catch(() => {
-        if (active) setCourse(null);
+        if (!active) return;
+        const seeded = findCourseBySlug(slug);
+        setCourse(seeded ?? null);
       });
 
     return () => {

@@ -117,6 +117,29 @@ export default function LiveSessionDetailPage() {
       })
       .catch((err) => {
         if (!active) return;
+        if (err?.status === 404) {
+          api.public.liveSessions
+            .list()
+            .then((data) => {
+              if (!active) return;
+              const list = data?.live_sessions ?? data?.liveSessions ?? [];
+              const match =
+                (list ?? []).find((row) => String(row?.slug ?? row?.session_slug ?? row?.course_slug ?? '') === String(slug)) ?? null;
+              if (match) {
+                setSession(match);
+                setStatus('ready');
+                return;
+              }
+              setError('Workshop not found.');
+              setStatus('error');
+            })
+            .catch((fallbackErr) => {
+              if (!active) return;
+              setError(fallbackErr?.message || err?.message || 'Unable to load workshop.');
+              setStatus('error');
+            });
+          return;
+        }
         setError(err?.message || 'Unable to load workshop.');
         setStatus('error');
       });

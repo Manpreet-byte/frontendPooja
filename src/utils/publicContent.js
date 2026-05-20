@@ -1,17 +1,68 @@
+function inferSlug(item) {
+  return (
+    item?.slug ??
+    item?.course_slug ??
+    item?.courseSlug ??
+    item?.post_name ??
+    item?.postName ??
+    item?.session_slug ??
+    item?.sessionSlug ??
+    null
+  );
+}
+
+function normalizeSlug(item) {
+  const slug = inferSlug(item);
+  if (!slug || item?.slug) return item;
+  return { ...item, slug };
+}
+
+function isEmptyValue(value) {
+  if (value === null || value === undefined) return true;
+  if (typeof value === 'string') return value.trim().length === 0;
+  if (Array.isArray(value)) return value.length === 0;
+  if (typeof value === 'object') return Object.keys(value).length === 0;
+  return false;
+}
+
+function mergePreferPrimary(primary, fallback) {
+  const base = fallback && typeof fallback === 'object' ? fallback : {};
+  const over = primary && typeof primary === 'object' ? primary : {};
+  const merged = { ...base, ...over };
+
+  // Fill "empty" primary values from fallback for key fields.
+  for (const [key, primaryValue] of Object.entries(over)) {
+    if (!isEmptyValue(primaryValue)) continue;
+    if (base[key] !== undefined) merged[key] = base[key];
+  }
+
+  // Normalize common content fields even if primary never had them.
+  if (isEmptyValue(merged.contentHtml) && !isEmptyValue(base.contentHtml)) merged.contentHtml = base.contentHtml;
+  if (isEmptyValue(merged.excerptHtml) && !isEmptyValue(base.excerptHtml)) merged.excerptHtml = base.excerptHtml;
+  if (isEmptyValue(merged.featuredImage) && !isEmptyValue(base.featuredImage)) merged.featuredImage = base.featuredImage;
+  if (isEmptyValue(merged.title) && !isEmptyValue(base.title)) merged.title = base.title;
+  if (isEmptyValue(merged.slug) && !isEmptyValue(base.slug)) merged.slug = base.slug;
+
+  return merged;
+}
+
 export function mergeBySlug(primaryItems = [], fallbackItems = []) {
   const merged = new Map();
 
   for (const item of fallbackItems) {
-    const key = item?.slug ?? item?.id;
+    const normalized = normalizeSlug(item);
+    const key = normalized?.slug ?? normalized?.id;
     if (key !== undefined && key !== null) {
-      merged.set(key, item);
+      merged.set(key, normalized);
     }
   }
 
   for (const item of primaryItems) {
-    const key = item?.slug ?? item?.id;
+    const normalized = normalizeSlug(item);
+    const key = normalized?.slug ?? normalized?.id;
     if (key !== undefined && key !== null) {
-      merged.set(key, item);
+      const existing = merged.get(key);
+      merged.set(key, existing ? mergePreferPrimary(normalized, existing) : normalized);
     }
   }
 

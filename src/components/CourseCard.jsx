@@ -62,6 +62,8 @@ export default function CourseCard({ course }) {
     Number.isFinite(course?.compareAtPriceInr) && course.compareAtPriceInr > 0
       ? `${Math.round(course.compareAtPriceInr)}`
       : course.compareAtPriceText;
+  const courseSlug = course?.slug ? encodeURIComponent(String(course.slug)) : '';
+  const courseHref = courseSlug ? `/courses/${courseSlug}` : '#';
 
   return (
     <article className="card course-card">
@@ -73,7 +75,7 @@ export default function CourseCard({ course }) {
         )}
       </div>
       <div className="course-card-body">
-        <Link className="course-card-link" to={`/courses/${course.slug}`}>
+        <Link className="course-card-link" to={courseHref} aria-disabled={!courseSlug}>
           <div className="course-card-kicker">course</div>
           <h3 className="h3">{course.title}</h3>
           {course.excerptHtml ? (
@@ -101,7 +103,7 @@ export default function CourseCard({ course }) {
         ) : null}
         <div className="course-card-footer">
           <div className="course-card-actions">
-            <Link className="button button-ghost course-card-view" to={`/courses/${course.slug}`}>
+            <Link className="button button-ghost course-card-view" to={courseHref} aria-disabled={!courseSlug}>
               View details
             </Link>
             <button
