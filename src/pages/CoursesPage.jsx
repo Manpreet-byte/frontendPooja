@@ -101,11 +101,35 @@ export default function CoursesPage() {
   };
 
   const deriveWorkshopCategorySlug = (course) => {
-    const taxSlugs = (course?.taxonomies?.['course-category'] ?? []).map((t) => String(t?.slug ?? '').toLowerCase());
-    const joined =
-      `${course?.title ?? ''} ${course?.summary ?? ''} ${course?.excerptHtml ?? ''} ${course?.contentHtml ?? ''} ${taxSlugs.join(' ')}`.toLowerCase();
+    const forcedRecordedSlugs = new Set([
+      'the-grazing-table-workshop-2025',
+      'bakers-business-bootcamp-a-4-day-online-workshop',
+      'pre-recorded-raksha-bandhan-workshop-2025',
+      'pre-recorded-eggfree-layered-brownies-workshop-2025',
+      'savoury-stuffed-buns-workshop',
+      'korean-cream-cheese-buns-workshop',
+      'protein-and-energy-bites-workshop',
+      'eggless-viral-butter-cakes-workshop-2025',
+      'eggless-viral-cookie-tin-workshop',
+      'eggless-christmas-plum-cake-workshop-2025',
+      'eggless-christmas-cookie-box-workshop-2025',
+      'wholesome-salad-bowls-workshop-2026',
+      'eggless-tres-leches-masterclass',
+      'eggless-millet-cookie-workshop-live-online-workshop-2026',
+      'eggless-new-york-style-baked-cheesecakes-workshop',
+      'the-crumble-edit-live-online-workshop',
+    ]);
+    if (forcedRecordedSlugs.has(String(course?.slug ?? ''))) return 'recorded-live-workshop';
 
-    if (joined.includes('e-book') || joined.includes('ebook') || joined.includes('e book')) return 'e-book';
+    const forcedUpcomingSlugs = new Set(['high-protein-meal-bowl']);
+    if (forcedUpcomingSlugs.has(String(course?.slug ?? ''))) return 'upcoming-live-workshops';
+
+    const taxSlugs = (course?.taxonomies?.['course-category'] ?? []).map((t) => String(t?.slug ?? '').toLowerCase());
+    if (taxSlugs.includes('e-book')) return 'e-book';
+    if (taxSlugs.includes('recorded-live-workshop') || taxSlugs.includes('pre-recorded-courses')) return 'recorded-live-workshop';
+
+    const joined = `${course?.title ?? ''} ${course?.summary ?? ''} ${course?.excerptHtml ?? ''} ${course?.contentHtml ?? ''}`.toLowerCase();
+
     if (
       joined.includes('recorded') ||
       joined.includes('pre-recorded') ||
@@ -116,7 +140,8 @@ export default function CoursesPage() {
     ) {
       return 'recorded-live-workshop';
     }
-    return 'upcoming-live-workshops';
+    if (joined.includes('e-book') || joined.includes('ebook') || joined.includes('e book')) return 'e-book';
+    return 'recorded-live-workshop';
   };
 
   const filtered = useMemo(() => {
