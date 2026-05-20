@@ -3,11 +3,12 @@ import { Link } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { formatDateStandard } from '../utils/formatDate';
 
 function formatDate(value) {
   const d = value ? new Date(value) : null;
   if (!d || Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString();
+  return formatDateStandard(d) || '—';
 }
 
 export default function CertificatesPage() {

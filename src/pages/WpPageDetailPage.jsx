@@ -6,6 +6,7 @@ import { findPageBySlug } from '../data/seededContent';
 export default function WpPageDetailPage() {
   const { slug } = useParams();
   const page = findPageBySlug(slug);
+  const isFaqPage = slug === 'frequently-asked-questions';
 
   if (!page) {
     return (
@@ -20,6 +21,13 @@ export default function WpPageDetailPage() {
     );
   }
 
-  return <WpContentPage badge="Page" title={page.title} featuredImage={page.featuredImage} contentHtml={page.contentHtml} />;
+  return (
+    <WpContentPage
+      badge="Page"
+      title={page.title}
+      featuredImage={page.featuredImage}
+      contentHtml={page.contentHtml}
+      pageClassName={isFaqPage ? 'faq-page' : ''}
+    />
+  );
 }
-

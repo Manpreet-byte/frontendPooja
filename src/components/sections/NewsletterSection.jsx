@@ -48,8 +48,12 @@ export default function NewsletterSection() {
           </button>
         </form>
 
-        {message ? <p className={status === 'error' ? 'form-error' : 'muted'} style={{ marginTop: 10 }}>{message}</p> : null}
-        <p className="fineprint">No spam, unsubscribe anytime. We respect your privacy.</p>
+        {message ? (
+          <p className={status === 'error' ? 'form-error' : 'muted'} style={{ marginTop: 10 }}>
+            {message}
+          </p>
+        ) : null}
+        <p className="fineprint newsletter-fineprint">No spam, unsubscribe anytime. We respect your privacy.</p>
       </div>
     </section>
   );

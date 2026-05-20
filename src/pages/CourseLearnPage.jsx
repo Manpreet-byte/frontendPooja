@@ -4,6 +4,7 @@ import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, enqueueOfflineProgressEvent, flushOfflineProgressQueue, getCachedLesson } from '../utils/offlineLearning';
+import { formatDateStandard } from '../utils/formatDate';
 
 export default function CourseLearnPage() {
   const { slug } = useParams();
@@ -648,7 +649,7 @@ export default function CourseLearnPage() {
                                     <div className="muted" style={{ marginTop: 4 }} dangerouslySetInnerHTML={{ __html: c.body_html ?? '' }} />
                                   </div>
                                   <div className="muted" style={{ whiteSpace: 'nowrap' }}>
-                                    {c.created_at ? String(c.created_at).slice(0, 10) : ''}
+                                    {c.created_at ? formatDateStandard(c.created_at) : ''}
                                   </div>
                                 </div>
                               </li>
@@ -720,7 +721,7 @@ export default function CourseLearnPage() {
                                           {q.author_name ? `by ${q.author_name}` : '—'} · {q.reply_count ? `${q.reply_count} replies` : 'no replies'}
                                         </div>
                                       </div>
-                                      <div className="muted" style={{ whiteSpace: 'nowrap' }}>{q.updated_at ? String(q.updated_at).slice(0, 10) : ''}</div>
+                                      <div className="muted" style={{ whiteSpace: 'nowrap' }}>{q.updated_at ? formatDateStandard(q.updated_at) : ''}</div>
                                     </div>
                                   </button>
 
@@ -800,14 +801,14 @@ export default function CourseLearnPage() {
                         <div className="muted">{r.session_title ? r.session_title : `Session ${r.live_session_id}`}</div>
                         {r.is_expired ? (
                           <div className="muted">
-                            Expired {r.expires_at ? `(expired on ${String(r.expires_at).slice(0, 10)})` : ''}
+                            Expired {r.expires_at ? `(expired on ${formatDateStandard(r.expires_at)})` : ''}
                           </div>
                         ) : (
                           <>
                             <a className="link" href={r.recording_url} target="_blank" rel="noreferrer">
                               Open recording
                             </a>
-                            {r.expires_at ? <div className="muted">Valid till {String(r.expires_at).slice(0, 10)}</div> : null}
+                            {r.expires_at ? <div className="muted">Valid till {formatDateStandard(r.expires_at)}</div> : null}
                           </>
                         )}
                       </div>

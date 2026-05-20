@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import SafeImage from './SafeImage';
+import { formatDateStandard } from '../utils/formatDate';
 
 export default function RecipeCard({ recipe, to }) {
   const href = to ?? `/recipes/${recipe.slug ?? recipe.id}`;
@@ -26,7 +27,7 @@ export default function RecipeCard({ recipe, to }) {
                 strokeLinejoin="round"
               />
             </svg>
-            <span>{new Date(recipe.date ?? Date.now()).toLocaleDateString()}</span>
+            <span>{formatDateStandard(recipe.date ?? Date.now())}</span>
           </span>
         </div>
         <h3 className="h3">{recipe.title}</h3>

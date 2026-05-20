@@ -6,6 +6,7 @@ import { useCartStore } from '../store/cartStore';
 import { useAuthStore } from '../store/authStore';
 import SafeImage from '../components/SafeImage';
 import { sanitizeHtmlForApp } from '../utils/htmlSanitize';
+import { formatDateStandard } from '../utils/formatDate';
 
 function extractGalleryFromHtml(contentHtml) {
   if (!contentHtml || typeof DOMParser === 'undefined') {
@@ -118,7 +119,7 @@ export default function CourseDetailPage() {
                   ))}
                 </div>
               ) : null}
-              {course.date ? <div className="muted">Published {String(course.date).slice(0, 10)}</div> : null}
+              {course.date ? <div className="muted">Published {formatDateStandard(course.date)}</div> : null}
             </div>
 
             {activeImage ? (

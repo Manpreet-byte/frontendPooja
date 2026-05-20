@@ -168,61 +168,97 @@ export default function CoursesPage() {
           title={categoryName ? `Courses: ${categoryName}` : 'All Courses'}
           subtitle={categoryName ? 'Browse workshops by format and category.' : 'Browse all workshops.'}
         />
-        <div className="panel" style={{ marginBottom: 16 }}>
-          <div className="grid" style={{ gap: 12 }}>
-            <label className="field">
-              <span className="field-label">Search</span>
-              <input className="input" value={query} onChange={(e) => onChangeQuery(e.target.value)} placeholder="Search workshops…" />
-            </label>
-            <label className="field">
-              <span className="field-label">Category</span>
-              <SelectMenu
-                ariaLabel="Workshop category"
-                value={category}
-                disabled={categoryLoading}
-                placeholder={categoryLoading ? 'Loading…' : 'All categories'}
-                options={[
-                  { value: '', label: 'All categories' },
-                  ...(normalizedCategories ?? []).map((c) => ({
-                    value: c.slug ?? '',
-                    label: categoryLabelBySlug.get(c.slug) ?? c.name ?? c.slug ?? '',
-                  })),
-                ]}
-                onChange={(val) => onChangeCategory(val)}
-              />
-            </label>
-          </div>
-          {loading ? <p className="muted" style={{ marginTop: 10 }}>Loading workshops…</p> : null}
-          {error ? <p className="form-error" style={{ marginTop: 10 }}>{error}</p> : null}
-          {!loading && !error && !filtered.length ? <p className="muted" style={{ marginTop: 10 }}>No workshops found.</p> : null}
+        <div className="courses-layout">
+          <aside className="panel courses-sidebar" aria-label="Workshop filters">
+            <div className="courses-filter-grid">
+              <label className="field">
+                <span className="field-label">Search</span>
+                <div className="courses-search">
+                  <span className="courses-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                      <path
+                        d="M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      />
+                      <path
+                        d="M16.4 16.4 21 21"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                      />
+                    </svg>
+                  </span>
+                  <input
+                    className="input courses-search-input"
+                    value={query}
+                    onChange={(e) => onChangeQuery(e.target.value)}
+                    placeholder="Search workshops…"
+                  />
+                  {query ? (
+                    <button
+                      type="button"
+                      className="courses-search-clear"
+                      onClick={() => onChangeQuery('')}
+                      aria-label="Clear search"
+                    >
+                      ×
+                    </button>
+                  ) : null}
+                </div>
+              </label>
+              <label className="field">
+                <span className="field-label">Category</span>
+                <SelectMenu
+                  ariaLabel="Workshop category"
+                  value={category}
+                  disabled={categoryLoading}
+                  placeholder={categoryLoading ? 'Loading…' : 'All categories'}
+                  options={[
+                    { value: '', label: 'All categories' },
+                    ...(normalizedCategories ?? []).map((c) => ({
+                      value: c.slug ?? '',
+                      label: categoryLabelBySlug.get(c.slug) ?? c.name ?? c.slug ?? '',
+                    })),
+                  ]}
+                  onChange={(val) => onChangeCategory(val)}
+                />
+              </label>
+            </div>
+
+            {loading ? <p className="muted courses-status">Loading workshops…</p> : null}
+            {error ? <p className="form-error courses-status">{error}</p> : null}
+            {!loading && !error && !filtered.length ? <p className="muted courses-status">No workshops found.</p> : null}
+          </aside>
+
+          <section className="courses-results" aria-label="Workshops">
+            {showGroupedByCategory ? (
+              <div className="courses-grouped">
+                {normalizedCategories.map((cat) => {
+                  const slug = String(cat.slug);
+                  const list = groupedByCategory.get(slug) ?? [];
+                  if (!list.length) return null;
+                  return (
+                    <section key={slug} aria-label={cat.name ?? slug}>
+                      <div className="h3 courses-group-title">{categoryLabelBySlug.get(slug) ?? cat.name ?? slug}</div>
+                      <div className="grid cards-grid">
+                        {list.map((course) => (
+                          <CourseCard key={course.id} course={course} />
+                        ))}
+                      </div>
+                    </section>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="grid cards-grid">
+                {filtered.map((course) => (
+                  <CourseCard key={course.id} course={course} />
+                ))}
+              </div>
+            )}
+          </section>
         </div>
-        {showGroupedByCategory ? (
-          <div style={{ display: 'grid', gap: 22 }}>
-            {normalizedCategories.map((cat) => {
-              const slug = String(cat.slug);
-              const list = groupedByCategory.get(slug) ?? [];
-              if (!list.length) return null;
-              return (
-                <section key={slug} aria-label={cat.name ?? slug}>
-                  <div className="h3" style={{ margin: '0 0 12px 0' }}>
-                    {categoryLabelBySlug.get(slug) ?? cat.name ?? slug}
-                  </div>
-                  <div className="grid cards-grid">
-                    {list.map((course) => (
-                      <CourseCard key={course.id} course={course} />
-                    ))}
-                  </div>
-                </section>
-              );
-            })}
-          </div>
-        ) : (
-          <div className="grid cards-grid">
-            {filtered.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
-        )}
       </div>
     </main>
   );

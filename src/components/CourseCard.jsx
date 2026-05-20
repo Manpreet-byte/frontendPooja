@@ -57,10 +57,10 @@ export default function CourseCard({ course }) {
   const hasCourse = useCartStore((state) => state.hasCourse(course.id));
   const buyNowCourse = useCartStore((state) => state.buyNowCourse);
   const cartCount = useCartStore((state) => state.items.length);
-  const priceLabel = Number.isFinite(course?.priceInr) ? `INR ${Math.round(course.priceInr)}` : course.priceText;
+  const priceLabel = Number.isFinite(course?.priceInr) ? `${Math.round(course.priceInr)}` : course.priceText;
   const compareAtLabel =
     Number.isFinite(course?.compareAtPriceInr) && course.compareAtPriceInr > 0
-      ? `INR ${Math.round(course.compareAtPriceInr)}`
+      ? `${Math.round(course.compareAtPriceInr)}`
       : course.compareAtPriceText;
 
   return (
@@ -76,7 +76,13 @@ export default function CourseCard({ course }) {
         <Link className="course-card-link" to={`/courses/${course.slug}`}>
           <div className="course-card-kicker">course</div>
           <h3 className="h3">{course.title}</h3>
-          {course.excerptHtml ? <p className="muted" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} /> : null}
+          {course.excerptHtml ? (
+            <p className="muted" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} />
+          ) : (
+            <p className="muted" aria-hidden="true">
+              &nbsp;
+            </p>
+          )}
         </Link>
         {priceLabel ? (
           <div className="course-card-pricing">

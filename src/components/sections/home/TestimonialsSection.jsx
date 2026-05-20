@@ -97,6 +97,17 @@ export default function TestimonialsSection({ cms }) {
           onBlurCapture={() => setPaused(false)}
         >
           <div className="testimonials-shell" aria-roledescription="carousel">
+            {total > 1 ? (
+              <button
+                type="button"
+                className="icon-button testimonials-nav testimonials-nav-prev"
+                aria-label="Previous testimonial"
+                onClick={() => setActiveIndex((current) => (current - 1 + total) % total)}
+              >
+                ‹
+              </button>
+            ) : null}
+
             <div className="testimonials-window">
               {cards.map((entry, index) => {
                 if (!entry.item) return null;
@@ -117,19 +128,21 @@ export default function TestimonialsSection({ cms }) {
                 );
               })}
             </div>
+
+            {total > 1 ? (
+              <button
+                type="button"
+                className="icon-button testimonials-nav testimonials-nav-next"
+                aria-label="Next testimonial"
+                onClick={() => setActiveIndex((current) => (current + 1) % total)}
+              >
+                ›
+              </button>
+            ) : null}
           </div>
 
           {total > 1 ? (
             <div className="testimonials-controls">
-              <button
-                type="button"
-                className="icon-button testimonials-nav"
-                aria-label="Previous testimonial"
-                onClick={() => setActiveIndex((current) => (current - 1 + total) % total)}
-              >
-                ‹
-              </button>
-
               <div className="testimonials-dots" role="tablist" aria-label="Choose testimonial">
                 {items.map((t, index) => (
                   <button
@@ -142,15 +155,6 @@ export default function TestimonialsSection({ cms }) {
                   />
                 ))}
               </div>
-
-              <button
-                type="button"
-                className="icon-button testimonials-nav"
-                aria-label="Next testimonial"
-                onClick={() => setActiveIndex((current) => (current + 1) % total)}
-              >
-                ›
-              </button>
             </div>
           ) : null}
         </div>

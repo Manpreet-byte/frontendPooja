@@ -2,11 +2,12 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
+import { formatDateStandard } from '../utils/formatDate';
 
 function formatDate(value) {
   const d = value ? new Date(value) : null;
   if (!d || Number.isNaN(d.getTime())) return '—';
-  return d.toLocaleDateString();
+  return formatDateStandard(d) || '—';
 }
 
 export default function CertificateVerifyPage() {
@@ -116,4 +117,3 @@ export default function CertificateVerifyPage() {
     </main>
   );
 }
-

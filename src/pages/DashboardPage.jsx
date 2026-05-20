@@ -5,6 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, flushOfflineProgressQueue } from '../utils/offlineLearning';
 import usePageTitle from '../utils/usePageTitle';
 import SelectMenu from '../components/SelectMenu';
+import { formatDateStandard } from '../utils/formatDate';
 
 function initialsFromName(name) {
   const safe = String(name ?? '').trim();
@@ -447,10 +448,10 @@ export default function DashboardPage() {
                               <span className="muted dashboard-course-meta">
                                 {c._status === 'expired'
                                   ? c.expiry_date
-                                    ? `(expired on ${String(c.expiry_date).slice(0, 10)})`
+                                    ? `(expired on ${formatDateStandard(c.expiry_date)})`
                                     : '(expired)'
                                   : c.expiry_date
-                                    ? `(valid till ${String(c.expiry_date).slice(0, 10)})`
+                                    ? `(valid till ${formatDateStandard(c.expiry_date)})`
                                     : '(active)'}
                               </span>
                             </div>
@@ -503,7 +504,7 @@ export default function DashboardPage() {
                         <li key={e.enrollment_id}>
                           <strong>{e.title}</strong>{' '}
                           <span className="muted">
-                            {e.expiry_date ? `(valid till ${String(e.expiry_date).slice(0, 10)})` : '(active)'}
+                            {e.expiry_date ? `(valid till ${formatDateStandard(e.expiry_date)})` : '(active)'}
                           </span>
                         </li>
                       ))}
@@ -524,7 +525,7 @@ export default function DashboardPage() {
                             <div className="muted">{r.session_title ? r.session_title : `Session ${r.live_session_id}`}</div>
                             {r.is_expired ? (
                               <div className="muted">
-                                Expired {r.expires_at ? `(expired on ${String(r.expires_at).slice(0, 10)})` : ''}
+                                Expired {r.expires_at ? `(expired on ${formatDateStandard(r.expires_at)})` : ''}
                               </div>
                             ) : (
                               <>
@@ -533,7 +534,7 @@ export default function DashboardPage() {
                                     Watch recording
                                   </a>
                                 </div>
-                                {r.expires_at ? <div className="muted">Valid till {String(r.expires_at).slice(0, 10)}</div> : null}
+                                {r.expires_at ? <div className="muted">Valid till {formatDateStandard(r.expires_at)}</div> : null}
                               </>
                             )}
                           </div>
@@ -580,7 +581,7 @@ export default function DashboardPage() {
                         <li key={`${m.lesson_id}-${m.updated_at}`}>
                           <strong>{m.lesson_title}</strong> <span className="muted">· {m.course_title}</span>
                           <div className="muted">
-                            {m.completed_at ? `Completed · ${String(m.completed_at).slice(0, 10)}` : 'In progress'}
+                            {m.completed_at ? `Completed · ${formatDateStandard(m.completed_at)}` : 'In progress'}
                           </div>
                         </li>
                       ))}
@@ -805,7 +806,7 @@ export default function DashboardPage() {
                     <div key={c.id ?? c.certificate_id ?? c.course_id} className="admin-row">
                       <div>{c.id ?? c.certificate_id ?? '—'}</div>
                       <div className="admin-cell-wrap">{c.course_title ?? c.title ?? `Course #${c.course_id ?? ''}`}</div>
-                      <div className="admin-cell-wrap">{c.issued_at ? String(c.issued_at).slice(0, 10) : '—'}</div>
+                      <div className="admin-cell-wrap">{c.issued_at ? formatDateStandard(c.issued_at) : '—'}</div>
                       <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', flexWrap: 'wrap' }}>
                         {c.id ? (
                           <button

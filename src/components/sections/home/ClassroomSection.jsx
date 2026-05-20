@@ -8,7 +8,11 @@ const features = [
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm0 2v14h10V5H7zm2 2h6v2H9V7zm0 4h6v2H9v-2zm0 4h4v2H9v-2z"
+          d="M6.2 14.3a2.1 2.1 0 0 1 0-3l4.8-4.8a2.1 2.1 0 0 1 3 0l3.5 3.5a2.1 2.1 0 0 1 0 3l-4.8 4.8a2.1 2.1 0 0 1-3 0l-3.5-3.5Zm6-6.4-4.6 4.6a.8.8 0 0 0 0 1.1l3.4 3.4c.3.3.8.3 1.1 0l4.6-4.6a.8.8 0 0 0 0-1.1l-3.4-3.4a.8.8 0 0 0-1.1 0Z"
+        />
+        <path
+          fill="currentColor"
+          d="M3 20.5a1 1 0 0 1 1-1h7.5a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1Z"
         />
       </svg>
     ),
@@ -20,7 +24,11 @@ const features = [
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M7.5 7a4.5 4.5 0 1 1 7.6 3.2l1.7 1.7a3.5 3.5 0 0 1 4.2 5.5l-1.4 1.4a3.5 3.5 0 0 1-5.5-4.2l-1.7-1.7A4.5 4.5 0 0 1 7.5 7zm4.5-2.5A2.5 2.5 0 1 0 14.5 7 2.5 2.5 0 0 0 12 4.5zm6.4 10.8-3.1 3.1a1.5 1.5 0 0 0 2.1 2.1l3.1-3.1a1.5 1.5 0 0 0-2.1-2.1z"
+          d="M4 6.5A2.5 2.5 0 0 1 6.5 4h9A2.5 2.5 0 0 1 18 6.5v6A2.5 2.5 0 0 1 15.5 15H10l-3.6 3.1A1.1 1.1 0 0 1 4.6 17v-2.2A2.5 2.5 0 0 1 4 12.5v-6Zm2.5-.5a.5.5 0 0 0-.5.5v6c0 .2.1.4.3.5.2.1.2.4.2.6v.9L9.1 13c.2-.2.4-.2.7-.2h5.7a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5h-9Z"
+        />
+        <path
+          fill="currentColor"
+          d="M8 8.1a1 1 0 0 1 1.5-.9l4 2.3a1 1 0 0 1 0 1.7l-4 2.3A1 1 0 0 1 8 12.6V8.1Z"
         />
       </svg>
     ),
@@ -32,7 +40,11 @@ const features = [
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M4 5a3 3 0 0 1 3-3h10a3 3 0 0 1 3 3v14a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3V5zm3-1a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H7zm1 3h8v2H8V7zm0 4h8v2H8v-2zm0 4h5v2H8v-2z"
+          d="M6.5 4.2h9.8c1 0 1.7.8 1.7 1.7v12.3c0 1-.8 1.7-1.7 1.7H6.5c-1 0-1.7-.8-1.7-1.7V5.9c0-1 .8-1.7 1.7-1.7Zm0 2a.3.3 0 0 0-.3.3v11.1c0 .2.1.3.3.3h9.8c.2 0 .3-.1.3-.3V6.5c0-.2-.1-.3-.3-.3H6.5Z"
+        />
+        <path
+          fill="currentColor"
+          d="M8 7.7h7v1.8H8V7.7Zm0 3.6h7v1.8H8v-1.8Zm0 3.6h4.5v1.8H8v-1.8Z"
         />
       </svg>
     ),
@@ -44,7 +56,7 @@ const features = [
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
         <path
           fill="currentColor"
-          d="M12 2a6 6 0 0 1 6 6v1h1a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h1V8a6 6 0 0 1 6-6zm-4 7h8V8a4 4 0 0 0-8 0v1zm4 4a2 2 0 0 0-1 3.7V18a1 1 0 0 0 2 0v-1.3A2 2 0 0 0 12 13z"
+          d="M12 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L12 3.2Z"
         />
       </svg>
     ),
@@ -76,4 +88,3 @@ export default function ClassroomSection() {
     </section>
   );
 }
-

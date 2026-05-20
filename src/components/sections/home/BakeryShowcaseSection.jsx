@@ -6,13 +6,13 @@ const cards = [
     id: '1',
     title: 'Artisan Sourdough',
     copy: 'Crusty outside, airy crumb, and deep flavor for everyday baking.',
-    image: '/seed-media/0029411272af87eaf6746fc9a3eb6fb3b2e3533b.jpg',
+    image: 'https://loveandflourbypooja.com/wp-content/uploads/2025/10/WhatsApp-Image-2026-01-13-at-2.01.32-PM.jpeg',
   },
   {
     id: '2',
     title: 'Chocolate Babka',
     copy: 'Layered chocolate folds with a rich, soft pull-apart texture.',
-    image: '/seed-media/003a4afcf1cf8ce93b64c43673dc122c5f7a9408.jpg',
+    image: 'https://loveandflourbypooja.com/wp-content/uploads/2025/10/SPICED-HOT-CHOCOLATE.jpg',
   },
   {
     id: '3',

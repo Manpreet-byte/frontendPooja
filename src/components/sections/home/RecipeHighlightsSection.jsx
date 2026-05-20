@@ -5,6 +5,7 @@ import SafeImage from '../../SafeImage';
 import { api } from '../../../api/client';
 import { sortByDateDesc } from '../../../utils/publicContent';
 import mediaMap from '../../../data/seed/media-map.json';
+import { formatDateStandard } from '../../../utils/formatDate';
 
 const FALLBACK_BAKERY_IMAGES = [
   '/seed-media/560ebdc890236b1a4092bda8547a446f67b42cc9.jpg',
@@ -14,6 +15,16 @@ const FALLBACK_BAKERY_IMAGES = [
   '/seed-media/803645d1e47482b4290bf28a0d2804ed00088ecc.jpg',
   '/seed-media/4794a4dc013ae8f0ef553acfd0b24f6fe193186e.jpg',
 ];
+
+const FALLBACK_POSTS = FALLBACK_BAKERY_IMAGES.map((src, index) => ({
+  id: `fallback-${index + 1}`,
+  slug: '',
+  title: ['New recipe drop', 'Weekend bake', 'Wholesome treat', 'Quick dessert', 'Bakery favourite', 'Seasonal special'][index] ?? `Recipe ${index + 1}`,
+  excerptHtml: 'Explore the full recipe library to discover the latest bakes.',
+  date: Date.now() - index * 24 * 60 * 60 * 1000,
+  featuredImage: src,
+  taxonomies: { category: [{ name: 'Recipe', slug: 'recipe' }] },
+}));
 
 function resolvePostImage(post) {
   const raw =
@@ -59,10 +70,11 @@ export default function RecipeHighlightsSection() {
       .list()
       .then((data) => {
         if (!active) return;
-        setLatest(withFallbackImages(sortByDateDesc(data.recipes ?? []).slice(0, 6)));
+        const incoming = sortByDateDesc(data.recipes ?? []).slice(0, 6);
+        setLatest(incoming.length ? withFallbackImages(incoming) : FALLBACK_POSTS);
       })
       .catch(() => {
-        if (active) setLatest([]);
+        if (active) setLatest(FALLBACK_POSTS);
       });
 
     return () => {
@@ -170,7 +182,7 @@ export default function RecipeHighlightsSection() {
                 {slides.map((slide, slideIndex) => (
                   <div key={slide.featured.id ?? slideIndex} className="recipe-showcase-slide" aria-hidden={slideIndex !== clampedIndex}>
                     <div className="recipe-slide-layout">
-                      <Link className="recipe-feature-card" to={`/recipes/${slide.featured.slug ?? slide.featured.id}`}>
+                      <Link className="recipe-feature-card" to={slide.featured.slug ? `/recipes/${slide.featured.slug}` : '/recipe-library'}>
                         <div className="recipe-feature-media">
                           {slide.featured.featuredImage ? (
                             <SafeImage src={slide.featured.featuredImage} alt={slide.featured.title} />
@@ -192,7 +204,7 @@ export default function RecipeHighlightsSection() {
 
                       <div className="recipe-support-grid">
                         {slide.supporting.map((post) => (
-                          <Link className="recipe-support-card" key={post.id} to={`/recipes/${post.slug ?? post.id}`}>
+                          <Link className="recipe-support-card" key={post.id} to={post.slug ? `/recipes/${post.slug}` : '/recipe-library'}>
                             <div className="recipe-support-media">
                               {post.featuredImage ? (
                                 <SafeImage src={post.featuredImage} alt={post.title} />
@@ -204,7 +216,7 @@ export default function RecipeHighlightsSection() {
                               <div className="recipe-support-topline">
                                 <span className="pill">{post.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
                                 <span className="recipe-support-date">
-                                  {new Date(post.date ?? Date.now()).toLocaleDateString()}
+                                  {formatDateStandard(post.date ?? Date.now())}
                                 </span>
                               </div>
                               <h3>{post.title}</h3>

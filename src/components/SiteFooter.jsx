@@ -10,7 +10,6 @@ export default function SiteFooter() {
             <SafeImage className="footer-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" loading="lazy" />
           </div>
           <p className="footer-muted">Curated workshops, refined recipes, and modern baking guidance with a warm handmade touch.</p>
-          <p className="footer-fineprint">© 2026 Love &amp; Flour by Pooja. All rights reserved.</p>
         </div>
 
         <div>
@@ -44,21 +43,45 @@ export default function SiteFooter() {
         <div>
           <h3 className="footer-heading">Follow</h3>
           <div className="footer-social">
-            <a className="icon-button icon-button-dark" href="#" aria-label="Instagram">
-              IG
+            <a className="icon-button icon-button-dark footer-social-icon" href="#" aria-label="Instagram">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M7.8 2h8.4A5.8 5.8 0 0 1 22 7.8v8.4A5.8 5.8 0 0 1 16.2 22H7.8A5.8 5.8 0 0 1 2 16.2V7.8A5.8 5.8 0 0 1 7.8 2Zm0 2A3.8 3.8 0 0 0 4 7.8v8.4A3.8 3.8 0 0 0 7.8 20h8.4a3.8 3.8 0 0 0 3.8-3.8V7.8A3.8 3.8 0 0 0 16.2 4H7.8Zm4.2 3.7a4.3 4.3 0 1 1 0 8.6 4.3 4.3 0 0 1 0-8.6Zm0 2a2.3 2.3 0 1 0 0 4.6 2.3 2.3 0 0 0 0-4.6ZM17.6 6.7a1 1 0 1 1 0 2 1 1 0 0 1 0-2Z"
+                />
+              </svg>
             </a>
-            <a className="icon-button icon-button-dark" href="#" aria-label="Facebook">
-              FB
+            <a className="icon-button icon-button-dark footer-social-icon" href="#" aria-label="Facebook">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M13.5 22v-7h2.5l.4-3H13.5V9.9c0-.9.3-1.6 1.7-1.6h1.3V5.6c-.6-.1-1.6-.2-2.8-.2-2.8 0-4.6 1.7-4.6 4.9V12H6.7v3h2.4v7h4.4Z"
+                />
+              </svg>
             </a>
-            <a className="icon-button icon-button-dark" href="#" aria-label="YouTube">
-              YT
+            <a className="icon-button icon-button-dark footer-social-icon" href="#" aria-label="YouTube">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M21.6 7.2a3 3 0 0 0-2.1-2.1C17.8 4.7 12 4.7 12 4.7s-5.8 0-7.5.4A3 3 0 0 0 2.4 7.2 31.7 31.7 0 0 0 2 12a31.7 31.7 0 0 0 .4 4.8 3 3 0 0 0 2.1 2.1c1.7.4 7.5.4 7.5.4s5.8 0 7.5-.4a3 3 0 0 0 2.1-2.1A31.7 31.7 0 0 0 22 12a31.7 31.7 0 0 0-.4-4.8ZM10.4 15.3V8.7L16.2 12l-5.8 3.3Z"
+                />
+              </svg>
             </a>
-            <Link className="icon-button icon-button-dark" to="/newsletter" aria-label="Newsletter">
-              ✉
+            <Link className="icon-button icon-button-dark footer-social-icon" to="/newsletter" aria-label="Newsletter">
+              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M4.5 6h15A2.5 2.5 0 0 1 22 8.5v8A2.5 2.5 0 0 1 19.5 19h-15A2.5 2.5 0 0 1 2 16.5v-8A2.5 2.5 0 0 1 4.5 6Zm0 2v.3l7.2 4.5a.6.6 0 0 0 .6 0L19.5 8.3V8h-15Zm15 2.7-6.2 3.9a2.6 2.6 0 0 1-2.6 0L4.5 10.7v5.8c0 .3.2.5.5.5h14c.3 0 .5-.2.5-.5v-5.8Z"
+                />
+              </svg>
             </Link>
           </div>
           <p className="footer-fineprint">Join 50K+ baking enthusiasts</p>
         </div>
+      </div>
+
+      <div className="footer-bottom">
+        <p className="footer-fineprint footer-bottom-line">© 2026 Love &amp; Flour by Pooja. All rights reserved.</p>
       </div>
     </footer>
   );

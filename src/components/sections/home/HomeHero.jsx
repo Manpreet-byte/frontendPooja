@@ -3,8 +3,14 @@ import SafeImage from '../../SafeImage';
 
 const heroImage = '/hero.jpeg';
 
+function sentenceCase(text) {
+  const value = String(text ?? '').trim();
+  if (!value) return '';
+  return value.charAt(0).toUpperCase() + value.slice(1).toLowerCase();
+}
+
 export default function HomeHero({ cms }) {
-  const badge = cms?.badge ?? 'Artisanal Bakery & Culinary Workshops';
+  const badge = cms?.badge != null && String(cms.badge).trim() ? String(cms.badge) : sentenceCase('artisanal bakery & culinary workshops');
   const title = cms?.title ?? 'Craft Your\nCulinary Story';
   const subtitle =
     cms?.subtitle ??
@@ -24,7 +30,7 @@ export default function HomeHero({ cms }) {
         <SafeImage src={imageUrl} alt="" loading="eager" />
       </div>
       <div className="hero-premium-overlay" />
-      <div className="container hero-premium-inner">
+      <div className="container-wide hero-premium-inner">
         <div className="hero-premium-content">
           <p className="hero-premium-badge">{badge}</p>
           <h1 className="hero-premium-title">
