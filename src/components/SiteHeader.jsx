@@ -14,6 +14,13 @@ const courseCategoryOrder = [
   'e-book',
 ];
 
+const onlineWorkshopNavSlugs = ['upcoming-live-workshops', 'recorded-live-workshop', 'e-book'];
+const onlineWorkshopNavLabelBySlug = new Map([
+  ['upcoming-live-workshops', 'Upcoming Live Workshops'],
+  ['recorded-live-workshop', 'Recorded Live Workshops'],
+  ['e-book', 'E-Books'],
+]);
+
 export default function SiteHeader({ onCartClick }) {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [openMenu, setOpenMenu] = useState(null);
@@ -120,6 +127,12 @@ export default function SiteHeader({ onCartClick }) {
     return map;
   }, [courseCategories]);
 
+  const onlineWorkshopCategories = useMemo(() => {
+    const list = Array.isArray(courseCategories) ? courseCategories : [];
+    const bySlug = new Map(list.map((cat) => [String(cat.slug ?? ''), cat]));
+    return onlineWorkshopNavSlugs.map((slug) => bySlug.get(slug)).filter(Boolean);
+  }, [courseCategories]);
+
   useEffect(() => {
     function onKeyDown(e) {
       if (e.key === 'Escape') {
@@ -222,17 +235,14 @@ export default function SiteHeader({ onCartClick }) {
             </button>
             {openMenu === 'courses' ? (
               <div className="dropdown-panel" role="menu">
-                <NavLink className="dropdown-link dropdown-link-strong" to="/courses" onClick={() => setOpenMenu(null)}>
-                  Explore all
-                </NavLink>
-                {courseCategories.map((cat) => (
+                {onlineWorkshopCategories.map((cat) => (
                   <NavLink
                     key={cat.slug}
                     className="dropdown-link"
                     to={courseHrefBySlug.get(cat.slug)}
                     onClick={() => setOpenMenu(null)}
                   >
-                    {cat.name}
+                    {onlineWorkshopNavLabelBySlug.get(cat.slug) ?? cat.name}
                   </NavLink>
                 ))}
               </div>
@@ -380,30 +390,16 @@ export default function SiteHeader({ onCartClick }) {
               <details className="mobile-nav-group">
                 <summary className="mobile-nav-link mobile-nav-summary">Online Workshops</summary>
                 <div className="mobile-nav-group-inner">
-                  <NavLink className="mobile-nav-link mobile-nav-sublink" to="/courses" onClick={() => setMobileOpen(false)}>
-                    Explore all
-                  </NavLink>
-                  {courseCategories.map((cat) => (
+                  {onlineWorkshopCategories.map((cat) => (
                     <NavLink
                       key={cat.slug}
                       className="mobile-nav-link mobile-nav-sublink"
                       to={`/courses?category=${encodeURIComponent(cat.slug)}`}
                       onClick={() => setMobileOpen(false)}
                     >
-                      {cat.name}
+                      {onlineWorkshopNavLabelBySlug.get(cat.slug) ?? cat.name}
                     </NavLink>
                   ))}
-                  <NavLink
-                    className={() =>
-                      `mobile-nav-link mobile-nav-sublink${
-                        location.pathname === '/courses' && activeCourseCategory === 'hands-on-classes' ? ' is-active' : ''
-                      }`
-                    }
-                    to="/courses?category=hands-on-classes"
-                    onClick={() => setMobileOpen(false)}
-                  >
-                    Hands-On Classes
-                  </NavLink>
                 </div>
               </details>
 

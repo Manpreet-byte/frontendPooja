@@ -3,7 +3,8 @@ import SectionHeading from '../components/SectionHeading';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../api/client';
-import { sortByDateDesc } from '../utils/publicContent';
+import { courses as seededCourses, terms } from '../data/seededContent';
+import { mergeBySlug, sortByDateDesc } from '../utils/publicContent';
 import usePageTitle from '../utils/usePageTitle';
 import SelectMenu from '../components/SelectMenu';
 
@@ -44,12 +45,13 @@ export default function CoursesPage() {
       .list()
       .then((data) => {
         if (!active) return;
-        setCourses(sortByDateDesc(data.courses ?? []));
+        const merged = mergeBySlug(data.courses ?? [], seededCourses ?? []);
+        setCourses(sortByDateDesc(merged));
       })
       .catch(() => {
         if (!active) return;
-        setCourses([]);
-        setError('Unable to load workshops right now.');
+        setCourses(sortByDateDesc(seededCourses ?? []));
+        setError('Unable to load workshops right now. Showing offline list.');
       })
       .finally(() => {
         if (active) setLoading(false);
@@ -67,11 +69,22 @@ export default function CoursesPage() {
       .list('workshop')
       .then((data) => {
         if (!active) return;
-        const list = data?.categories ?? [];
-        setCategories(list.filter((c) => allowedCategorySlugs.includes(String(c.slug))));
+        const apiList = data?.categories ?? [];
+        const merged = [
+          ...apiList,
+          ...(terms?.courseCategories ?? []),
+        ];
+        const bySlug = new Map();
+        for (const item of merged) {
+          const slug = String(item?.slug ?? '');
+          if (!slug) continue;
+          if (!bySlug.has(slug)) bySlug.set(slug, item);
+        }
+        setCategories(Array.from(bySlug.values()).filter((c) => allowedCategorySlugs.includes(String(c.slug))));
       })
       .catch(() => {
-        if (active) setCategories([]);
+        if (!active) return;
+        setCategories((terms?.courseCategories ?? []).filter((c) => allowedCategorySlugs.includes(String(c.slug))));
       })
       .finally(() => {
         if (active) setCategoryLoading(false);
