@@ -2394,6 +2394,10 @@ h1, h2, h3, h4, h5, h6 {
   font-weight: 200;
 }
 
+.home-classroom .classroom-card .muted {
+  font-weight: 200;
+}
+
 .classroom-card:hover {
   transform: translateY(-3px);
   border-color: rgba(229, 138, 31, 0.32);
@@ -4097,6 +4101,35 @@ h1, h2, h3, h4, h5, h6 {
   .cards-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+}
+
+.courses-cards-grid {
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 680px) {
+  .courses-cards-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1040px) {
+  .courses-cards-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+.courses-cards-grid .course-card-body {
+  gap: 8px;
+}
+
+.courses-cards-grid .course-card-link {
+  gap: 7px;
+}
+
+.courses-cards-grid .course-card-body .muted {
+  line-height: 1.45;
+  min-height: calc(2 * 1.45em);
 }
 
 .recipe-card-media {
@@ -6944,6 +6977,10 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-lg);
   padding: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 238, 225, 0.92));
+}
+
+.stat-card .h3 {
+  font-weight: 500;
 }
 
 .stat-icon {

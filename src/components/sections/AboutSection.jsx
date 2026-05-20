@@ -11,7 +11,12 @@ function AnimatedCount({ end, suffix = '', duration = 1200 }) {
   const [value, setValue] = useState(0);
 
   useEffect(() => {
+    setValue(0);
     if (!duration) return undefined;
+    if (typeof window === 'undefined') return undefined;
+    if (typeof requestAnimationFrame === 'undefined') return undefined;
+    if (typeof performance === 'undefined' || typeof performance.now !== 'function') return undefined;
+
     let frameId = 0;
     const startedAt = performance.now();
 
@@ -40,31 +45,42 @@ function AnimatedCount({ end, suffix = '', duration = 1200 }) {
   );
 }
 
-export default function AboutSection({ featuredImage } = {}) {
-  const sectionRef = useRef(null);
-  const [countsStarted, setCountsStarted] = useState(false);
+function useInViewOnce(options = {}) {
+  const ref = useRef(null);
+  const [inView, setInView] = useState(false);
 
   useEffect(() => {
-    const node = sectionRef.current;
-    if (!node || countsStarted) return undefined;
+    const node = ref.current;
+    if (!node || inView) return undefined;
 
     if (typeof IntersectionObserver === 'undefined') {
-      setCountsStarted(true);
+      setInView(true);
       return undefined;
     }
 
     const obs = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting && e.intersectionRatio >= 0.25)) {
-          setCountsStarted(true);
+        if (entries.some((e) => e.isIntersecting && (e.intersectionRatio ?? 0) >= (options.minRatio ?? 0.25))) {
+          setInView(true);
+          obs.disconnect();
         }
       },
-      { threshold: [0, 0.25, 0.5, 1] },
+      { threshold: options.threshold ?? [0, 0.25, 0.5, 1] },
     );
 
     obs.observe(node);
     return () => obs.disconnect();
-  }, [countsStarted]);
+  }, [inView, options.minRatio, options.threshold]);
+
+  return { ref, inView };
+}
+
+export default function AboutSection({ featuredImage } = {}) {
+  const sectionRef = useRef(null);
+  const floatCount = useInViewOnce({ minRatio: 0.25 });
+  const recipesCount = useInViewOnce({ minRatio: 0.25 });
+  const communityCount = useInViewOnce({ minRatio: 0.25 });
+  const loveCount = useInViewOnce({ minRatio: 0.25 });
 
   return (
     <section ref={sectionRef} id="about" className="section section-about">
@@ -94,9 +110,9 @@ export default function AboutSection({ featuredImage } = {}) {
 
         <div className="about-media">
           <SafeImage src={featuredImage || DEFAULT_ABOUT_IMAGE} alt="Baking workspace" loading="lazy" />
-          <div className="about-float">
+          <div ref={floatCount.ref} className="about-float">
             <p className="about-float-number">
-              {countsStarted ? <AnimatedCount end={10000} suffix="+" /> : <span>0+</span>}
+              {floatCount.inView ? <AnimatedCount end={10000} suffix="+" /> : <span>0+</span>}
             </p>
             <p className="about-float-label">Happy Bakers</p>
           </div>
@@ -104,7 +120,7 @@ export default function AboutSection({ featuredImage } = {}) {
       </div>
 
       <div className="container about-stats">
-        <div className="stat-card">
+        <div ref={recipesCount.ref} className="stat-card">
           <div className="stat-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
               <path
@@ -122,11 +138,11 @@ export default function AboutSection({ featuredImage } = {}) {
             </svg>
           </div>
           <h3 className="h3">
-            {countsStarted ? <AnimatedCount end={162} suffix="+" /> : <span>0+</span>} Recipes
+            {recipesCount.inView ? <AnimatedCount end={162} suffix="+" /> : <span>0+</span>} Recipes
           </h3>
           <p className="muted">Tested and perfected recipes for every occasion.</p>
         </div>
-        <div className="stat-card">
+        <div ref={communityCount.ref} className="stat-card">
           <div className="stat-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
               <path
@@ -152,11 +168,11 @@ export default function AboutSection({ featuredImage } = {}) {
             </svg>
           </div>
           <h3 className="h3">
-            {countsStarted ? <AnimatedCount end={50000} suffix="+" /> : <span>0+</span>} Community
+            {communityCount.inView ? <AnimatedCount end={50000} suffix="+" /> : <span>0+</span>} Community
           </h3>
           <p className="muted">Baking enthusiasts sharing their creations.</p>
         </div>
-        <div className="stat-card">
+        <div ref={loveCount.ref} className="stat-card">
           <div className="stat-icon" aria-hidden="true">
             <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
               <path
@@ -168,7 +184,7 @@ export default function AboutSection({ featuredImage } = {}) {
             </svg>
           </div>
           <h3 className="h3">
-            {countsStarted ? <AnimatedCount end={100} suffix="%" /> : <span>0%</span>} Love
+            {loveCount.inView ? <AnimatedCount end={100} suffix="%" /> : <span>0%</span>} Love
           </h3>
           <p className="muted">Every recipe made with care and attention.</p>
         </div>

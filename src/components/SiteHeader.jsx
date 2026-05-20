@@ -19,6 +19,14 @@ export default function SiteHeader({ onCartClick }) {
   const [openMenu, setOpenMenu] = useState(null);
   const [scrolled, setScrolled] = useState(false);
   const location = useLocation();
+  const activeCourseCategory = useMemo(() => {
+    if (location.pathname !== '/courses') return '';
+    try {
+      return new URLSearchParams(location.search).get('category') || '';
+    } catch {
+      return '';
+    }
+  }, [location.pathname, location.search]);
   const [courseCategories, setCourseCategories] = useState(() =>
     (terms?.courseCategories ?? [])
       .slice()
@@ -232,7 +240,9 @@ export default function SiteHeader({ onCartClick }) {
           </div>
 
           <NavLink
-            className={({ isActive }) => `nav-link${isActive ? ' is-active' : ''}`}
+            className={() =>
+              `nav-link${location.pathname === '/courses' && activeCourseCategory === 'hands-on-classes' ? ' is-active' : ''}`
+            }
             to="/courses?category=hands-on-classes"
           >
             Hands-On Classes
@@ -384,7 +394,11 @@ export default function SiteHeader({ onCartClick }) {
                     </NavLink>
                   ))}
                   <NavLink
-                    className="mobile-nav-link mobile-nav-sublink"
+                    className={() =>
+                      `mobile-nav-link mobile-nav-sublink${
+                        location.pathname === '/courses' && activeCourseCategory === 'hands-on-classes' ? ' is-active' : ''
+                      }`
+                    }
                     to="/courses?category=hands-on-classes"
                     onClick={() => setMobileOpen(false)}
                   >
