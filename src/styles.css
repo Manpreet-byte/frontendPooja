@@ -1203,6 +1203,21 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
+/* 1366x768-ish: logo a bit more right + slightly larger for the navbar */
+@media (min-width: 1200px) and (max-width: 1440px) {
+  .brand {
+    margin-left: 28px;
+  }
+
+  .brand-logo {
+    height: 48px;
+  }
+
+  .site-header.is-scrolled .brand-logo {
+    height: 44px;
+  }
+}
+
 @media (min-width: 960px) and (max-width: 1099px) {
   .header-nav {
     display: none;

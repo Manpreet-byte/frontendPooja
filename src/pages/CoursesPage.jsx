@@ -21,7 +21,10 @@ export default function CoursesPage() {
   const debounceRef = useRef(null);
   usePageTitle('Courses · Love & Flour');
 
-  const allowedCategorySlugs = useMemo(() => ['upcoming-live-workshops', 'upcoming-live-session', 'recorded-live-workshop', 'e-book'], []);
+  const allowedCategorySlugs = useMemo(
+    () => ['upcoming-live-workshops', 'upcoming-live-session', 'recorded-live-workshop', 'e-book', 'hands-on-classes'],
+    [],
+  );
   const categoryLabelBySlug = useMemo(
     () =>
       new Map([
@@ -29,6 +32,7 @@ export default function CoursesPage() {
         ['upcoming-live-session', 'Upcoming Live Workshops'],
         ['recorded-live-workshop', 'Recorded Live Workshops'],
         ['e-book', 'E-Books'],
+        ['hands-on-classes', 'Hands-On Classes'],
       ]),
     [],
   );
@@ -138,6 +142,7 @@ export default function CoursesPage() {
     if (forcedUpcomingSlugs.has(String(course?.slug ?? ''))) return 'upcoming-live-workshops';
 
     const taxSlugs = (course?.taxonomies?.['course-category'] ?? []).map((t) => String(t?.slug ?? '').toLowerCase());
+    if (taxSlugs.includes('hands-on-classes') || taxSlugs.includes('hands-on-classes-upcoming')) return 'hands-on-classes';
     if (taxSlugs.includes('e-book')) return 'e-book';
     if (taxSlugs.includes('recorded-live-workshop') || taxSlugs.includes('pre-recorded-courses')) return 'recorded-live-workshop';
 

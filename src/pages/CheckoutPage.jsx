@@ -203,7 +203,7 @@ export default function CheckoutPage() {
       }
       try {
         const w = await api.public.workshops.list();
-        for (const course of w?.workshops ?? []) {
+        for (const course of w?.workshops ?? w?.courses ?? []) {
           if (course?.slug && course?.id) map.set(String(course.slug), Number(course.id));
         }
       } catch (err) {
@@ -214,11 +214,37 @@ export default function CheckoutPage() {
     }
 
     const map = courseSlugToIdRef.current ?? new Map();
+    const missingSlugs = Array.from(
+      new Set(
+        list
+          .map((it) => String(it?.slug ?? '').trim())
+          .filter((slug) => slug && !map.has(slug)),
+      ),
+    );
+
+    if (missingSlugs.length) {
+      await Promise.all(
+        missingSlugs.map(async (slug) => {
+          // Try both endpoints; some deployments split "courses" vs "workshops".
+          const fromCourses = await api.public.courses.detail(slug).catch(() => null);
+          const resolved =
+            fromCourses?.course ??
+            fromCourses?.workshop ??
+            (await api.public.workshops.detail(slug).then((r) => r?.workshop ?? r?.course ?? null).catch(() => null));
+          if (resolved?.slug && resolved?.id) map.set(String(resolved.slug), Number(resolved.id));
+        }),
+      );
+    }
+
     return list.map((it) => {
-      const slug = String(it?.slug ?? '');
+      const slug = String(it?.slug ?? '').trim();
       const mappedId = slug ? map.get(slug) : null;
-      // Prefer backend DB id when we can map by slug; fallback to whatever is already in cart.
-      return { course_id: mappedId ? Number(mappedId) : Number(it.id), quantity: 1 };
+      const fallbackId = Number(it?.id);
+      const finalId = mappedId ? Number(mappedId) : fallbackId;
+      if (!Number.isFinite(finalId) || finalId <= 0) {
+        throw new Error('Unable to find this workshop for checkout. Please refresh and try again.');
+      }
+      return { course_id: finalId, quantity: 1 };
     });
   };
 
