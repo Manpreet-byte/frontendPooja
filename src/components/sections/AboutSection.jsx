@@ -88,22 +88,91 @@ export default function AboutSection({ featuredImage } = {}) {
         <div className="about-content">
           <SectionHeading
             align="left"
-            badge="About Me"
-            title="Meet Pooja"
-            subtitle="Welcome to Love & Flour, where every recipe is crafted with passion and perfection."
+            badge="About"
+            title="Love and Flour by Pooja"
+            subtitle="We believe that baking is more than a skill. It’s a language of creativity, care, and connection."
           />
           <div className="prose">
             <p>
-              What started as a hobby in my small kitchen has blossomed into a community of thousands of baking
-              enthusiasts.
+              At Love &amp; Flour by Pooja, we exist to make professional-quality, egg-free baking simple, approachable,
+              and inspiring, no matter where you are in your journey.
             </p>
             <p>
-              From classic cookies to elaborate celebration cakes, each recipe is tested and perfected to ensure you get
-              the best results every time.
+              Every workshop, every recipe, and every resource we share is designed with one promise in mind: to help
+              you bake with confidence, express yourself creatively, and build something you’re proud of.
             </p>
+
+            <h3 className="h3">Our Values</h3>
+            <div className="about-feature-list">
+            <p className="about-feature">
+              <strong>Simplicity</strong>
+              <br />
+              We believe learning should be joyful, not intimidating. Our methods are approachable, practical, and
+              designed for real home kitchens.
+            </p>
+            <p className="about-feature">
+              <strong>Excellence</strong>
+              <br />
+              Every recipe is tested, refined, and crafted with care, ensuring professional results that never
+              compromise on quality or flavour.
+            </p>
+            <p className="about-feature">
+              <strong>Empowerment</strong>
+              <br />
+              Baking can change lives. We’re here to help you discover your potential, whether that means mastering your
+              first cake or starting your own small business.
+            </p>
+            <p className="about-feature">
+              <strong>Community</strong>
+              <br />
+              We’re more than a platform. We’re a family of bakers who support, celebrate, and grow together.
+            </p>
+            </div>
+
+            <h3 className="h3">What Makes Us Different</h3>
+            <div className="about-feature-list">
+            <p className="about-feature">
+              <strong>Egg-Free Without Compromise</strong>
+              <br />
+              We’ve redefined what egg-free baking can be. Delicious, indulgent, and perfectly balanced. Recipes that
+              match and often exceed the quality of traditional baking.
+            </p>
+            <p className="about-feature">
+              <strong>Designed for Real Kitchens</strong>
+              <br />
+              Our methods are built around home bakers. No complicated tools or commercial equipment needed.
+            </p>
+            <p className="about-feature">
+              <strong>Support That Lasts</strong>
+              <br />
+              Every class comes with video access, live Q&amp;As, and continued long-term support, so your learning
+              doesn’t stop when the class ends.
+            </p>
+            <p className="about-feature">
+              <strong>Beyond Recipes</strong>
+              <br />
+              Our workshops go deeper than just “how to bake.” We focus on technique, business skills, and product
+              presentation, helping you think like a baker and an entrepreneur so that you can actually thrive in the
+              baking world.
+            </p>
+            <p className="about-feature">
+              <strong>Heart-Led Teaching</strong>
+              <br />
+              Every course is designed to teach not just technique, but confidence, so you enjoy every step of your
+              journey.
+            </p>
+            </div>
+
+            <h3 className="h3">Our Promise</h3>
+            <ul>
+              <li>To make learning fun, reliable, and deeply rewarding.</li>
+              <li>To be honest, approachable, and supportive in everything we do.</li>
+              <li>And to remind you that behind every perfect dessert is a story, a little patience, and a whole lot of love.</li>
+            </ul>
+
             <p>
-              My philosophy is simple: baking should be joyful, not stressful. Whether you're a beginner or an
-              experienced baker, you'll find clear instructions, helpful tips, and plenty of encouragement here.
+              Because at Love &amp; Flour by Pooja, we don’t just teach baking — we nurture joy, skill, and self-belief,
+              one recipe at a time.
             </p>
           </div>
         </div>

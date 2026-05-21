@@ -4,7 +4,7 @@ import { useAuthStore } from '../../../store/authStore';
 import DateRangeFilters from '../../../components/admin/analytics/DateRangeFilters';
 import ChartCard from '../../../components/admin/ChartCard';
 import FunnelMetrics from '../../../components/admin/analytics/FunnelMetrics';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../../../utils/admin/exporters';
 
 export default function FunnelAnalyticsPage({ rangePreset, rangeFrom, rangeTo, setRangePreset, setRangeFrom, setRangeTo }) {
@@ -49,7 +49,7 @@ export default function FunnelAnalyticsPage({ rangePreset, rangeFrom, rangeTo, s
   const exportPdf = () => {
     const c = conversions ?? {};
     exportHtmlToPdf({
-      title: `Funnel (${range.from} → ${range.to})`,
+      title: `Funnel (${formatRangeLabel(range)})`,
       html: `<table><tbody>
         <tr><th>Visitors</th><td>${c.visitors ?? 0}</td></tr>
         <tr><th>Add to cart</th><td>${c.carts ?? 0}</td></tr>
@@ -90,4 +90,3 @@ export default function FunnelAnalyticsPage({ rangePreset, rangeFrom, rangeTo, s
     </div>
   );
 }
-

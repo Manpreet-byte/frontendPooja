@@ -96,12 +96,6 @@ export default function AdminDashboardPage() {
   const [message, setMessage] = useState('');
   const [mediaUploading, setMediaUploading] = useState(false);
   const [tab, setTab] = useState('overview');
-  const [monthFilter, setMonthFilter] = useState(() => {
-    const now = new Date();
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    return `${yyyy}-${mm}`;
-  });
   const [analytics, setAnalytics] = useState(null);
   const [overviewStatus, setOverviewStatus] = useState('idle'); // idle | loading | error
   const [overviewError, setOverviewError] = useState('');
@@ -566,6 +560,29 @@ export default function AdminDashboardPage() {
     const from = new Date(dayStart(now).getTime() - 29 * 24 * 60 * 60 * 1000);
     return { from: fmt(from), to: fmt(to) };
   }, [overviewRange, overviewFrom, overviewTo]);
+
+  const overviewDisplayFrom = overviewRange === 'custom' ? String(overviewFrom || '') : String(rangeToFromTo.from || '');
+  const overviewDisplayTo = overviewRange === 'custom' ? String(overviewTo || '') : String(rangeToFromTo.to || '');
+
+  const applyOverviewRangeFromTopbar = ({ from, to }) => {
+    const nextFrom = String(from || '').slice(0, 10);
+    const nextTo = String(to || '').slice(0, 10);
+    if (!nextFrom || !nextTo) {
+      setOverviewRange('custom');
+      setOverviewFrom(nextFrom);
+      setOverviewTo(nextTo);
+      return;
+    }
+
+    // Keep a sane order (from <= to).
+    const orderedFrom = nextFrom <= nextTo ? nextFrom : nextTo;
+    const orderedTo = nextFrom <= nextTo ? nextTo : nextFrom;
+
+    setOverviewRange('custom');
+    setOverviewFrom(orderedFrom);
+    setOverviewTo(orderedTo);
+    setCustomRangeNonce((n) => n + 1);
+  };
 
   useEffect(() => {
     refreshProfile();
@@ -2156,7 +2173,7 @@ export default function AdminDashboardPage() {
       discount_type: coupon.discount_type ?? 'amount',
       discount_value_cents: coupon.discount_value_cents != null ? String(coupon.discount_value_cents) : '',
       discount_percent: coupon.discount_percent != null ? String(coupon.discount_percent) : '',
-      currency: coupon.currency ?? 'INR',
+      currency: 'INR',
       max_redemptions: coupon.max_redemptions != null ? String(coupon.max_redemptions) : '',
       max_redemptions_per_user: coupon.max_redemptions_per_user != null ? String(coupon.max_redemptions_per_user) : '',
       min_order_total_cents: coupon.min_order_total_cents != null ? String(coupon.min_order_total_cents) : '',
@@ -2455,16 +2472,37 @@ export default function AdminDashboardPage() {
                 </div>
               </div>
               <div className="admin-topbar-right">
-                <label className="admin-month">
-                  <span className="sr-only">Month filter</span>
-                  <input
-                    className="input"
-                    type="month"
-                    value={monthFilter}
-                    onChange={(e) => setMonthFilter(e.target.value)}
-                    aria-label="Month"
-                  />
-                </label>
+                {tab === 'overview' ? (
+                  <div className="admin-range" role="group" aria-label="Date range">
+                    <label className="sr-only" htmlFor="admin-overview-from">From</label>
+                    <input
+                      id="admin-overview-from"
+                      className="input"
+                      type="date"
+                      value={overviewDisplayFrom}
+                      onChange={(e) => {
+                        const from = e.target.value;
+                        const to = overviewRange === 'custom' ? overviewTo : rangeToFromTo.to;
+                        applyOverviewRangeFromTopbar({ from, to });
+                      }}
+                      aria-label="From"
+                    />
+                    <span className="admin-range-sep" aria-hidden="true">–</span>
+                    <label className="sr-only" htmlFor="admin-overview-to">To</label>
+                    <input
+                      id="admin-overview-to"
+                      className="input"
+                      type="date"
+                      value={overviewDisplayTo}
+                      onChange={(e) => {
+                        const to = e.target.value;
+                        const from = overviewRange === 'custom' ? overviewFrom : rangeToFromTo.from;
+                        applyOverviewRangeFromTopbar({ from, to });
+                      }}
+                      aria-label="To"
+                    />
+                  </div>
+                ) : null}
                 {user ? (
                   <div className="admin-user-pill">
                     <div className="admin-pill-avatar" aria-hidden="true">
@@ -2888,7 +2926,7 @@ export default function AdminDashboardPage() {
                   </label>
                   <label className="field">
                     <span className="field-label">Currency</span>
-                    <input className="input" value={couponForm.currency} onChange={(e) => setCouponForm((s) => ({ ...s, currency: e.target.value }))} placeholder="INR" />
+                    <input className="input" value="INR" disabled readOnly />
                   </label>
                 </div>
                 <label className="field">
@@ -4208,12 +4246,24 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Sale starts (ISO, optional)</span>
-                    <input className="input" value={courseForm.sale_starts_at} onChange={(e) => setCourseForm((s) => ({ ...s, sale_starts_at: e.target.value }))} placeholder="2026-06-01T10:00:00.000Z" />
+                    <span className="field-label">Sale starts (date &amp; time, optional)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(courseForm.sale_starts_at)}
+                      onChange={(e) => setCourseForm((s) => ({ ...s, sale_starts_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                   <label className="field">
-                    <span className="field-label">Sale ends (ISO, optional)</span>
-                    <input className="input" value={courseForm.sale_ends_at} onChange={(e) => setCourseForm((s) => ({ ...s, sale_ends_at: e.target.value }))} placeholder="2026-06-10T10:00:00.000Z" />
+                    <span className="field-label">Sale ends (date &amp; time, optional)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(courseForm.sale_ends_at)}
+                      onChange={(e) => setCourseForm((s) => ({ ...s, sale_ends_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                 </div>
                 <label className="field">
@@ -4225,12 +4275,13 @@ export default function AdminDashboardPage() {
                   <span className="field-label">Publish on save</span>
                 </label>
                 <label className="field">
-                  <span className="field-label">Schedule publish at (ISO datetime, optional)</span>
+                  <span className="field-label">Schedule publish at (date &amp; time, optional)</span>
                   <input
                     className="input"
-                    value={courseForm.publish_at}
-                    onChange={(e) => setCourseForm((s) => ({ ...s, publish_at: e.target.value }))}
-                    placeholder="2026-06-01T10:00:00.000Z"
+                    type="datetime-local"
+                    step="60"
+                    value={isoToDatetimeLocal(courseForm.publish_at)}
+                    onChange={(e) => setCourseForm((s) => ({ ...s, publish_at: datetimeLocalToIso(e.target.value) }))}
                   />
                 </label>
                 <label className="field field-inline">
@@ -4430,12 +4481,24 @@ export default function AdminDashboardPage() {
                 </div>
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Sale starts (ISO, optional)</span>
-                    <input className="input" value={workshopForm.sale_starts_at} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_starts_at: e.target.value }))} placeholder="2026-06-01T10:00:00.000Z" />
+                    <span className="field-label">Sale starts (date &amp; time, optional)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(workshopForm.sale_starts_at)}
+                      onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_starts_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                   <label className="field">
-                    <span className="field-label">Sale ends (ISO, optional)</span>
-                    <input className="input" value={workshopForm.sale_ends_at} onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_ends_at: e.target.value }))} placeholder="2026-06-10T10:00:00.000Z" />
+                    <span className="field-label">Sale ends (date &amp; time, optional)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(workshopForm.sale_ends_at)}
+                      onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_ends_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                 </div>
                 <label className="field">
@@ -4447,12 +4510,13 @@ export default function AdminDashboardPage() {
                   <span className="field-label">Publish on save</span>
                 </label>
                 <label className="field">
-                  <span className="field-label">Schedule publish at (ISO datetime, optional)</span>
+                  <span className="field-label">Schedule publish at (date &amp; time, optional)</span>
                   <input
                     className="input"
-                    value={workshopForm.publish_at}
-                    onChange={(e) => setWorkshopForm((s) => ({ ...s, publish_at: e.target.value }))}
-                    placeholder="2026-06-01T10:00:00.000Z"
+                    type="datetime-local"
+                    step="60"
+                    value={isoToDatetimeLocal(workshopForm.publish_at)}
+                    onChange={(e) => setWorkshopForm((s) => ({ ...s, publish_at: datetimeLocalToIso(e.target.value) }))}
                   />
                 </label>
                 <label className="field field-inline">
@@ -4462,8 +4526,14 @@ export default function AdminDashboardPage() {
                 {editingWorkshopId ? <p className="muted">Zoom fields below are kept for new workshop creation. Use the Live Sessions tab to edit an existing session.</p> : null}
                 <div className="admin-split">
                   <label className="field">
-                    <span className="field-label">Schedule live session (ISO datetime)</span>
-                    <input className="input" value={workshopForm.scheduled_at} onChange={(e) => setWorkshopForm((s) => ({ ...s, scheduled_at: e.target.value }))} placeholder="2026-05-11T18:30:00.000Z" />
+                    <span className="field-label">Schedule live session (date &amp; time)</span>
+                    <input
+                      className="input"
+                      type="datetime-local"
+                      step="60"
+                      value={isoToDatetimeLocal(workshopForm.scheduled_at)}
+                      onChange={(e) => setWorkshopForm((s) => ({ ...s, scheduled_at: datetimeLocalToIso(e.target.value) }))}
+                    />
                   </label>
                   <label className="field">
                     <span className="field-label">Zoom meeting id</span>

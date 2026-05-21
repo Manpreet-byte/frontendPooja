@@ -3,7 +3,7 @@ import { api } from '../../../api/client';
 import { useAuthStore } from '../../../store/authStore';
 import DateRangeFilters from '../../../components/admin/analytics/DateRangeFilters';
 import EnrollmentChart from '../../../components/admin/analytics/EnrollmentChart';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../../../utils/admin/exporters';
 
 export default function EnrollmentAnalyticsPage({ rangePreset, rangeFrom, rangeTo, setRangePreset, setRangeFrom, setRangeTo }) {
@@ -13,7 +13,7 @@ export default function EnrollmentAnalyticsPage({ rangePreset, rangeFrom, rangeT
   const [enrollments, setEnrollments] = useState(null);
 
   const range = useMemo(() => computeRange({ preset: rangePreset, from: rangeFrom, to: rangeTo }), [rangePreset, rangeFrom, rangeTo]);
-  const rangeLabel = useMemo(() => (rangePreset === 'custom' ? `${range.from || '—'} → ${range.to || '—'}` : rangePreset.replace('_', ' ')), [rangePreset, range.from, range.to]);
+  const rangeLabel = useMemo(() => (rangePreset === 'custom' ? formatRangeLabel(range) : rangePreset.replace('_', ' ')), [rangePreset, range.from, range.to]);
 
   useEffect(() => {
     if (!token) return;
@@ -45,7 +45,7 @@ export default function EnrollmentAnalyticsPage({ rangePreset, rangeFrom, rangeT
   const exportPdf = () => {
     const rows = (enrollments?.daily ?? []).map((d) => `<tr><td>${d.day}</td><td>${d.enrollments ?? 0}</td></tr>`).join('');
     exportHtmlToPdf({
-      title: `Enrollments (${range.from} → ${range.to})`,
+      title: `Enrollments (${formatRangeLabel(range)})`,
       html: `<table><thead><tr><th>Day</th><th>Enrollments</th></tr></thead><tbody>${rows}</tbody></table>`,
     });
   };
@@ -78,4 +78,3 @@ export default function EnrollmentAnalyticsPage({ rangePreset, rangeFrom, rangeT
     </div>
   );
 }
-

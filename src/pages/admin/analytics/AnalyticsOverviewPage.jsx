@@ -3,7 +3,7 @@ import { api } from '../../../api/client';
 import { useAuthStore } from '../../../store/authStore';
 import DateRangeFilters from '../../../components/admin/analytics/DateRangeFilters';
 import AnalyticsOverview from '../../../components/admin/analytics/AnalyticsOverview';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../../../utils/admin/exporters';
 
 export default function AnalyticsOverviewPage({ rangePreset, rangeFrom, rangeTo, setRangePreset, setRangeFrom, setRangeTo }) {
@@ -25,7 +25,7 @@ export default function AnalyticsOverviewPage({ rangePreset, rangeFrom, rangeTo,
     if (rangePreset === 'today') return 'Today';
     if (rangePreset === 'last_7') return 'Last 7 days';
     if (rangePreset === 'last_30') return 'Last 30 days';
-    return `${range.from || '—'} → ${range.to || '—'}`;
+    return formatRangeLabel(range);
   }, [rangePreset, range.from, range.to]);
 
   const canLoad = Boolean(token);
@@ -124,4 +124,3 @@ export default function AnalyticsOverviewPage({ rangePreset, rangeFrom, rangeTo,
     </div>
   );
 }
-

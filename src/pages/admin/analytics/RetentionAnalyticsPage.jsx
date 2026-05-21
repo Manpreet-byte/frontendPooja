@@ -3,7 +3,7 @@ import { api } from '../../../api/client';
 import { useAuthStore } from '../../../store/authStore';
 import DateRangeFilters from '../../../components/admin/analytics/DateRangeFilters';
 import ChartCard from '../../../components/admin/ChartCard';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../../../utils/admin/exporters';
 
 export default function RetentionAnalyticsPage({ rangePreset, rangeFrom, rangeTo, setRangePreset, setRangeFrom, setRangeTo }) {
@@ -50,7 +50,7 @@ export default function RetentionAnalyticsPage({ rangePreset, rangeFrom, rangeTo
       .map((c) => `<tr><td>${c.cohort}</td><td>${c.users}</td><td>${c.rate_7d ?? '—'}%</td><td>${c.rate_30d ?? '—'}%</td></tr>`)
       .join('');
     exportHtmlToPdf({
-      title: `Retention (${range.from} → ${range.to})`,
+      title: `Retention (${formatRangeLabel(range)})`,
       html: `<table><thead><tr><th>Cohort</th><th>Users</th><th>7d</th><th>30d</th></tr></thead><tbody>${rows}</tbody></table>`,
     });
   };
@@ -104,4 +104,3 @@ export default function RetentionAnalyticsPage({ rangePreset, rangeFrom, rangeTo
     </div>
   );
 }
-

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 
 export default function DateRangeFilters({
   preset,
@@ -64,7 +64,7 @@ export default function DateRangeFilters({
           </>
         ) : (
           <span className="muted" style={{ whiteSpace: 'nowrap' }}>
-            Range: {derived.from} → {derived.to}
+            Range: {formatRangeLabel(derived)}
           </span>
         )}
         {right}
@@ -72,4 +72,3 @@ export default function DateRangeFilters({
     </div>
   );
 }
-

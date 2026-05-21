@@ -4,7 +4,7 @@ import { useAuthStore } from '../../../store/authStore';
 import DateRangeFilters from '../../../components/admin/analytics/DateRangeFilters';
 import ChartCard from '../../../components/admin/ChartCard';
 import TopCoursesTable from '../../../components/admin/analytics/TopCoursesTable';
-import { computeRange } from '../../../utils/admin/dateRange';
+import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../../../utils/admin/exporters';
 
 export default function TopCoursesAnalyticsPage({ rangePreset, rangeFrom, rangeTo, setRangePreset, setRangeFrom, setRangeTo }) {
@@ -47,7 +47,7 @@ export default function TopCoursesAnalyticsPage({ rangePreset, rangeFrom, rangeT
       .map((r) => `<tr><td>${r.title ?? ''}</td><td>${r.revenue_cents ?? 0}</td><td>${r.orders ?? 0}</td></tr>`)
       .join('');
     exportHtmlToPdf({
-      title: `Top courses (${range.from} → ${range.to})`,
+      title: `Top courses (${formatRangeLabel(range)})`,
       html: `<table><thead><tr><th>Course</th><th>Revenue (cents)</th><th>Orders</th></tr></thead><tbody>${rows}</tbody></table>`,
     });
   };
@@ -82,4 +82,3 @@ export default function TopCoursesAnalyticsPage({ rangePreset, rangeFrom, rangeT
     </div>
   );
 }
-

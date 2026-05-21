@@ -109,22 +109,7 @@ export default function CourseDetailPage() {
         </div>
 
         <div className="course-detail-grid">
-          <div className="course-detail-main">
-            <SectionHeading align="left" badge="Course" title={course.title} subtitle={null} />
-
-            <div className="course-detail-meta">
-              {categories.length ? (
-                <div className="course-detail-badges" aria-label="Course categories">
-                  {categories.map((c) => (
-                    <span key={c.slug ?? c.id} className="pill">
-                      {c.name}
-                    </span>
-                  ))}
-                </div>
-              ) : null}
-              {course.date ? <div className="muted">Published {formatDateStandard(course.date)}</div> : null}
-            </div>
-
+          <aside className="course-detail-sticky" aria-label="Workshop media and purchase">
             {activeImage ? (
               <div className="course-hero" aria-label="Workshop gallery">
                 <div className="course-hero-main">
@@ -151,28 +136,6 @@ export default function CourseDetailPage() {
               </div>
             ) : null}
 
-            {course.excerptHtml ? (
-              <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} />
-            ) : (
-              <div className="panel prose-block course-detail-fallback">
-                <p dangerouslySetInnerHTML={{ __html: fallbackIntro }} />
-                <div className="course-detail-fallback-grid">
-                  <div>
-                    <strong>Live access</strong>
-                    <span>Zoom link and reminders, if scheduled.</span>
-                  </div>
-                  <div>
-                    <strong>Recording</strong>
-                    <span>Visible in your dashboard for one year.</span>
-                  </div>
-                </div>
-              </div>
-            )}
-
-            {safeBodyHtml ? <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: safeBodyHtml }} /> : null}
-          </div>
-
-          <aside className="course-detail-aside" aria-label="Purchase">
             <div className="panel course-purchase-card">
               <div className="course-purchase-head">
                 <div>
@@ -273,6 +236,43 @@ export default function CourseDetailPage() {
               </div>
             </div>
           </aside>
+
+          <div className="course-detail-scroll">
+            <SectionHeading align="left" badge="Course" title={course.title} subtitle={null} />
+
+            <div className="course-detail-meta">
+              {categories.length ? (
+                <div className="course-detail-badges" aria-label="Course categories">
+                  {categories.map((c) => (
+                    <span key={c.slug ?? c.id} className="pill">
+                      {c.name}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              {course.date ? <div className="muted">Published {formatDateStandard(course.date)}</div> : null}
+            </div>
+
+            {course.excerptHtml ? (
+              <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} />
+            ) : (
+              <div className="panel prose-block course-detail-fallback">
+                <p dangerouslySetInnerHTML={{ __html: fallbackIntro }} />
+                <div className="course-detail-fallback-grid">
+                  <div>
+                    <strong>Live access</strong>
+                    <span>Zoom link and reminders, if scheduled.</span>
+                  </div>
+                  <div>
+                    <strong>Recording</strong>
+                    <span>Visible in your dashboard for one year.</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {safeBodyHtml ? <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: safeBodyHtml }} /> : null}
+          </div>
         </div>
       </div>
     </main>

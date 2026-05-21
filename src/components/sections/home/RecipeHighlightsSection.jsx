@@ -101,7 +101,7 @@ export default function RecipeHighlightsSection() {
 
     const timer = window.setInterval(() => {
       setActiveIndex((current) => (current + 1) % latest.length);
-    }, 1000);
+    }, 3000);
 
     return () => window.clearInterval(timer);
   }, [latest.length, paused]);
@@ -119,7 +119,8 @@ export default function RecipeHighlightsSection() {
 
     return latest.map((featured, index) => ({
       featured,
-      supporting: [latest[(index + 1) % latest.length], latest[(index + 2) % latest.length]],
+      supportingPrimary: latest[(index + 1) % latest.length],
+      supportingSecondary: latest[(index + 2) % latest.length],
     }));
   }, [latest]);
 
@@ -164,6 +165,10 @@ export default function RecipeHighlightsSection() {
                 <span>Browse categories</span>
               </div>
             </div>
+
+            <Link className="button button-solid home-recipes-cta" to="/recipe-library">
+              Open the full recipe library
+            </Link>
           </div>
 
           <div
@@ -199,36 +204,39 @@ export default function RecipeHighlightsSection() {
                             }}
                           />
                           <span className="recipe-feature-link">View recipe</span>
-                        </div>
-                      </Link>
+                    </div>
+                  </Link>
 
                       <div className="recipe-support-grid">
-                        {slide.supporting.map((post) => (
-                          <Link className="recipe-support-card" key={post.id} to={post.slug ? `/recipes/${post.slug}` : '/recipe-library'}>
-                            <div className="recipe-support-media">
-                              {post.featuredImage ? (
-                                <SafeImage src={post.featuredImage} alt={post.title} />
-                              ) : (
-                                <div className="recipe-card-fallback" aria-hidden="true" />
-                              )}
-                            </div>
-                            <div className="recipe-support-body">
-                              <div className="recipe-support-topline">
-                                <span className="pill">{post.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
-                                <span className="recipe-support-date">
-                                  {formatDateStandard(post.date ?? Date.now())}
-                                </span>
+                        {[slide.supportingPrimary, slide.supportingSecondary].map((post, postIndex) => {
+                          const isActive = postIndex === (clampedIndex % 2);
+                          if (!post) return null;
+                          return (
+                            <Link
+                              className={`recipe-support-card recipe-support-card--full${isActive ? ' is-active' : ''}`}
+                              key={`${post.id ?? postIndex}-${slideIndex}`}
+                              to={post.slug ? `/recipes/${post.slug}` : '/recipe-library'}
+                              aria-hidden={!isActive}
+                              tabIndex={isActive ? 0 : -1}
+                            >
+                              <div className="recipe-support-media">
+                                {post.featuredImage ? (
+                                  <SafeImage src={post.featuredImage} alt={post.title} />
+                                ) : (
+                                  <div className="recipe-card-fallback" aria-hidden="true" />
+                                )}
                               </div>
-                              <h3>{post.title}</h3>
-                            </div>
-                          </Link>
-                        ))}
+                              <div className="recipe-support-body">
+                                <div className="recipe-support-topline">
+                                  <span className="pill">{post.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
+                                  <span className="recipe-support-date">{formatDateStandard(post.date ?? Date.now())}</span>
+                                </div>
+                                <h3>{post.title}</h3>
+                              </div>
+                            </Link>
+                          );
+                        })}
                       </div>
-
-                      <Link className="recipe-showcase-footer" to="/recipe-library">
-                        <span>Open the full recipe library</span>
-                        <span aria-hidden="true">→</span>
-                      </Link>
                     </div>
                   </div>
                 ))}
