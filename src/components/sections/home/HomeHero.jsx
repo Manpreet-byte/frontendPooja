@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import SafeImage from '../../SafeImage';
 
 const heroImage =
-  'https://lh3.googleusercontent.com/chat_attachment/AP1Ws4taqLWqBM9Cs4qqBvFMIYRM20XC20uPauA8GXsd4sAUIl1FnNcKw7NxPn1g7pOtHz1TTyuis41dS7X6x2owm112EUXCBKJWtkjoBatmZfAgX7_GU28vUJHR1Ll2xAvgsUX-gDZ7XMju1GKLUk-Sq4cFAT_JRbiTTDYdGP5LBoH3W68yexbx6nprEToB3_htLU9rA5oBv6xTW16mtfWMkTbdgEQUloIFn_kCJRWMCFiXcusG3dv9eC97ukJo8tOFNbcBd8Z0nG8DZne01TT5v-ZNQfjIRqN6ycCjSl6D_CtOw_upyShTcVkYdH0YYAjfxh4=w1854-h961-rw';
+  '/heroImage.webp';
 
 function sentenceCase(text) {
   const value = String(text ?? '').trim();
@@ -16,7 +16,7 @@ export default function HomeHero({ cms }) {
   const subtitle =
     cms?.subtitle ??
     'Join Pooja Ganeriwala \u2013 an award-\nwinning tutor \u2013 on a journey to master\negg free recipes, savouries, and\ndelights that elevate your skills and\nspark joy in every bake.';
-  const imageUrl = cms?.image_url ?? heroImage;
+  const imageUrl = heroImage;
   const primaryLabel = cms?.primary_cta_label ?? 'Explore All Courses';
   const primaryHref = cms?.primary_cta_href ?? '/courses';
   const secondaryLabel = cms?.secondary_cta_label ?? '';

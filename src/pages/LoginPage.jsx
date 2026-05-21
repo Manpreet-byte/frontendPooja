@@ -143,7 +143,7 @@ export default function LoginPage() {
               className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Your password"
+              placeholder="Enter password"
               type="password"
               autoComplete="current-password"
               minLength={8}

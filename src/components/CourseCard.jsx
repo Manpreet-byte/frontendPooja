@@ -28,7 +28,7 @@ function CartIcon({ size = 18 } = {}) {
   );
 }
 
-function RupeeIcon({ size = 16 } = {}) {
+function RupeeIcon({ size = 18 } = {}) {
   return (
     <svg
       width={size}
@@ -95,7 +95,7 @@ export default function CourseCard({ course }) {
               aria-label={hasCourse ? 'Remove from cart' : 'Add to cart'}
               title={hasCourse ? 'Remove from cart' : 'Add to cart'}
             >
-              <RupeeIcon />
+              <RupeeIcon size={20} />
             </button>
             {compareAtLabel ? <span className="course-card-original">{compareAtLabel}</span> : null}
             <span className="course-card-price">{priceLabel}</span>
