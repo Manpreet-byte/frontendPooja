@@ -206,35 +206,6 @@ export default function RecipeHighlightsSection() {
                           <span className="recipe-feature-link">View recipe</span>
                     </div>
                   </Link>
-
-                      <Link
-                        className="recipe-side-card"
-                        to={slide.supportingPrimary?.slug ? `/recipes/${slide.supportingPrimary.slug}` : '/recipe-library'}
-                      >
-                        <div className="recipe-side-media">
-                          {slide.supportingPrimary?.featuredImage ? (
-                            <SafeImage src={slide.supportingPrimary.featuredImage} alt={slide.supportingPrimary.title ?? 'Recipe'} />
-                          ) : (
-                            <div className="recipe-card-fallback" aria-hidden="true" />
-                          )}
-                        </div>
-                        <div className="recipe-side-body">
-                          <div className="recipe-side-topline">
-                            <span className="pill">{slide.supportingPrimary?.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
-                            <span className="recipe-side-date">{formatDateStandard(slide.supportingPrimary?.date ?? Date.now())}</span>
-                          </div>
-                          <h3>{slide.supportingPrimary?.title ?? 'Recipe highlight'}</h3>
-                          <p
-                            className="muted"
-                            dangerouslySetInnerHTML={{
-                              __html:
-                                slide.supportingPrimary?.excerptHtml ??
-                                'Explore the full recipe library to discover the latest bakes.',
-                            }}
-                          />
-                          <span className="recipe-side-link">View recipe</span>
-                        </div>
-                      </Link>
                     </div>
                   </div>
                 ))}
