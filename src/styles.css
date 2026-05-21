@@ -2416,10 +2416,17 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-classroom .classroom-card .h3 {
-  font-weight: 200;
+  font-size: 1.25rem;
+  font-weight: 650;
 }
 
 .home-classroom .classroom-card .muted {
+  font-weight: 200;
+}
+
+/* Match section subtitle size with card copy */
+.home-classroom .section-heading .subtitle {
+  font-size: 1rem;
   font-weight: 200;
 }
 
@@ -2430,8 +2437,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .classroom-icon {
-  width: 72px;
-  height: 72px;
+  width: 84px;
+  height: 84px;
   border-radius: 999px;
   display: grid;
   place-items: center;
@@ -2445,8 +2452,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .classroom-icon svg {
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   display: block;
 }
 
@@ -2458,8 +2465,13 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 520px) {
   .classroom-icon {
-    width: 64px;
-    height: 64px;
+    width: 72px;
+    height: 72px;
+  }
+
+  .classroom-icon svg {
+    width: 30px;
+    height: 30px;
   }
 }
 
