@@ -6,10 +6,13 @@ const features = [
     description: 'Step-by-step sessions designed for home bakers to master technique with clarity.',
     icon: (
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
-        <circle cx="12" cy="12" r="7.5" stroke="currentColor" strokeWidth="1.8" />
-        <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8" />
-        <circle cx="12" cy="12" r="0.9" fill="currentColor" />
-        <path d="M12 3.4v2.2M12 18.4v2.2M3.4 12h2.2M18.4 12h2.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path
+          d="M7.2 5.5h7.4c.8 0 1.4.6 1.4 1.4v11.2c0 .8-.6 1.4-1.4 1.4H7.2c-.8 0-1.4-.6-1.4-1.4V6.9c0-.8.6-1.4 1.4-1.4Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path d="M8.6 9h6.1M8.6 12h6.1M8.6 15h4.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -19,13 +22,19 @@ const features = [
     icon: (
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          d="M5.2 7.2A2.2 2.2 0 0 1 7.4 5h7.2a2.2 2.2 0 0 1 2.2 2.2v4.4a2.2 2.2 0 0 1-2.2 2.2H10l-3.2 2.7c-.7.6-1.6.1-1.6-.8v-1.9a2.2 2.2 0 0 1 0-8.6Z"
+          d="M7 7.4h7.3a2 2 0 0 1 2 2v4.2a2 2 0 0 1-2 2H9.8l-2.7 2.2v-2.2H7a2 2 0 0 1-2-2V9.4a2 2 0 0 1 2-2Z"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
-        <path d="M10 8.3l3.4 2-3.4 2v-4Z" fill="currentColor" />
-        <path d="M17.6 9.6h1.1a1.7 1.7 0 0 1 1.7 1.7v2.2a1.7 1.7 0 0 1-1.7 1.7h-.8l-1.8 1.5v-1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+        <path d="M10 10.4l3.2 1.9-3.2 1.9v-3.8Z" fill="currentColor" />
+        <path
+          d="M16.8 9.8l2.2-1.4v7l-2.2-1.4"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       </svg>
     ),
   },
@@ -35,12 +44,18 @@ const features = [
     icon: (
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          d="M4.6 8.2V6.6c0-.9.7-1.6 1.6-1.6h4l1.2 1.6h6.4c.9 0 1.6.7 1.6 1.6v9.2c0 .9-.7 1.6-1.6 1.6H6.2c-.9 0-1.6-.7-1.6-1.6V8.2Z"
+          d="M8 5.8h9a2 2 0 0 1 2 2v10.4a2 2 0 0 1-2 2H8"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
+        />
+        <path
+          d="M8 5.8H7a2 2 0 0 0-2 2v10.4a2 2 0 0 0 2 2h1V5.8Z"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
-        <path d="M8 11h8M8 14h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M10.2 10.2h6.2M10.2 13.2h6.2M10.2 16.2h4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -50,19 +65,18 @@ const features = [
     icon: (
       <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          d="M7.5 11V9.2a4.5 4.5 0 0 1 9 0V11"
+          d="M8 11V9.4a4 4 0 0 1 8 0V11"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinecap="round"
         />
         <path
-          d="M6.6 11h10.8c.8 0 1.5.7 1.5 1.5v6.2c0 .8-.7 1.5-1.5 1.5H6.6c-.8 0-1.5-.7-1.5-1.5v-6.2c0-.8.7-1.5 1.5-1.5Z"
+          d="M7.2 11h9.6c.9 0 1.6.7 1.6 1.6v6c0 .9-.7 1.6-1.6 1.6H7.2c-.9 0-1.6-.7-1.6-1.6v-6c0-.9.7-1.6 1.6-1.6Z"
           stroke="currentColor"
           strokeWidth="1.8"
           strokeLinejoin="round"
         />
         <path d="M12 14.4v2.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
-        <path d="M19.2 6.6l.5 1.1 1.2.2-.9.8.2 1.2-1-.5-1 .5.2-1.2-.9-.8 1.2-.2.5-1.1Z" fill="currentColor" />
       </svg>
     ),
   },

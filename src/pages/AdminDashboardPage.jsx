@@ -198,10 +198,13 @@ export default function AdminDashboardPage() {
   const [courseProgressStatus, setCourseProgressStatus] = useState('idle'); // idle | loading | error
   const [courseProgressError, setCourseProgressError] = useState('');
   const [workshops, setWorkshops] = useState([]);
+  const [workshopBucketFilter, setWorkshopBucketFilter] = useState('');
   const [categories, setCategories] = useState([]);
   const [recipes, setRecipes] = useState([]);
   const [orders, setOrders] = useState([]);
   const [ordersMeta, setOrdersMeta] = useState({ page: 1, limit: 25, total: 0, status: '', q: '' });
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState('');
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [orderDetail, setOrderDetail] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -217,10 +220,26 @@ export default function AdminDashboardPage() {
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [editingWorkshopId, setEditingWorkshopId] = useState(null);
   const [editingRecipeId, setEditingRecipeId] = useState(null);
+  const [recipeCategoryAddOpen, setRecipeCategoryAddOpen] = useState(false);
   const [editingSessionId, setEditingSessionId] = useState(null);
   const [editingRecordingId, setEditingRecordingId] = useState(null);
   const [editingCouponId, setEditingCouponId] = useState(null);
   const [editingDiscountRuleId, setEditingDiscountRuleId] = useState(null);
+
+  const workshopCategoryLabelBySlug = useMemo(() => {
+    const map = new Map();
+    for (const bucket of WORKSHOP_BUCKETS) map.set(String(bucket.slug), String(bucket.label));
+    return map;
+  }, []);
+
+  const filteredWorkshops = useMemo(() => {
+    const slug = String(workshopBucketFilter ?? '').trim();
+    if (!slug) return workshops;
+    const cat = (workshopCategories ?? []).find((c) => String(c.slug) === slug);
+    const id = cat?.id != null ? Number(cat.id) : null;
+    if (!id || !Number.isFinite(id)) return workshops;
+    return (workshops ?? []).filter((w) => (w?.category_ids ?? []).map((n) => Number(n)).includes(id));
+  }, [workshops, workshopCategories, workshopBucketFilter]);
 
   // Support/helpdesk
   const [supportTickets, setSupportTickets] = useState([]);
@@ -339,12 +358,12 @@ export default function AdminDashboardPage() {
     code: '',
     description: '',
     discount_type: 'amount',
-    discount_value_cents: '',
+    discount_value_inr: '',
     discount_percent: '',
     currency: 'INR',
     max_redemptions: '',
     max_redemptions_per_user: '',
-    min_order_total_cents: '',
+    min_order_total_inr: '',
     starts_at: '',
     ends_at: '',
     is_active: true,
@@ -699,6 +718,47 @@ export default function AdminDashboardPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tab, token, isAdmin, overviewRange, customRangeNonce]);
 
+  // Orders tab should react to search/filters/pagination (no manual refresh button).
+  useEffect(() => {
+    if (tab !== 'orders') return undefined;
+    if (!token || !isAdmin) return undefined;
+
+    const hasQuery = Boolean(String(ordersMeta.q ?? '').trim());
+    const delayMs = hasQuery ? 350 : 0;
+    let cancelled = false;
+    const timer = window.setTimeout(async () => {
+      try {
+        setOrdersError('');
+        setOrdersLoading(true);
+        const data = await api.admin.orders.list(token, {
+          status: ordersMeta.status || undefined,
+          q: ordersMeta.q || undefined,
+          page: ordersMeta.page,
+          limit: ordersMeta.limit,
+        });
+        if (cancelled) return;
+        setOrders(data?.orders ?? []);
+        setOrdersMeta((s) => ({
+          ...s,
+          total: Number(data?.total ?? 0),
+          page: Number(data?.page ?? s.page),
+          limit: Number(data?.limit ?? s.limit),
+        }));
+      } catch (err) {
+        if (cancelled) return;
+        setOrders([]);
+        setOrdersError(err?.message || 'Failed to load orders.');
+      } finally {
+        if (!cancelled) setOrdersLoading(false);
+      }
+    }, delayMs);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [tab, token, isAdmin, ordersMeta.status, ordersMeta.q, ordersMeta.page, ordersMeta.limit]);
+
   const checkDashboard = async () => {
     setStatus('loading');
     setMessage('');
@@ -755,14 +815,7 @@ export default function AdminDashboardPage() {
         }
         setOverviewStatus('idle');
       } else if (nextTab === 'orders') {
-        const data = await api.admin.orders.list(token, {
-          status: ordersMeta.status || undefined,
-          q: ordersMeta.q || undefined,
-          page: ordersMeta.page,
-          limit: ordersMeta.limit,
-        });
-        setOrders(data?.orders ?? []);
-        setOrdersMeta((s) => ({ ...s, total: Number(data?.total ?? 0), page: Number(data?.page ?? s.page), limit: Number(data?.limit ?? s.limit) }));
+        // Orders list is loaded via the reactive effect (search/pagination/filter).
       } else if (nextTab === 'coupons') {
         const data = await api.admin.coupons.list(token);
         setCoupons(data?.coupons ?? []);
@@ -2124,16 +2177,21 @@ export default function AdminDashboardPage() {
     setStatus('loading');
     setMessage('');
     try {
+      const discountValueInr = couponForm.discount_value_inr ? Number(couponForm.discount_value_inr) : null;
+      const minOrderInr = couponForm.min_order_total_inr ? Number(couponForm.min_order_total_inr) : null;
       const payload = {
         code: couponForm.code,
         description: couponForm.description || null,
         discount_type: couponForm.discount_type,
-        discount_value_cents: couponForm.discount_value_cents ? Number(couponForm.discount_value_cents) : null,
+        discount_value_cents:
+          couponForm.discount_type === 'amount' && discountValueInr != null && Number.isFinite(discountValueInr)
+            ? Math.round(discountValueInr * 100)
+            : null,
         discount_percent: couponForm.discount_percent ? Number(couponForm.discount_percent) : null,
         currency: couponForm.currency || 'INR',
         max_redemptions: couponForm.max_redemptions ? Number(couponForm.max_redemptions) : null,
         max_redemptions_per_user: couponForm.max_redemptions_per_user ? Number(couponForm.max_redemptions_per_user) : null,
-        min_order_total_cents: couponForm.min_order_total_cents ? Number(couponForm.min_order_total_cents) : null,
+        min_order_total_cents: minOrderInr != null && Number.isFinite(minOrderInr) ? Math.round(minOrderInr * 100) : null,
         starts_at: couponForm.starts_at || null,
         ends_at: couponForm.ends_at || null,
         is_active: Boolean(couponForm.is_active),
@@ -2150,12 +2208,12 @@ export default function AdminDashboardPage() {
         code: '',
         description: '',
         discount_type: 'amount',
-        discount_value_cents: '',
+        discount_value_inr: '',
         discount_percent: '',
         currency: 'INR',
         max_redemptions: '',
         max_redemptions_per_user: '',
-        min_order_total_cents: '',
+        min_order_total_inr: '',
         starts_at: '',
         ends_at: '',
         is_active: true,
@@ -2174,12 +2232,14 @@ export default function AdminDashboardPage() {
       code: coupon.code ?? '',
       description: coupon.description ?? '',
       discount_type: coupon.discount_type ?? 'amount',
-      discount_value_cents: coupon.discount_value_cents != null ? String(coupon.discount_value_cents) : '',
+      discount_value_inr:
+        coupon.discount_value_cents != null ? String(Math.round(Number(coupon.discount_value_cents) / 100)) : '',
       discount_percent: coupon.discount_percent != null ? String(coupon.discount_percent) : '',
       currency: 'INR',
       max_redemptions: coupon.max_redemptions != null ? String(coupon.max_redemptions) : '',
       max_redemptions_per_user: coupon.max_redemptions_per_user != null ? String(coupon.max_redemptions_per_user) : '',
-      min_order_total_cents: coupon.min_order_total_cents != null ? String(coupon.min_order_total_cents) : '',
+      min_order_total_inr:
+        coupon.min_order_total_cents != null ? String(Math.round(Number(coupon.min_order_total_cents) / 100)) : '',
       starts_at: coupon.starts_at ? String(coupon.starts_at) : '',
       ends_at: coupon.ends_at ? String(coupon.ends_at) : '',
       is_active: Boolean(coupon.is_active),
@@ -2193,12 +2253,12 @@ export default function AdminDashboardPage() {
       code: '',
       description: '',
       discount_type: 'amount',
-      discount_value_cents: '',
+      discount_value_inr: '',
       discount_percent: '',
       currency: 'INR',
       max_redemptions: '',
       max_redemptions_per_user: '',
-      min_order_total_cents: '',
+      min_order_total_inr: '',
       starts_at: '',
       ends_at: '',
       is_active: true,
@@ -2776,7 +2836,6 @@ export default function AdminDashboardPage() {
 
           {tab === 'orders' ? (
             <div className="admin-panel">
-              <h3 className="h3">Orders</h3>
               <div className="admin-split">
                 <label className="field">
                   <span className="field-label">Status</span>
@@ -2795,14 +2854,50 @@ export default function AdminDashboardPage() {
                 </label>
                 <label className="field">
                   <span className="field-label">Search</span>
-                  <input
-                    className="input"
-                    value={ordersMeta.q}
-                    onChange={(e) => setOrdersMeta((s) => ({ ...s, q: e.target.value, page: 1 }))}
-                    placeholder="Order id / email"
-                  />
+                  <div className="admin-search">
+                    <span className="admin-search-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                        <path
+                          d="M10.6 18.2a7.6 7.6 0 1 1 0-15.2 7.6 7.6 0 0 1 0 15.2Z"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                        />
+                        <path
+                          d="M16.2 16.2 21 21"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                        />
+                      </svg>
+                    </span>
+                    <input
+                      className="input admin-search-input"
+                      value={ordersMeta.q}
+                      onChange={(e) => setOrdersMeta((s) => ({ ...s, q: e.target.value, page: 1 }))}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') setOrdersMeta((s) => ({ ...s, page: 1 }));
+                      }}
+                      placeholder="Order id / email / name"
+                    />
+                    {ordersMeta.q ? (
+                      <button
+                        className="admin-search-clear"
+                        type="button"
+                        onClick={() => setOrdersMeta((s) => ({ ...s, q: '', page: 1 }))}
+                        aria-label="Clear search"
+                      >
+                        ×
+                      </button>
+                    ) : null}
+                  </div>
                 </label>
               </div>
+
+              {ordersError ? (
+                <p className="form-error" role="alert" style={{ marginTop: 0 }}>
+                  {ordersError}
+                </p>
+              ) : null}
 
               <div className="admin-table">
                 <div className="admin-row admin-head">
@@ -2828,7 +2923,7 @@ export default function AdminDashboardPage() {
                   </button>
                 ))}
               </div>
-              {!orders.length ? <p className="muted">No orders found.</p> : null}
+              {ordersLoading ? <p className="muted">Loading orders…</p> : !orders.length ? <p className="muted">No orders found.</p> : null}
 
               <div className="admin-pagination" role="navigation" aria-label="Orders pagination">
                 <button
@@ -2924,14 +3019,19 @@ export default function AdminDashboardPage() {
                   <label className="field">
                     <span className="field-label">Discount type</span>
                     <select className="input" value={couponForm.discount_type} onChange={(e) => setCouponForm((s) => ({ ...s, discount_type: e.target.value }))}>
-                      <option value="amount">Amount (cents)</option>
+                      <option value="amount">Amount (₹)</option>
                       <option value="percent">Percent</option>
                     </select>
                   </label>
                   {couponForm.discount_type === 'amount' ? (
                     <label className="field">
-                      <span className="field-label">Discount value (cents)</span>
-                      <input className="input" value={couponForm.discount_value_cents} onChange={(e) => setCouponForm((s) => ({ ...s, discount_value_cents: e.target.value }))} placeholder="5000" />
+                      <span className="field-label">Discount value (₹)</span>
+                      <input
+                        className="input"
+                        value={couponForm.discount_value_inr}
+                        onChange={(e) => setCouponForm((s) => ({ ...s, discount_value_inr: e.target.value }))}
+                        placeholder="500"
+                      />
                     </label>
                   ) : (
                     <label className="field">
@@ -2951,8 +3051,13 @@ export default function AdminDashboardPage() {
                   </label>
                 </div>
                 <label className="field">
-                  <span className="field-label">Min order total (cents)</span>
-                  <input className="input" value={couponForm.min_order_total_cents} onChange={(e) => setCouponForm((s) => ({ ...s, min_order_total_cents: e.target.value }))} placeholder="99900" />
+                  <span className="field-label">Min order total (₹)</span>
+                  <input
+                    className="input"
+                    value={couponForm.min_order_total_inr}
+                    onChange={(e) => setCouponForm((s) => ({ ...s, min_order_total_inr: e.target.value }))}
+                    placeholder="999"
+                  />
                 </label>
                 <div className="admin-split">
                   <label className="field">
@@ -4383,7 +4488,7 @@ export default function AdminDashboardPage() {
                   >
                     {workshopCategories.map((cat) => (
                       <option key={cat.id} value={String(cat.id)}>
-                        {cat.name}
+                        {workshopCategoryLabelBySlug.get(String(cat.slug)) ?? cat.name}
                       </option>
                     ))}
                   </select>
@@ -4463,26 +4568,22 @@ export default function AdminDashboardPage() {
                   </label>
                 </div>
                 <div className="admin-split">
-                  <label className="field">
-                    <span className="field-label">Sale starts (date &amp; time, optional)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(workshopForm.sale_starts_at)}
-                      onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_starts_at: datetimeLocalToIso(e.target.value) }))}
+                  <div className="field">
+                    <DateTimePicker
+                      label="Sale starts (date & time, optional)"
+                      value={workshopForm.sale_starts_at}
+                      onChange={(iso) => setWorkshopForm((s) => ({ ...s, sale_starts_at: iso }))}
+                      disabled={disabled}
                     />
-                  </label>
-                  <label className="field">
-                    <span className="field-label">Sale ends (date &amp; time, optional)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(workshopForm.sale_ends_at)}
-                      onChange={(e) => setWorkshopForm((s) => ({ ...s, sale_ends_at: datetimeLocalToIso(e.target.value) }))}
+                  </div>
+                  <div className="field">
+                    <DateTimePicker
+                      label="Sale ends (date & time, optional)"
+                      value={workshopForm.sale_ends_at}
+                      onChange={(iso) => setWorkshopForm((s) => ({ ...s, sale_ends_at: iso }))}
+                      disabled={disabled}
                     />
-                  </label>
+                  </div>
                 </div>
                 <label className="field">
                   <span className="field-label">Image URL</span>
@@ -4492,32 +4593,28 @@ export default function AdminDashboardPage() {
                   <input type="checkbox" checked={workshopForm.is_published} onChange={(e) => setWorkshopForm((s) => ({ ...s, is_published: e.target.checked }))} />
                   <span className="field-label">Publish on save</span>
                 </label>
-                <label className="field">
-                  <span className="field-label">Schedule publish at (date &amp; time, optional)</span>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    step="60"
-                    value={isoToDatetimeLocal(workshopForm.publish_at)}
-                    onChange={(e) => setWorkshopForm((s) => ({ ...s, publish_at: datetimeLocalToIso(e.target.value) }))}
+                <div className="field">
+                  <DateTimePicker
+                    label="Schedule publish at (date & time, optional)"
+                    value={workshopForm.publish_at}
+                    onChange={(iso) => setWorkshopForm((s) => ({ ...s, publish_at: iso }))}
+                    disabled={disabled}
                   />
-                </label>
+                </div>
                 <label className="field field-inline">
                   <input type="checkbox" checked={workshopForm.qa_enabled} onChange={(e) => setWorkshopForm((s) => ({ ...s, qa_enabled: e.target.checked }))} />
                   <span className="field-label">Enable Q&amp;A for this workshop</span>
                 </label>
                 {editingWorkshopId ? <p className="muted">Zoom fields below are kept for new workshop creation. Use the Live Sessions tab to edit an existing session.</p> : null}
                 <div className="admin-split">
-                  <label className="field">
-                    <span className="field-label">Schedule live session (date &amp; time)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(workshopForm.scheduled_at)}
-                      onChange={(e) => setWorkshopForm((s) => ({ ...s, scheduled_at: datetimeLocalToIso(e.target.value) }))}
+                  <div className="field">
+                    <DateTimePicker
+                      label="Schedule live session (date & time)"
+                      value={workshopForm.scheduled_at}
+                      onChange={(iso) => setWorkshopForm((s) => ({ ...s, scheduled_at: iso }))}
+                      disabled={disabled}
                     />
-                  </label>
+                  </div>
                   <label className="field">
                     <span className="field-label">Zoom meeting id</span>
                     <input className="input" value={workshopForm.zoom_meeting_id} onChange={(e) => setWorkshopForm((s) => ({ ...s, zoom_meeting_id: e.target.value }))} />
@@ -4575,6 +4672,24 @@ export default function AdminDashboardPage() {
               </div>
 
               <h3 className="h3">Workshops</h3>
+              <div className="admin-split" style={{ marginBottom: 10 }}>
+                <label className="field">
+                  <span className="field-label">Category</span>
+                  <select
+                    className="input"
+                    value={workshopBucketFilter}
+                    onChange={(e) => setWorkshopBucketFilter(e.target.value)}
+                  >
+                    <option value="">All</option>
+                    {WORKSHOP_BUCKETS.map((b) => (
+                      <option key={b.slug} value={b.slug}>
+                        {b.label}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div />
+              </div>
               <div className="admin-table">
                 <div className="admin-row admin-head">
                   <div>ID</div>
@@ -4583,7 +4698,7 @@ export default function AdminDashboardPage() {
                   <div>Published</div>
                   <div />
                 </div>
-                {workshops.map((w) => (
+                {filteredWorkshops.map((w) => (
                   <div key={w.id} className="admin-row">
                     <div>{w.id}</div>
                     <div>{w.title}</div>
@@ -4849,24 +4964,27 @@ export default function AdminDashboardPage() {
                   <span className="field-label">Categories</span>
                   <select
                     className="input"
-                    multiple
-                    value={recipeForm.category_ids}
+                    value={String(recipeForm.category_ids?.[0] ?? '')}
                     onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-                      setRecipeForm((s) => ({ ...s, category_ids: selected }));
+                      const next = String(e.target.value ?? '');
+                      if (next === '__add_category__') {
+                        setRecipeCategoryAddOpen(true);
+                        setRecipeForm((s) => ({ ...s, category_ids: s.category_ids ?? [] }));
+                        return;
+                      }
+                      setRecipeCategoryAddOpen(false);
+                      setRecipeForm((s) => ({ ...s, category_ids: next ? [next] : [] }));
                     }}
                   >
+                    <option value="">Select category</option>
                     {recipeCategories.map((cat) => (
                       <option key={cat.id} value={String(cat.id)}>
                         {cat.name}
                       </option>
                     ))}
+                    <option value="__add_category__">＋ Add category</option>
                   </select>
-                  <p className="muted">Tip: Hold Ctrl/Cmd to select multiple categories.</p>
-                  <label className="field">
-                    <span className="field-label">Selected categories</span>
-                    <input className="input" value={recipeSelectedCategoryNames} readOnly placeholder="No categories selected" />
-                  </label>
+                  <p className="muted">Choose one category for this recipe.</p>
                 </label>
                 <label className="field">
                   <span className="field-label">Tags</span>
@@ -4916,7 +5034,7 @@ export default function AdminDashboardPage() {
                     </button>
                   </div>
                 </label>
-                <details className="admin-inline-add">
+                <details className="admin-inline-add" open={recipeCategoryAddOpen} onToggle={(e) => setRecipeCategoryAddOpen(Boolean(e.currentTarget.open))}>
                   <summary className="link">Add a new recipe category</summary>
                   <div className="admin-inline-add-body">
                     <div className="admin-split">
@@ -4954,9 +5072,10 @@ export default function AdminDashboardPage() {
                         if (!result?.createdId) return;
                         setRecipeForm((s) => ({
                           ...s,
-                          category_ids: Array.from(new Set([...(s.category_ids ?? []), String(result.createdId)])),
+                          category_ids: [String(result.createdId)],
                         }));
                         setCategoryForm({ type: 'recipe', name: '', slug: '', description: '' });
+                        setRecipeCategoryAddOpen(false);
                       }}
                     >
                       {disabled ? 'Saving…' : 'Add category'}
