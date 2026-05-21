@@ -5,9 +5,12 @@ import { api } from '../api/client';
 import ChartCard from '../components/admin/ChartCard';
 import SparklineBarChart from '../components/admin/SparklineBarChart';
 import SparklineLineChart from '../components/admin/SparklineLineChart';
+import DateRangePicker from '../components/admin/analytics/DateRangePicker';
+import DateTimePicker from '../components/admin/DateTimePicker';
 import { computeRange } from '../utils/admin/dateRange';
 import { downloadCsv, exportHtmlToPdf } from '../utils/admin/exporters';
 import usePageTitle from '../utils/usePageTitle';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 function parseJsonMaybe(value) {
   if (value == null) return null;
@@ -2474,32 +2477,15 @@ export default function AdminDashboardPage() {
               <div className="admin-topbar-right">
                 {tab === 'overview' ? (
                   <div className="admin-range" role="group" aria-label="Date range">
-                    <label className="sr-only" htmlFor="admin-overview-from">From</label>
-                    <input
-                      id="admin-overview-from"
-                      className="input"
-                      type="date"
-                      value={overviewDisplayFrom}
-                      onChange={(e) => {
-                        const from = e.target.value;
-                        const to = overviewRange === 'custom' ? overviewTo : rangeToFromTo.to;
-                        applyOverviewRangeFromTopbar({ from, to });
+                    <DateRangePicker
+                      compact
+                      from={overviewDisplayFrom}
+                      to={overviewDisplayTo}
+                      onChange={({ from, to }) => {
+                        const nextFrom = from;
+                        const nextTo = to || from;
+                        applyOverviewRangeFromTopbar({ from: nextFrom, to: nextTo });
                       }}
-                      aria-label="From"
-                    />
-                    <span className="admin-range-sep" aria-hidden="true">–</span>
-                    <label className="sr-only" htmlFor="admin-overview-to">To</label>
-                    <input
-                      id="admin-overview-to"
-                      className="input"
-                      type="date"
-                      value={overviewDisplayTo}
-                      onChange={(e) => {
-                        const to = e.target.value;
-                        const from = overviewRange === 'custom' ? overviewFrom : rangeToFromTo.from;
-                        applyOverviewRangeFromTopbar({ from, to });
-                      }}
-                      aria-label="To"
                     />
                   </div>
                 ) : null}
@@ -2817,30 +2803,6 @@ export default function AdminDashboardPage() {
                   />
                 </label>
               </div>
-              <div className="button-row">
-                <button className="button button-solid" type="button" onClick={() => loadTabData('orders')} disabled={disabled}>
-                  {disabled ? 'Loading…' : 'Refresh'}
-                </button>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => setOrdersMeta((s) => ({ ...s, page: Math.max(1, s.page - 1) }))}
-                  disabled={disabled || ordersMeta.page <= 1}
-                >
-                  Prev
-                </button>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  onClick={() => setOrdersMeta((s) => ({ ...s, page: s.page + 1 }))}
-                  disabled={disabled || ordersMeta.page * ordersMeta.limit >= ordersMeta.total}
-                >
-                  Next
-                </button>
-                <p className="muted" style={{ margin: 0 }}>
-                  Page {ordersMeta.page} · {ordersMeta.total} total
-                </p>
-              </div>
 
               <div className="admin-table">
                 <div className="admin-row admin-head">
@@ -2862,11 +2824,36 @@ export default function AdminDashboardPage() {
                     <div className="admin-cell-wrap">{o.email}</div>
                     <div>{o.status}</div>
                     <div>{formatMoney(o.total_cents, o.currency)}</div>
-                    <div className="admin-cell-wrap">{String(o.created_at).slice(0, 19).replace('T', ' ')}</div>
+                    <div className="admin-cell-wrap">{o.created_at ? formatDateTimeStandard(o.created_at) : '—'}</div>
                   </button>
                 ))}
               </div>
               {!orders.length ? <p className="muted">No orders found.</p> : null}
+
+              <div className="admin-pagination" role="navigation" aria-label="Orders pagination">
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setOrdersMeta((s) => ({ ...s, page: Math.max(1, s.page - 1) }))}
+                  disabled={disabled || ordersMeta.page <= 1}
+                >
+                  Prev
+                </button>
+                <div className="admin-pagination-meta">
+                  <span className="muted">
+                    Page <strong>{ordersMeta.page}</strong> of <strong>{Math.max(1, Math.ceil((ordersMeta.total ?? 0) / (ordersMeta.limit ?? 1)))}</strong>
+                  </span>
+                  <span className="muted">{ordersMeta.total} total</span>
+                </div>
+                <button
+                  className="button button-ghost"
+                  type="button"
+                  onClick={() => setOrdersMeta((s) => ({ ...s, page: s.page + 1 }))}
+                  disabled={disabled || ordersMeta.page * ordersMeta.limit >= ordersMeta.total}
+                >
+                  Next
+                </button>
+              </div>
 
               <div style={{ marginTop: 18 }}>
                 <h3 className="h3">Order detail</h3>
@@ -2970,22 +2957,18 @@ export default function AdminDashboardPage() {
                 <div className="admin-split">
                   <label className="field">
                     <span className="field-label">Starts at (date &amp; time)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(couponForm.starts_at)}
-                      onChange={(e) => setCouponForm((s) => ({ ...s, starts_at: datetimeLocalToIso(e.target.value) }))}
+                    <DateTimePicker
+                      value={couponForm.starts_at}
+                      onChange={(next) => setCouponForm((s) => ({ ...s, starts_at: next }))}
+                      disabled={disabled}
                     />
                   </label>
                   <label className="field">
                     <span className="field-label">Ends at (date &amp; time)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(couponForm.ends_at)}
-                      onChange={(e) => setCouponForm((s) => ({ ...s, ends_at: datetimeLocalToIso(e.target.value) }))}
+                    <DateTimePicker
+                      value={couponForm.ends_at}
+                      onChange={(next) => setCouponForm((s) => ({ ...s, ends_at: next }))}
+                      disabled={disabled}
                     />
                   </label>
                 </div>
@@ -3258,7 +3241,7 @@ export default function AdminDashboardPage() {
                         <div style={{ wordBreak: 'break-word' }}>{m.subject}</div>
                         <div>{m.status}</div>
                         <div>{m.attempts}</div>
-                        <div className="muted">{m.next_attempt_at ? new Date(m.next_attempt_at).toLocaleString() : '-'}</div>
+                        <div className="muted">{m.next_attempt_at ? formatDateTimeStandard(m.next_attempt_at) : '-'}</div>
                         <div>
                           {m.status === 'failed' ? (
                             <button className="button button-ghost" type="button" onClick={() => resendOutboxEmail(m.id)} disabled={disabled}>
@@ -3309,9 +3292,9 @@ export default function AdminDashboardPage() {
 	                <div className="panel" style={{ margin: 0 }}>
 	                  <h4 className="h4">Homepage hero</h4>
 	                  <p className="muted" style={{ marginTop: 6 }}>
-	                    {cmsMeta?.homepage_updated_at
-	                      ? `Last updated: ${new Date(cmsMeta.homepage_updated_at).toLocaleString()}`
-	                      : 'Tip: Update the hero and refresh to confirm changes.'}
+		                    {cmsMeta?.homepage_updated_at
+		                      ? `Last updated: ${formatDateTimeStandard(cmsMeta.homepage_updated_at)}`
+		                      : 'Tip: Update the hero and refresh to confirm changes.'}
 	                  </p>
 	                  <div className="panel" style={{ marginTop: 12, background: 'rgba(201, 122, 74, 0.06)' }}>
 	                    <p className="section-kicker" style={{ marginTop: 0 }}>{homepageForm.hero_badge || 'Badge'}</p>
@@ -3399,7 +3382,7 @@ export default function AdminDashboardPage() {
 	                <div className="panel" style={{ margin: 0 }}>
 	                  <h4 className="h4">About page</h4>
 	                  <p className="muted" style={{ marginTop: 6 }}>
-	                    {cmsMeta?.about_updated_at ? `Last updated: ${new Date(cmsMeta.about_updated_at).toLocaleString()}` : null}
+		                    {cmsMeta?.about_updated_at ? `Last updated: ${formatDateTimeStandard(cmsMeta.about_updated_at)}` : null}
 	                  </p>
 	                  <label className="field">
 	                    <span className="field-label">Title</span>
@@ -3594,7 +3577,7 @@ export default function AdminDashboardPage() {
                         <div className="admin-cell-wrap">{a.message}</div>
                         <div>{a.is_active ? 'Yes' : 'No'}</div>
                         <div className="admin-cell-wrap">
-                          {a.starts_at ? String(a.starts_at).slice(0, 16).replace('T', ' ') : '—'} → {a.ends_at ? String(a.ends_at).slice(0, 16).replace('T', ' ') : '—'}
+                          {a.starts_at ? formatDateTimeStandard(a.starts_at) : '—'} → {a.ends_at ? formatDateTimeStandard(a.ends_at) : '—'}
                         </div>
                       </div>
                     ))}
@@ -3778,7 +3761,7 @@ export default function AdminDashboardPage() {
                     <div key={s.id} className="admin-row">
                       <div className="admin-cell-wrap">{s.email}</div>
                       <div>{s.status}</div>
-                      <div className="admin-cell-wrap">{s.subscribed_at ? String(s.subscribed_at).slice(0, 19).replace('T', ' ') : '—'}</div>
+                      <div className="admin-cell-wrap">{s.subscribed_at ? formatDateTimeStandard(s.subscribed_at) : '—'}</div>
                     </div>
                   ))}
                 </div>
@@ -5480,7 +5463,7 @@ export default function AdminDashboardPage() {
                                   <div className="muted" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{m.message_text}</div>
                                 </div>
                                 <div className="muted" style={{ whiteSpace: 'nowrap' }}>
-                                  {m.created_at ? String(m.created_at).slice(0, 16).replace('T', ' ') : ''}
+                                  {m.created_at ? formatDateTimeStandard(m.created_at) : ''}
                                 </div>
                               </div>
                             </li>

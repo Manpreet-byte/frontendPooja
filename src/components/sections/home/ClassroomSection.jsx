@@ -5,15 +5,11 @@ const features = [
     title: 'Focused Workshops',
     description: 'Step-by-step sessions designed for home bakers to master technique with clarity.',
     icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
-        <path
-          fill="currentColor"
-          d="M6.2 14.3a2.1 2.1 0 0 1 0-3l4.8-4.8a2.1 2.1 0 0 1 3 0l3.5 3.5a2.1 2.1 0 0 1 0 3l-4.8 4.8a2.1 2.1 0 0 1-3 0l-3.5-3.5Zm6-6.4-4.6 4.6a.8.8 0 0 0 0 1.1l3.4 3.4c.3.3.8.3 1.1 0l4.6-4.6a.8.8 0 0 0 0-1.1l-3.4-3.4a.8.8 0 0 0-1.1 0Z"
-        />
-        <path
-          fill="currentColor"
-          d="M3 20.5a1 1 0 0 1 1-1h7.5a1 1 0 1 1 0 2H4a1 1 0 0 1-1-1Z"
-        />
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
+        <circle cx="12" cy="12" r="7.5" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="3.2" stroke="currentColor" strokeWidth="1.8" />
+        <circle cx="12" cy="12" r="0.9" fill="currentColor" />
+        <path d="M12 3.4v2.2M12 18.4v2.2M3.4 12h2.2M18.4 12h2.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -21,15 +17,15 @@ const features = [
     title: 'Live & Interactive',
     description: 'Join live classes, ask questions, and learn in real time with a warm community.',
     icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          fill="currentColor"
-          d="M4 6.5A2.5 2.5 0 0 1 6.5 4h9A2.5 2.5 0 0 1 18 6.5v6A2.5 2.5 0 0 1 15.5 15H10l-3.6 3.1A1.1 1.1 0 0 1 4.6 17v-2.2A2.5 2.5 0 0 1 4 12.5v-6Zm2.5-.5a.5.5 0 0 0-.5.5v6c0 .2.1.4.3.5.2.1.2.4.2.6v.9L9.1 13c.2-.2.4-.2.7-.2h5.7a.5.5 0 0 0 .5-.5v-6a.5.5 0 0 0-.5-.5h-9Z"
+          d="M5.2 7.2A2.2 2.2 0 0 1 7.4 5h7.2a2.2 2.2 0 0 1 2.2 2.2v4.4a2.2 2.2 0 0 1-2.2 2.2H10l-3.2 2.7c-.7.6-1.6.1-1.6-.8v-1.9a2.2 2.2 0 0 1 0-8.6Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
         />
-        <path
-          fill="currentColor"
-          d="M8 8.1a1 1 0 0 1 1.5-.9l4 2.3a1 1 0 0 1 0 1.7l-4 2.3A1 1 0 0 1 8 12.6V8.1Z"
-        />
+        <path d="M10 8.3l3.4 2-3.4 2v-4Z" fill="currentColor" />
+        <path d="M17.6 9.6h1.1a1.7 1.7 0 0 1 1.7 1.7v2.2a1.7 1.7 0 0 1-1.7 1.7h-.8l-1.8 1.5v-1.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
       </svg>
     ),
   },
@@ -37,15 +33,14 @@ const features = [
     title: 'All-in-One Resources',
     description: 'Access recipes, notes, and video lessons — neatly organized to revisit anytime.',
     icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          fill="currentColor"
-          d="M6.5 4.2h9.8c1 0 1.7.8 1.7 1.7v12.3c0 1-.8 1.7-1.7 1.7H6.5c-1 0-1.7-.8-1.7-1.7V5.9c0-1 .8-1.7 1.7-1.7Zm0 2a.3.3 0 0 0-.3.3v11.1c0 .2.1.3.3.3h9.8c.2 0 .3-.1.3-.3V6.5c0-.2-.1-.3-.3-.3H6.5Z"
+          d="M4.6 8.2V6.6c0-.9.7-1.6 1.6-1.6h4l1.2 1.6h6.4c.9 0 1.6.7 1.6 1.6v9.2c0 .9-.7 1.6-1.6 1.6H6.2c-.9 0-1.6-.7-1.6-1.6V8.2Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
         />
-        <path
-          fill="currentColor"
-          d="M8 7.7h7v1.8H8V7.7Zm0 3.6h7v1.8H8v-1.8Zm0 3.6h4.5v1.8H8v-1.8Z"
-        />
+        <path d="M8 11h8M8 14h8M8 17h5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -53,11 +48,21 @@ const features = [
     title: 'Exclusive Access',
     description: 'Insider content, workshop replays, and member-only guidance — available only here.',
     icon: (
-      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none">
         <path
-          fill="currentColor"
-          d="M12 3.2l2.1 4.3 4.7.7-3.4 3.3.8 4.7-4.2-2.2-4.2 2.2.8-4.7-3.4-3.3 4.7-.7L12 3.2Z"
+          d="M7.5 11V9.2a4.5 4.5 0 0 1 9 0V11"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinecap="round"
         />
+        <path
+          d="M6.6 11h10.8c.8 0 1.5.7 1.5 1.5v6.2c0 .8-.7 1.5-1.5 1.5H6.6c-.8 0-1.5-.7-1.5-1.5v-6.2c0-.8.7-1.5 1.5-1.5Z"
+          stroke="currentColor"
+          strokeWidth="1.8"
+          strokeLinejoin="round"
+        />
+        <path d="M12 14.4v2.2" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+        <path d="M19.2 6.6l.5 1.1 1.2.2-.9.8.2 1.2-1-.5-1 .5.2-1.2-.9-.8 1.2-.2.5-1.1Z" fill="currentColor" />
       </svg>
     ),
   },

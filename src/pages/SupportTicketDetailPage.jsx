@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 export default function SupportTicketDetailPage() {
   const token = useAuthStore((s) => s.token);
@@ -115,7 +116,7 @@ export default function SupportTicketDetailPage() {
                             <div className="muted" style={{ marginTop: 6, whiteSpace: 'pre-wrap' }}>{m.message_text}</div>
                           </div>
                           <div className="muted" style={{ whiteSpace: 'nowrap' }}>
-                            {m.created_at ? new Date(m.created_at).toLocaleString() : ''}
+                            {m.created_at ? formatDateTimeStandard(m.created_at) : ''}
                           </div>
                         </div>
                       </li>
@@ -142,4 +143,3 @@ export default function SupportTicketDetailPage() {
     </main>
   );
 }
-

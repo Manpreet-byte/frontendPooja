@@ -68,7 +68,7 @@
   /* Layout */
   --content-max: 1180px;
   --content-wide-max: 1400px;
-  --section-y: clamp(56px, 6vw, 96px);
+  --section-y: clamp(80px, 9vw, 140px);
 
   /* Transitions */
   --ease-in: cubic-bezier(0.4, 0, 1, 1);
@@ -1209,12 +1209,16 @@ h1, h2, h3, h4, h5, h6 {
     margin-left: 28px;
   }
 
+  .site-header .brand-lockup {
+    margin-left: 36px;
+  }
+
   .brand-logo {
-    height: 48px;
+    height: 52px;
   }
 
   .site-header.is-scrolled .brand-logo {
-    height: 44px;
+    height: 48px;
   }
 }
 
@@ -2222,7 +2226,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: clamp(2rem, 6vw, var(--type-hero));
   line-height: var(--lh-tight);
   color: rgba(255, 255, 255, 0.98);
-  font-weight: 800;
+  font-weight: 500;
   letter-spacing: -0.02em;
   animation: fadeInUp 800ms var(--ease-out) both;
   animation-delay: 150ms;
@@ -2605,9 +2609,9 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-together {
   margin-top: 0;
-  margin-bottom: 0;
+  margin-bottom: 80px;
   padding-top: 72px;
-  padding-bottom: 60px;
+  padding-bottom: 80px;
   background:
     radial-gradient(circle at 12% 30%, rgba(255, 255, 255, 0.62), transparent 46%),
     radial-gradient(circle at 88% 22%, rgba(255, 255, 255, 0.36), transparent 46%),
@@ -2631,7 +2635,7 @@ h1, h2, h3, h4, h5, h6 {
     linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(252, 246, 244, 0.86));
   border: 1px solid rgba(99, 77, 55, 0.12);
   box-shadow: 0 10px 28px rgba(0, 0, 0, 0.06);
-  padding: 34px 28px 96px;
+  padding: 142px 128px 380px;
   position: relative;
   overflow: hidden;
 }
@@ -2675,12 +2679,12 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   grid-template-columns: clamp(36px, 8vw, 42px) 1fr;
   gap: clamp(10px, 2vw, 12px);
-  padding: clamp(12px, 2vw, 14px);
+  padding: clamp(14px, 2.2vw, 18px);
   border-radius: clamp(14px, 3vw, 18px);
   border: 1px solid rgba(99, 77, 55, 0.12);
   background: rgba(255, 255, 255, 0.55);
   box-shadow: 0 10px 22px rgba(64, 49, 32, 0.04);
-  min-height: 60px;
+  min-height: 106px;
 }
 
 .home-together-icon {
@@ -2714,7 +2718,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (max-width: 520px) {
   .home-together-panel {
-    padding: 28px 18px 76px;
+    padding: 28px 18px 240px;
   }
 }
 
@@ -2954,7 +2958,28 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 1080px) {
   .home-recipes-shell {
     grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1.14fr);
-    align-items: start;
+    align-items: stretch;
+  }
+
+  /* Keep the recipe showcase visible while the intro column scrolls. */
+  .recipe-showcase-carousel {
+    position: sticky;
+    top: calc(var(--header-height, 84px) + 16px);
+    align-self: start;
+  }
+
+  /* Make the left column match the showcase height; allow scrolling inside when copy is longer. */
+  .home-recipes-intro {
+    height: 100%;
+    overflow: auto;
+    padding-right: 14px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge legacy */
+  }
+
+  .home-recipes-intro::-webkit-scrollbar {
+    width: 0;
+    height: 0;
   }
 }
 
@@ -3010,7 +3035,8 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (min-width: 920px) {
   .recipe-slide-layout {
-    grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+    /* Keep all recipe cards the same width inside the showcase. */
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-template-areas:
       'feature support'
       'feature footer';
@@ -3023,6 +3049,11 @@ h1, h2, h3, h4, h5, h6 {
 
   .recipe-support-card {
     min-height: 560px;
+  }
+
+  /* Keep only one supporting recipe per row (stacked). */
+  .recipe-support-grid {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -3145,7 +3176,8 @@ h1, h2, h3, h4, h5, h6 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255, 250, 244, 0.02) 0%, rgba(255, 250, 244, 0.18) 34%, rgba(255, 250, 244, 0.94) 100%);
+  /* Stronger scrim so text stays readable on bright images */
+  background: linear-gradient(180deg, rgba(18, 12, 9, 0.06) 0%, rgba(18, 12, 9, 0.18) 40%, rgba(255, 250, 244, 0.97) 100%);
 }
 
 .recipe-feature-overlay {
@@ -3232,7 +3264,8 @@ h1, h2, h3, h4, h5, h6 {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(180deg, rgba(255, 250, 244, 0.02) 0%, rgba(255, 250, 244, 0.18) 34%, rgba(255, 250, 244, 0.94) 100%);
+  /* Stronger scrim so text stays readable on bright images */
+  background: linear-gradient(180deg, rgba(18, 12, 9, 0.06) 0%, rgba(18, 12, 9, 0.18) 40%, rgba(255, 250, 244, 0.97) 100%);
 }
 
 .recipe-support-body {
@@ -3243,6 +3276,9 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   align-content: end;
   gap: 10px;
+  /* Make the text area readable regardless of the photo behind it */
+  background: linear-gradient(180deg, rgba(255, 250, 244, 0.0) 0%, rgba(255, 250, 244, 0.72) 48%, rgba(255, 250, 244, 0.9) 100%);
+  backdrop-filter: blur(6px);
 }
 
 .recipe-support-topline {
@@ -3280,7 +3316,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .recipe-support-card {
-    min-height: clamp(300px, 52vw, 400px);
+    min-height: clamp(340px, 60vw, 420px);
     border-radius: clamp(20px, 5vw, 28px);
   }
 
@@ -7021,6 +7057,23 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: var(--radius-lg);
   padding: 22px;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(247, 238, 225, 0.92));
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(229, 138, 31, 0.28);
+  box-shadow: 0 18px 44px rgba(36, 22, 18, 0.10);
+}
+
+.stat-card:hover .stat-icon {
+  border-color: rgba(229, 138, 31, 0.36);
+  box-shadow: 0 12px 30px rgba(36, 22, 18, 0.10);
+  transform: translateY(-1px);
+}
+
+.stat-card:hover .stat-icon svg {
+  transform: scale(1.04);
 }
 
 .stat-card .h3 {
@@ -7037,10 +7090,12 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid var(--border);
   margin-bottom: 12px;
   color: rgba(166, 93, 78, 0.92);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .stat-icon svg {
   display: block;
+  transition: transform 180ms ease;
 }
 
 /* Courses (workshops list) */
@@ -7925,6 +7980,370 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.88);
 }
 
+/* Admin date range picker (custom calendar) */
+.date-range-picker {
+  position: relative;
+}
+
+.drp-fields {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.drp-field {
+  display: grid;
+  gap: 2px;
+  padding: 10px 12px;
+  min-width: 160px;
+  border-radius: 14px;
+  border: 1px solid rgba(99, 77, 55, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 26px rgba(36, 22, 18, 0.06);
+  text-align: left;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.date-range-picker.is-compact .drp-field {
+  min-width: 148px;
+  padding: 9px 11px;
+}
+
+.drp-field:hover {
+  transform: translateY(-1px);
+  border-color: rgba(229, 138, 31, 0.28);
+  box-shadow: 0 14px 34px rgba(36, 22, 18, 0.08);
+}
+
+.drp-label {
+  font-size: 0.72rem;
+  color: rgba(46, 36, 27, 0.62);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 800;
+}
+
+.drp-value {
+  font-weight: 700;
+  color: rgba(46, 36, 27, 0.9);
+}
+
+.drp-sep {
+  color: rgba(46, 36, 27, 0.55);
+  font-weight: 700;
+}
+
+.drp-popover {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 10px);
+  z-index: 80;
+  width: min(720px, calc(100vw - 24px));
+  border-radius: 18px;
+  border: 1px solid rgba(99, 77, 55, 0.18);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.88), transparent 52%),
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(246, 233, 222, 0.94));
+  box-shadow: 0 26px 74px rgba(36, 22, 18, 0.16);
+  padding: 14px;
+}
+
+.drp-popover-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 6px 6px 10px;
+}
+
+.drp-mode {
+  display: inline-flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.drp-chip {
+  font-size: 0.78rem;
+  padding: 7px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(99, 77, 55, 0.12);
+  background: rgba(255, 255, 255, 0.7);
+  color: rgba(46, 36, 27, 0.75);
+  font-weight: 700;
+}
+
+.drp-chip.is-active {
+  border-color: rgba(229, 138, 31, 0.24);
+  background: rgba(241, 221, 205, 0.74);
+  color: rgba(46, 36, 27, 0.9);
+}
+
+.drp-nav {
+  display: inline-flex;
+  gap: 8px;
+}
+
+.drp-nav-btn {
+  width: 38px;
+  height: 38px;
+  display: inline-grid;
+  place-items: center;
+}
+
+.drp-calendars {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+  padding: 4px 6px 10px;
+}
+
+@media (max-width: 680px) {
+  .drp-calendars {
+    grid-template-columns: 1fr;
+  }
+}
+
+.drp-month {
+  border-radius: 16px;
+  border: 1px solid rgba(99, 77, 55, 0.12);
+  background: rgba(255, 255, 255, 0.62);
+  box-shadow: 0 12px 30px rgba(36, 22, 18, 0.06);
+  padding: 12px;
+}
+
+.drp-month-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.drp-month-label {
+  font-weight: 800;
+  color: rgba(46, 36, 27, 0.9);
+  letter-spacing: -0.01em;
+}
+
+.drp-dow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-bottom: 6px;
+}
+
+.drp-dow-cell {
+  font-size: 0.72rem;
+  color: rgba(46, 36, 27, 0.55);
+  text-align: center;
+  font-weight: 800;
+}
+
+.drp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.drp-day {
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  color: rgba(46, 36, 27, 0.88);
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.drp-day.is-out {
+  color: rgba(46, 36, 27, 0.28);
+}
+
+.drp-day:hover:not(:disabled) {
+  background: rgba(241, 221, 205, 0.64);
+  border-color: rgba(229, 138, 31, 0.16);
+  transform: translateY(-1px);
+}
+
+.drp-day.is-in-range {
+  background: rgba(241, 221, 205, 0.55);
+}
+
+.drp-day.is-from,
+.drp-day.is-to {
+  background: rgba(201, 122, 74, 0.18);
+  border-color: rgba(201, 122, 74, 0.32);
+}
+
+.drp-day.is-today {
+  box-shadow: inset 0 0 0 2px rgba(140, 59, 43, 0.18);
+}
+
+.drp-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 6px 2px;
+}
+
+/* Coupon/calendar datetime picker */
+.date-time-picker {
+  position: relative;
+}
+
+.dtp-field {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(99, 77, 55, 0.14);
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 26px rgba(36, 22, 18, 0.06);
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+}
+
+.dtp-field:hover:not(:disabled) {
+  transform: translateY(-1px);
+  border-color: rgba(229, 138, 31, 0.28);
+  box-shadow: 0 14px 34px rgba(36, 22, 18, 0.08);
+}
+
+.dtp-value {
+  font-weight: 700;
+  color: rgba(46, 36, 27, 0.9);
+}
+
+.dtp-value.is-placeholder {
+  font-weight: 600;
+  color: rgba(46, 36, 27, 0.55);
+}
+
+.dtp-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: rgba(201, 122, 74, 0.12);
+  border: 1px solid rgba(201, 122, 74, 0.16);
+}
+
+.dtp-popover {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 10px);
+  z-index: 90;
+  width: min(420px, calc(100vw - 24px));
+  border-radius: 18px;
+  border: 1px solid rgba(99, 77, 55, 0.18);
+  background:
+    radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.88), transparent 52%),
+    linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(246, 233, 222, 0.94));
+  box-shadow: 0 26px 74px rgba(36, 22, 18, 0.16);
+  padding: 14px;
+}
+
+.dtp-month {
+  display: grid;
+  grid-template-columns: 38px 1fr 38px;
+  align-items: center;
+  gap: 10px;
+}
+
+.dtp-month-label {
+  text-align: center;
+  font-weight: 800;
+  color: rgba(46, 36, 27, 0.9);
+}
+
+.dtp-dow {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 10px;
+  margin-bottom: 6px;
+}
+
+.dtp-dow-cell {
+  font-size: 0.72rem;
+  color: rgba(46, 36, 27, 0.55);
+  text-align: center;
+  font-weight: 800;
+}
+
+.dtp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.dtp-day {
+  height: 34px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  background: transparent;
+  font-weight: 700;
+  color: rgba(46, 36, 27, 0.88);
+  transition: background-color 160ms ease, border-color 160ms ease, transform 160ms ease;
+}
+
+.dtp-day.is-out {
+  color: rgba(46, 36, 27, 0.28);
+}
+
+.dtp-day:hover:not(:disabled) {
+  background: rgba(241, 221, 205, 0.64);
+  border-color: rgba(229, 138, 31, 0.16);
+  transform: translateY(-1px);
+}
+
+.dtp-day.is-selected {
+  background: rgba(201, 122, 74, 0.18);
+  border-color: rgba(201, 122, 74, 0.32);
+}
+
+.dtp-day.is-today {
+  box-shadow: inset 0 0 0 2px rgba(140, 59, 43, 0.18);
+}
+
+.dtp-time {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(99, 77, 55, 0.12);
+  display: grid;
+  gap: 8px;
+}
+
+.dtp-time-label {
+  font-weight: 800;
+  color: rgba(46, 36, 27, 0.85);
+}
+
+.dtp-time-fields {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dtp-time-select {
+  min-width: 92px;
+  background: rgba(255, 255, 255, 0.9);
+}
+
+.dtp-colon {
+  font-weight: 900;
+  color: rgba(46, 36, 27, 0.6);
+}
+
+.dtp-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 12px;
+}
+
 .admin-range-sep {
   color: rgba(46, 36, 27, 0.55);
   font-weight: 700;
@@ -7939,6 +8358,33 @@ h1, h2, h3, h4, h5, h6 {
   border-radius: 14px;
   border: 1px solid rgba(99, 77, 55, 0.12);
   background: rgba(255, 255, 255, 0.55);
+}
+
+/* Admin pagination (orders list) */
+.admin-pagination {
+  margin-top: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px;
+  border-radius: 16px;
+  border: 1px solid rgba(99, 77, 55, 0.12);
+  background: rgba(255, 255, 255, 0.72);
+  box-shadow: 0 12px 30px rgba(36, 22, 18, 0.06);
+}
+
+.admin-pagination-meta {
+  display: grid;
+  gap: 4px;
+  text-align: center;
+}
+
+@media (max-width: 520px) {
+  .admin-pagination {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
 }
 
 .admin-pill-avatar {
@@ -8316,8 +8762,13 @@ h1, h2, h3, h4, h5, h6 {
 /* FAQ page heading (WpContentPage: /pages/frequently-asked-questions) */
 .faq-page .section-heading .h2 {
   font-size: clamp(2.2rem, 4.5vw, 3.1rem);
-  font-weight: 200;
+  font-weight: 300;
   line-height: 1.12;
+}
+
+/* FAQ page section headings inside the content (e.g. "About Love & Flour by Pooja") */
+.faq-page .prose-block .elementor h2.elementor-heading-title {
+  font-weight: 200;
 }
 
 /* Content typography */
@@ -8498,7 +8949,7 @@ h1, h2, h3, h4, h5, h6 {
 
   .prose-block .elementor-tab-content {
     transition: none;
-    max-height: auto;
+    max-height: none;
   }
 
   .prose-block .elementor-invisible {

@@ -2,11 +2,10 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 function formatDateTime(value) {
-  const d = value ? new Date(value) : null;
-  if (!d || Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' });
+  return formatDateTimeStandard(value);
 }
 
 function deriveStatus(session, nowMs) {

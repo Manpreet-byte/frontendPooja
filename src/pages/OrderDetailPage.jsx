@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 function formatMoney(cents, currency = 'INR') {
   const amount = Number(cents ?? 0) / 100;
@@ -111,7 +112,7 @@ export default function OrderDetailPage() {
                 </div>
                 <div className="checkout-line">
                   <span className="muted">Created</span>
-                  <span>{order?.created_at ? new Date(order.created_at).toLocaleString() : '-'}</span>
+                  <span>{order?.created_at ? formatDateTimeStandard(order.created_at) : '-'}</span>
                 </div>
                 <div className="checkout-line checkout-total">
                   <span>Total paid</span>
@@ -183,7 +184,7 @@ export default function OrderDetailPage() {
                           <td>{p.provider ?? '-'}</td>
                           <td>{p.status ?? '-'}</td>
                           <td>{p.provider_payment_id ?? p.providerOrderId ?? '-'}</td>
-                          <td>{p.created_at ? new Date(p.created_at).toLocaleString() : '-'}</td>
+                          <td>{p.created_at ? formatDateTimeStandard(p.created_at) : '-'}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -197,4 +198,3 @@ export default function OrderDetailPage() {
     </main>
   );
 }
-

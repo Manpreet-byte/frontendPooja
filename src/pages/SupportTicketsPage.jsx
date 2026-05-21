@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 const categories = [
   { value: 'payment', label: 'Payment' },
@@ -156,7 +157,7 @@ export default function SupportTicketsPage() {
                       <td>#{t.id} · {t.subject}</td>
                       <td>{t.status}</td>
                       <td>{t.category}</td>
-                      <td>{t.updated_at ? new Date(t.updated_at).toLocaleString() : '-'}</td>
+                      <td>{t.updated_at ? formatDateTimeStandard(t.updated_at) : '-'}</td>
                       <td style={{ textAlign: 'right' }}>
                         <Link className="link" to={`/support/${encodeURIComponent(t.id)}`}>
                           View
@@ -173,4 +174,3 @@ export default function SupportTicketsPage() {
     </main>
   );
 }
-

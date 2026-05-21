@@ -110,7 +110,7 @@ export default function ContactSection() {
                   className="input"
                   value={form.name}
                   onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
-                  placeholder="Your name"
+                  placeholder="Enter your first name"
                   required
                 />
               </label>
@@ -122,7 +122,7 @@ export default function ContactSection() {
                   type="email"
                   value={form.email}
                   onChange={(e) => setForm((v) => ({ ...v, email: e.target.value }))}
-                  placeholder="you@example.com"
+                  placeholder="Enter your email"
                   required
                 />
               </label>

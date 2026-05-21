@@ -21,7 +21,10 @@ function parseIsoDateOnly(value) {
 export function formatDateLabel(value) {
   const dt = parseIsoDateOnly(value);
   if (!dt) return '';
-  return new Intl.DateTimeFormat('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }).format(dt);
+  const day = String(dt.getUTCDate());
+  const month = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec'][dt.getUTCMonth()] ?? '';
+  const year = String(dt.getUTCFullYear());
+  return `${day} ${month} ${year}`.trim();
 }
 
 export function formatRangeLabel({ from, to }) {

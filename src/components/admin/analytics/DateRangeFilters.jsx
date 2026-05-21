@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { computeRange, formatRangeLabel } from '../../../utils/admin/dateRange';
+import DateRangePicker from './DateRangePicker';
 
 export default function DateRangeFilters({
   preset,
@@ -52,16 +53,15 @@ export default function DateRangeFilters({
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
         {preset === 'custom' ? (
-          <>
-            <label className="field" style={{ margin: 0 }}>
-              <span className="field-label">From</span>
-              <input className="input" type="date" value={from} onChange={(e) => onFrom(e.target.value)} disabled={disabled} />
-            </label>
-            <label className="field" style={{ margin: 0 }}>
-              <span className="field-label">To</span>
-              <input className="input" type="date" value={to} onChange={(e) => onTo(e.target.value)} disabled={disabled} />
-            </label>
-          </>
+          <DateRangePicker
+            from={from}
+            to={to}
+            disabled={disabled}
+            onChange={({ from: nextFrom, to: nextTo }) => {
+              onFrom(nextFrom);
+              onTo(nextTo);
+            }}
+          />
         ) : (
           <span className="muted" style={{ whiteSpace: 'nowrap' }}>
             Range: {formatRangeLabel(derived)}

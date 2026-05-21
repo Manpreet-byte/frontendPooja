@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 function formatMoney(cents, currency = 'INR') {
   const amount = Number(cents ?? 0) / 100;
@@ -122,7 +123,7 @@ export default function OrdersPage() {
                       <td>#{o.id}</td>
                       <td>{o.status}</td>
                       <td>{formatMoney(o.total_cents ?? o.totalCents, o.currency)}</td>
-                      <td>{o.created_at ? new Date(o.created_at).toLocaleString() : '-'}</td>
+                      <td>{o.created_at ? formatDateTimeStandard(o.created_at) : '-'}</td>
                       <td style={{ textAlign: 'right' }}>
                         <Link className="link" to={`/orders/${o.id}`}>
                           View

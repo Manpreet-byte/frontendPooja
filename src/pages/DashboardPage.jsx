@@ -5,7 +5,7 @@ import { useAuthStore } from '../store/authStore';
 import { cacheLessonForOffline, flushOfflineProgressQueue } from '../utils/offlineLearning';
 import usePageTitle from '../utils/usePageTitle';
 import SelectMenu from '../components/SelectMenu';
-import { formatDateStandard } from '../utils/formatDate';
+import { formatDateStandard, formatDateTimeStandard } from '../utils/formatDate';
 
 function initialsFromName(name) {
   const safe = String(name ?? '').trim();
@@ -599,7 +599,7 @@ export default function DashboardPage() {
                         <li key={s.id}>
                           <strong>{s.session_title ?? s.course_title}</strong>
                           <div className="muted">
-                            {s.scheduled_at ? new Date(s.scheduled_at).toLocaleString() : '—'} · {s.status}
+                            {s.scheduled_at ? formatDateTimeStandard(s.scheduled_at) : '—'} · {s.status}
                           </div>
                         </li>
                       ))}
@@ -640,7 +640,7 @@ export default function DashboardPage() {
                           <div>{o.id}</div>
                           <div>{o.status}</div>
                           <div>{o.total_cents != null ? `${o.currency ?? ''} ${(Number(o.total_cents) / 100).toFixed(2)}` : '—'}</div>
-                          <div className="admin-cell-wrap">{String(o.created_at ?? '').slice(0, 19).replace('T', ' ')}</div>
+                          <div className="admin-cell-wrap">{o.created_at ? formatDateTimeStandard(o.created_at) : '—'}</div>
                           <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
                             <Link className="button button-ghost" to={`/orders/${encodeURIComponent(o.id)}`}>
                               View

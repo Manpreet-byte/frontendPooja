@@ -4,11 +4,10 @@ import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useAuthStore } from '../store/authStore';
 import { useCartStore } from '../store/cartStore';
+import { formatDateTimeStandard } from '../utils/formatDate';
 
 function formatDateTime(value) {
-  const d = value ? new Date(value) : null;
-  if (!d || Number.isNaN(d.getTime())) return '';
-  return d.toLocaleString(undefined, { dateStyle: 'full', timeStyle: 'short' });
+  return formatDateTimeStandard(value);
 }
 
 function safeMs(value) {
@@ -480,7 +479,7 @@ export default function LiveSessionDetailPage() {
                           <div className="cart-item-head">
                             <div className="cart-item-copy">
                               <p className="cart-item-title">{r.session_title ?? r.title ?? 'Recording'}</p>
-                              <p className="muted">{r.recorded_at ? new Date(r.recorded_at).toLocaleString() : ''}</p>
+                              <p className="muted">{r.recorded_at ? formatDateTimeStandard(r.recorded_at) : ''}</p>
                             </div>
                             {r.recording_url ? (
                               <a className="button button-ghost" href={r.recording_url} target="_blank" rel="noreferrer">
