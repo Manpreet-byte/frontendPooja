@@ -138,7 +138,7 @@ export default function SignupPage() {
               className="input"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Your name"
+              placeholder="Enter your name"
               type="text"
               autoComplete="name"
               required
@@ -166,7 +166,7 @@ export default function SignupPage() {
               className="input"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Minimum 8 characters"
+              placeholder="Enter password"
               type="password"
               autoComplete="new-password"
               minLength={8}

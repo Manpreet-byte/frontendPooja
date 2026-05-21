@@ -207,36 +207,34 @@ export default function RecipeHighlightsSection() {
                     </div>
                   </Link>
 
-                      <div className="recipe-support-grid">
-                        {[slide.supportingPrimary, slide.supportingSecondary].map((post, postIndex) => {
-                          const isActive = postIndex === (clampedIndex % 2);
-                          if (!post) return null;
-                          return (
-                            <Link
-                              className={`recipe-support-card recipe-support-card--full${isActive ? ' is-active' : ''}`}
-                              key={`${post.id ?? postIndex}-${slideIndex}`}
-                              to={post.slug ? `/recipes/${post.slug}` : '/recipe-library'}
-                              aria-hidden={!isActive}
-                              tabIndex={isActive ? 0 : -1}
-                            >
-                              <div className="recipe-support-media">
-                                {post.featuredImage ? (
-                                  <SafeImage src={post.featuredImage} alt={post.title} />
-                                ) : (
-                                  <div className="recipe-card-fallback" aria-hidden="true" />
-                                )}
-                              </div>
-                              <div className="recipe-support-body">
-                                <div className="recipe-support-topline">
-                                  <span className="pill">{post.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
-                                  <span className="recipe-support-date">{formatDateStandard(post.date ?? Date.now())}</span>
-                                </div>
-                                <h3>{post.title}</h3>
-                              </div>
-                            </Link>
-                          );
-                        })}
-                      </div>
+                      <Link
+                        className="recipe-side-card"
+                        to={slide.supportingPrimary?.slug ? `/recipes/${slide.supportingPrimary.slug}` : '/recipe-library'}
+                      >
+                        <div className="recipe-side-media">
+                          {slide.supportingPrimary?.featuredImage ? (
+                            <SafeImage src={slide.supportingPrimary.featuredImage} alt={slide.supportingPrimary.title ?? 'Recipe'} />
+                          ) : (
+                            <div className="recipe-card-fallback" aria-hidden="true" />
+                          )}
+                        </div>
+                        <div className="recipe-side-body">
+                          <div className="recipe-side-topline">
+                            <span className="pill">{slide.supportingPrimary?.taxonomies?.category?.[0]?.name ?? 'Recipe'}</span>
+                            <span className="recipe-side-date">{formatDateStandard(slide.supportingPrimary?.date ?? Date.now())}</span>
+                          </div>
+                          <h3>{slide.supportingPrimary?.title ?? 'Recipe highlight'}</h3>
+                          <p
+                            className="muted"
+                            dangerouslySetInnerHTML={{
+                              __html:
+                                slide.supportingPrimary?.excerptHtml ??
+                                'Explore the full recipe library to discover the latest bakes.',
+                            }}
+                          />
+                          <span className="recipe-side-link">View recipe</span>
+                        </div>
+                      </Link>
                     </div>
                   </div>
                 ))}
