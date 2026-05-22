@@ -7987,6 +7987,11 @@ h1, h2, h3, h4, h5, h6 {
     linear-gradient(180deg, rgba(249, 244, 234, 0.7), rgba(255, 255, 255, 0.35));
 }
 
+.section-contact.section {
+  padding-top: clamp(24px, 4vw, 52px);
+  padding-bottom: clamp(44px, 6vw, 88px);
+}
+
 .newsletter-form {
   margin: 22px auto 0;
   display: grid;
