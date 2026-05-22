@@ -56,6 +56,7 @@ export default function DateTimePicker({ value, onChange, disabled = false, labe
 
   const parsed = useMemo(() => parseIso(value), [value]);
   const [open, setOpen] = useState(false);
+  const [placement, setPlacement] = useState('bottom');
   const [viewMonth, setViewMonth] = useState(() => startOfMonthLocal(parsed ?? new Date()));
   const [pickedDate, setPickedDate] = useState(() => (parsed ? new Date(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()) : null));
   const [hour, setHour] = useState(() => (parsed ? pad2(parsed.getHours()) : '09'));
@@ -78,6 +79,33 @@ export default function DateTimePicker({ value, onChange, disabled = false, labe
     return () => {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('pointerdown', onPointerDown);
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    const updatePlacement = () => {
+      const anchor = anchorRef.current;
+      const popover = popoverRef.current;
+      if (!anchor || !popover) return;
+      const rect = anchor.getBoundingClientRect();
+      const popoverRect = popover.getBoundingClientRect();
+      const viewportH = window.innerHeight || 0;
+      const topSpace = rect.top;
+      const bottomSpace = viewportH - rect.bottom;
+      const needed = Math.min(popoverRect.height, viewportH - 24);
+      const nextPlacement = bottomSpace < needed + 10 && topSpace > bottomSpace ? 'top' : 'bottom';
+      setPlacement(nextPlacement);
+    };
+
+    // Measure after paint so the popover has a real height.
+    const raf = window.requestAnimationFrame(updatePlacement);
+    window.addEventListener('resize', updatePlacement);
+    window.addEventListener('scroll', updatePlacement, true);
+    return () => {
+      window.cancelAnimationFrame(raf);
+      window.removeEventListener('resize', updatePlacement);
+      window.removeEventListener('scroll', updatePlacement, true);
     };
   }, [open]);
 
@@ -124,7 +152,12 @@ export default function DateTimePicker({ value, onChange, disabled = false, labe
       </button>
 
       {open ? (
-        <div className="dtp-popover" ref={popoverRef} role="dialog" aria-label="Choose date and time">
+        <div
+          className={`dtp-popover${placement === 'top' ? ' is-top' : ''}`}
+          ref={popoverRef}
+          role="dialog"
+          aria-label="Choose date and time"
+        >
           <div className="dtp-head">
             <div className="dtp-month">
               <button type="button" className="icon-button dtp-nav" onClick={() => setViewMonth((m) => addMonthsLocal(m, -1))} disabled={disabled} aria-label="Previous month">
@@ -208,4 +241,3 @@ export default function DateTimePicker({ value, onChange, disabled = false, labe
     </div>
   );
 }
-

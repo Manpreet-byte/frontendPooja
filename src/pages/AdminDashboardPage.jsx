@@ -2173,10 +2173,14 @@ export default function AdminDashboardPage() {
 
   const submitCoupon = async (e) => {
     e.preventDefault();
-    if (!token) return;
     setStatus('loading');
     setMessage('');
     try {
+      if (!token) {
+        await refreshProfile();
+      }
+      const authToken = useAuthStore.getState().token;
+      if (!authToken) throw new Error('Unauthorized');
       const discountValueInr = couponForm.discount_value_inr ? Number(couponForm.discount_value_inr) : null;
       const minOrderInr = couponForm.min_order_total_inr ? Number(couponForm.min_order_total_inr) : null;
       const payload = {
@@ -2197,11 +2201,11 @@ export default function AdminDashboardPage() {
         is_active: Boolean(couponForm.is_active),
       };
       if (editingCouponId) {
-        await api.admin.coupons.update(token, editingCouponId, payload);
+        await api.admin.coupons.update(authToken, editingCouponId, payload);
         setMessage('Coupon updated.');
         setEditingCouponId(null);
       } else {
-        await api.admin.coupons.create(token, payload);
+        await api.admin.coupons.create(authToken, payload);
         setMessage('Coupon created.');
       }
       setCouponForm({

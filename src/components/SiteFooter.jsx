@@ -27,6 +27,12 @@ export default function SiteFooter() {
             <li>
               <Link to="/contact">Contact</Link>
             </li>
+            <li>
+              <Link to="/work-with-us">Work With Us</Link>
+            </li>
+            <li>
+              <Link to="/elementor-7819">From Passion to Purpose: Pooja's Journey</Link>
+            </li>
           </ul>
         </div>
 
@@ -41,9 +47,25 @@ export default function SiteFooter() {
         </div>
 
         <div>
+          <h3 className="footer-heading">Legal</h3>
+          <ul className="footer-list">
+            <li><Link to="/terms">Terms &amp; Conditions</Link></li>
+            <li><Link to="/privacy">Privacy Policy</Link></li>
+            <li><Link to="/shipping">Shipping &amp; Delivery</Link></li>
+            <li><Link to="/cancellation">Cancellation &amp; Refund</Link></li>
+          </ul>
+        </div>
+
+        <div>
           <h3 className="footer-heading">Follow</h3>
           <div className="footer-social">
-            <a className="icon-button icon-button-dark footer-social-icon" href="#" aria-label="Instagram">
+            <a
+              className="icon-button icon-button-dark footer-social-icon"
+              href="https://www.instagram.com/loveandflourbypooja/?hl=en"
+              aria-label="Instagram"
+              target="_blank"
+              rel="noreferrer"
+            >
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path
                   fill="currentColor"
@@ -51,7 +73,13 @@ export default function SiteFooter() {
                 />
               </svg>
             </a>
-            <a className="icon-button icon-button-dark footer-social-icon" href="#" aria-label="Facebook">
+            <a
+              className="icon-button icon-button-dark footer-social-icon"
+              href="https://www.facebook.com/loveandflourbypooja/"
+              aria-label="Facebook"
+              target="_blank"
+              rel="noreferrer"
+            >
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
                 <path
                   fill="currentColor"

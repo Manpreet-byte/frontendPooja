@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import SectionHeading from '../../SectionHeading';
 import { homeTestimonials } from '../../../data/seededContent';
 import { api } from '../../../api/client';
@@ -15,6 +15,7 @@ function initialsFromName(name) {
 export default function TestimonialsSection({ cms }) {
   const [remote, setRemote] = useState(null);
   const fallback = useMemo(() => (homeTestimonials ?? []).filter(Boolean).slice(0, 8), []);
+  const hoverStepLockRef = useRef(null);
   const items = useMemo(() => {
     if (Array.isArray(cms) && cms.length) return cms.slice(0, 12);
     if (Array.isArray(remote) && remote.length) return remote.slice(0, 12);
@@ -72,6 +73,18 @@ export default function TestimonialsSection({ cms }) {
     return items[(clampedIndex + offset + total) % total];
   };
 
+  const handleSideCardHover = (direction) => {
+    if (hoverStepLockRef.current === direction) return;
+    hoverStepLockRef.current = direction;
+    setActiveIndex((current) => (current + direction + total) % total);
+  };
+
+  const releaseSideCardHover = (direction) => {
+    if (hoverStepLockRef.current === direction) {
+      hoverStepLockRef.current = null;
+    }
+  };
+
   const cards = total
     ? [
         { item: at(-1), position: 'left', visualIndex: ((clampedIndex - 1 + total) % total) + 1 },
@@ -117,6 +130,8 @@ export default function TestimonialsSection({ cms }) {
                     key={`${entry.item.id ?? index}-${entry.position}`}
                     className={`testimonial-card testimonial-card-${entry.position}`}
                     aria-hidden={entry.position !== 'center'}
+                    onPointerEnter={entry.position === 'left' ? () => handleSideCardHover(-1) : entry.position === 'right' ? () => handleSideCardHover(1) : undefined}
+                    onPointerLeave={entry.position === 'left' ? () => releaseSideCardHover(-1) : entry.position === 'right' ? () => releaseSideCardHover(1) : undefined}
                   >
                     <div className="testimonial-avatar" aria-hidden="true">
                       {initialsFromName(displayName)}

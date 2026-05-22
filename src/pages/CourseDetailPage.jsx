@@ -88,7 +88,7 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <main className="section">
+      <main className="section course-detail-page">
         <div className="container">
           <SectionHeading badge="Not Found" title="Course not found" subtitle="Try going back to all courses." />
           <Link className="button" to="/courses">
@@ -100,7 +100,7 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <main className="section">
+    <main className="section course-detail-page">
       <div className="container">
         <div className="page-topline">
           <Link className="button" to="/courses">
@@ -253,9 +253,7 @@ export default function CourseDetailPage() {
               {course.date ? <div className="muted">Published {formatDateStandard(course.date)}</div> : null}
             </div>
 
-            {course.excerptHtml ? (
-              <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} />
-            ) : (
+            {!safeBodyHtml ? (
               <div className="panel prose-block course-detail-fallback">
                 <p dangerouslySetInnerHTML={{ __html: fallbackIntro }} />
                 <div className="course-detail-fallback-grid">
@@ -269,7 +267,7 @@ export default function CourseDetailPage() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {safeBodyHtml ? <div className="panel prose-block" dangerouslySetInnerHTML={{ __html: safeBodyHtml }} /> : null}
           </div>

@@ -19,6 +19,12 @@ const AboutPage = lazy(() => import('./pages/AboutPage'));
 const ContactPage = lazy(() => import('./pages/ContactPage'));
 const NewsletterPage = lazy(() => import('./pages/NewsletterPage'));
 const WpPageDetailPage = lazy(() => import('./pages/WpPageDetailPage'));
+const TermsPage = lazy(() => import('./pages/TermsPage'));
+const ShippingPage = lazy(() => import('./pages/ShippingPage'));
+const CancellationPage = lazy(() => import('./pages/CancellationPage'));
+const PrivacyPage = lazy(() => import('./pages/PrivacyPage'));
+const WorkWithUsPage = lazy(() => import('./pages/WorkWithUsPage'));
+const Elementor7819Page = lazy(() => import('./pages/Elementor7819Page'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
@@ -302,6 +308,12 @@ export default function App() {
           />
           <Route path="/about" element={<AboutPage />} />
           <Route path="/contact" element={<ContactPage />} />
+          <Route path="/terms" element={<TermsPage />} />
+          <Route path="/shipping" element={<ShippingPage />} />
+          <Route path="/cancellation" element={<CancellationPage />} />
+          <Route path="/privacy" element={<PrivacyPage />} />
+          <Route path="/work-with-us" element={<WorkWithUsPage />} />
+          <Route path="/elementor-7819" element={<Elementor7819Page />} />
           <Route path="/newsletter" element={<NewsletterPage />} />
           <Route path="/pages/:slug" element={<WpPageDetailPage />} />
           <Route path="*" element={<NotFoundPage />} />

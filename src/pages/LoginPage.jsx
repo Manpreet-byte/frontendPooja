@@ -151,6 +151,12 @@ export default function LoginPage() {
             />
           </label>
 
+          <div className="auth-forgot">
+            <a className="link" href="mailto:support@loveandflourbypooja.com?subject=Password%20reset%20help">
+              Forgot password?
+            </a>
+          </div>
+
           {error ? (
             <p className="form-error" role="alert">
               {error}

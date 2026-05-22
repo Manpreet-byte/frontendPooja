@@ -205,7 +205,7 @@ export default function CoursesPage() {
 
   return (
     <main className="section">
-      <div className="container">
+      <div className="container-wide">
         <SectionHeading
           badge="Online Workshops"
           title={categoryName ? `Courses: ${categoryName}` : 'All Courses'}
