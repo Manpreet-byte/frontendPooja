@@ -4,22 +4,55 @@ function getBaseUrl() {
   // Prefer Vite env override; otherwise use the deployed backend in production.
   const configured = import.meta.env.VITE_API_BASE_URL;
   if (typeof configured === 'string' && configured.trim()) {
-    let base = configured.trim().replace(/\/$/, '');
-    // Avoid cookie/state issues caused by mixing `localhost` and `127.0.0.1` across auth/payment flows.
-    // Treat them as equivalent and prefer the current page hostname when possible.
-    try {
-      if (typeof window !== 'undefined') {
-        const currentHost = window.location.hostname;
-        const u = new URL(base);
-        if ((u.hostname === '127.0.0.1' || u.hostname === 'localhost') && (currentHost === '127.0.0.1' || currentHost === 'localhost')) {
-          u.hostname = currentHost;
-          base = u.toString().replace(/\/$/, '');
-        }
+    const raw = configured.trim();
+    const candidates = raw
+      .split(/[,\n]+/g)
+      .flatMap((part) => part.split(/\s+/g))
+      .map((s) => s.trim())
+      .filter(Boolean);
+
+    const normalizeCandidate = (value) => {
+      let v = String(value ?? '').trim();
+      if (!v) return '';
+      if (v.startsWith('http//')) v = `http://${v.slice('http//'.length)}`;
+      if (v.startsWith('https//')) v = `https://${v.slice('https//'.length)}`;
+      if (!/^https?:\/\//i.test(v)) {
+        // If protocol is missing, assume https for non-localhost values.
+        v = v.includes('localhost') || v.includes('127.0.0.1') ? `http://${v}` : `https://${v}`;
       }
-    } catch {
-      // ignore
+      try {
+        return new URL(v).toString().replace(/\/$/, '');
+      } catch {
+        return '';
+      }
+    };
+
+    const normalized = candidates.map(normalizeCandidate).filter(Boolean);
+    const preferLocal = import.meta.env.DEV;
+    const preferred =
+      (preferLocal ? normalized.find((u) => u.includes('127.0.0.1') || u.includes('localhost')) : null) ??
+      normalized.find((u) => !(u.includes('127.0.0.1') || u.includes('localhost'))) ??
+      normalized[0] ??
+      '';
+
+    if (preferred) {
+      let base = preferred;
+      // Avoid cookie/state issues caused by mixing `localhost` and `127.0.0.1` across auth/payment flows.
+      // Treat them as equivalent and prefer the current page hostname when possible.
+      try {
+        if (typeof window !== 'undefined') {
+          const currentHost = window.location.hostname;
+          const u = new URL(base);
+          if ((u.hostname === '127.0.0.1' || u.hostname === 'localhost') && (currentHost === '127.0.0.1' || currentHost === 'localhost')) {
+            u.hostname = currentHost;
+            base = u.toString().replace(/\/$/, '');
+          }
+        }
+      } catch {
+        // ignore
+      }
+      return base;
     }
-    return base;
   }
 
   // In local development we rely on the Vite proxy (`/api -> http://127.0.0.1:8080`)
@@ -174,6 +207,15 @@ async function uploadFormData(path, formData, { token } = {}) {
   }
 
   return data;
+}
+
+function stripHtmlToText(html) {
+  return String(html ?? '')
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
 }
 
 export const api = {
@@ -365,23 +407,53 @@ export const api = {
       detail: (slug) => request(`/api/public/live-sessions/${encodeURIComponent(slug)}`),
     },
     // Convenience combined search used by header search: recipes + workshops
-    search: ({ q } = {}) => {
+    search: async ({ q } = {}) => {
       if (!q || String(q).trim() === '') return Promise.resolve({ recipes: [], workshops: [] });
       const query = String(q).trim();
-      return Promise.all([api.public.recipes.search({ q: query }).catch(() => ({ recipes: [] })), api.public.workshops.list().catch(() => ({ workshops: [] }))]).then(
-        ([recipeRes, workshopsRes]) => {
-          const recipes = Array.isArray(recipeRes?.recipes) ? recipeRes.recipes : recipeRes?.results ?? [];
-          const workshops = Array.isArray(workshopsRes?.workshops) ? workshopsRes.workshops : workshopsRes?.results ?? [];
-          // client-side filter for workshops (some backends may not support search)
-          const qLower = query.toLowerCase();
-          const filteredWorkshops = workshops.filter((w) => {
-            const t = String(w.title ?? w.name ?? '').toLowerCase();
-            const d = String(w.description ?? '').toLowerCase();
-            return t.includes(qLower) || d.includes(qLower);
-          });
-          return { recipes, workshops: filteredWorkshops };
-        },
-      );
+      const qLower = query.toLowerCase();
+
+      const [recipeRes, workshopsRes] = await Promise.all([
+        api.public.recipes.search({ q: query }).catch(async () => {
+          // Offline fallback for header search.
+          try {
+            const list = await api.public.recipes.list();
+            return { recipes: list?.recipes ?? [] };
+          } catch {
+            try {
+              const mod = await import('../data/seededContent');
+              return { recipes: mod?.posts ?? [] };
+            } catch {
+              return { recipes: [] };
+            }
+          }
+        }),
+        api.public.workshops.list().catch(async () => {
+          try {
+            const mod = await import('../data/seededContent');
+            return { workshops: mod?.courses ?? [] };
+          } catch {
+            return { workshops: [] };
+          }
+        }),
+      ]);
+
+      const recipes = Array.isArray(recipeRes?.recipes) ? recipeRes.recipes : recipeRes?.results ?? [];
+      const workshops = Array.isArray(workshopsRes?.workshops) ? workshopsRes.workshops : workshopsRes?.results ?? [];
+
+      const filteredRecipes = recipes.filter((r) => {
+        const t = String(r.title ?? r.name ?? '').toLowerCase();
+        const d = stripHtmlToText(r.excerptHtml ?? r.summary ?? r.contentHtml ?? r.content ?? '').toLowerCase();
+        return t.includes(qLower) || d.includes(qLower);
+      });
+
+      // client-side filter for workshops (some backends may not support search)
+      const filteredWorkshops = workshops.filter((w) => {
+        const t = String(w.title ?? w.name ?? '').toLowerCase();
+        const d = stripHtmlToText(w.description ?? w.summary ?? w.contentHtml ?? w.content ?? '').toLowerCase();
+        return t.includes(qLower) || d.includes(qLower);
+      });
+
+      return { recipes: filteredRecipes, workshops: filteredWorkshops };
     },
   },
   community: {

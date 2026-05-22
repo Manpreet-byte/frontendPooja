@@ -34,7 +34,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <BrowserRouter>
+    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
       <ErrorBoundary>
         <App />
       </ErrorBoundary>

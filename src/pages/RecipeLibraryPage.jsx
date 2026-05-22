@@ -8,6 +8,15 @@ import { mergeBySlug, sortByDateDesc } from '../utils/publicContent';
 import usePageTitle from '../utils/usePageTitle';
 import SelectMenu from '../components/SelectMenu';
 
+function slugKey(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function normalizeRecipe(recipe) {
   if (!recipe) return null;
   return {
@@ -19,23 +28,33 @@ function normalizeRecipe(recipe) {
       recipe.excerptHtml ??
       (recipe.short_description ? String(recipe.short_description) : recipe.shortDescription ? String(recipe.shortDescription) : ''),
     date: recipe.date ?? recipe.published_at ?? recipe.publishedAt ?? recipe.created_at ?? recipe.createdAt ?? null,
-    taxonomies:
-      recipe.taxonomies ??
-      (recipe.category
-        ? {
-            category: [
-              typeof recipe.category === 'string'
-                ? { name: recipe.category, slug: recipe.category }
-                : { name: recipe.category.name ?? 'Category', slug: recipe.category.slug ?? '' },
-            ],
-          }
-        : { category: [] }),
+    taxonomies: (() => {
+      const base =
+        recipe.taxonomies ??
+        (recipe.category
+          ? {
+              category: [
+                typeof recipe.category === 'string'
+                  ? { name: recipe.category, slug: recipe.category }
+                  : { name: recipe.category.name ?? 'Category', slug: recipe.category.slug ?? '' },
+              ],
+            }
+          : { category: [] });
+
+      const categories = (base?.category ?? []).map((t) => ({
+        ...t,
+        name: t?.name ?? '',
+        slug: t?.slug ? slugKey(t.slug) : slugKey(t?.name ?? ''),
+      }));
+
+      return { ...base, category: categories };
+    })(),
   };
 }
 
 export default function RecipeLibraryPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const category = searchParams.get('category') || '';
+  const category = slugKey(searchParams.get('category') || '');
   const qParam = searchParams.get('q') || '';
   const [query, setQuery] = useState(qParam);
   const [categories, setCategories] = useState([]);
@@ -58,10 +77,15 @@ export default function RecipeLibraryPage() {
       .then((data) => {
         if (!active) return;
         const apiCats = data?.categories ?? data?.recipe_categories ?? data?.recipeCategories ?? [];
-        const merged = [...apiCats, ...(terms?.postCategories ?? [])];
+        const merged = [...apiCats, ...(terms?.postCategories ?? [])].map((item) => {
+          const name = String(item?.name ?? '').trim();
+          const rawSlug = String(item?.slug ?? '').trim();
+          const finalSlug = rawSlug ? slugKey(rawSlug) : slugKey(name);
+          return { ...item, name: item?.name ?? name, slug: finalSlug };
+        });
         const bySlug = new Map();
         for (const item of merged) {
-          const slug = String(item?.slug ?? '');
+          const slug = slugKey(item?.slug ?? '');
           if (!slug || slug === 'uncategorized') continue;
           if (!bySlug.has(slug)) bySlug.set(slug, item);
         }
@@ -69,7 +93,11 @@ export default function RecipeLibraryPage() {
       })
       .catch(() => {
         if (!active) return;
-        setCategories((terms?.postCategories ?? []).filter((c) => String(c?.slug ?? '') !== 'uncategorized'));
+        setCategories(
+          (terms?.postCategories ?? [])
+            .map((c) => ({ ...c, slug: slugKey(c?.slug ?? c?.name ?? '') }))
+            .filter((c) => String(c?.slug ?? '') !== 'uncategorized'),
+        );
       })
       .finally(() => {
         if (active) setCategoryLoading(false);
@@ -112,7 +140,7 @@ export default function RecipeLibraryPage() {
     const list = Array.isArray(posts) ? posts : [];
     const q = String(qParam ?? '').trim().toLowerCase();
     return list.filter((p) => {
-      if (category && !(p.taxonomies?.category ?? []).some((t) => String(t.slug) === String(category))) return false;
+      if (category && !(p.taxonomies?.category ?? []).some((t) => slugKey(t.slug) === category)) return false;
       if (!q) return true;
       const hay = `${p.title ?? ''} ${p.excerptHtml ?? ''} ${p.contentHtml ?? ''}`.replace(/<[^>]*>/g, ' ').toLowerCase();
       return hay.includes(q);
@@ -121,15 +149,16 @@ export default function RecipeLibraryPage() {
 
   const categoryName = useMemo(() => {
     if (!category) return null;
-    const fromList = filtered.find((p) => (p.taxonomies?.category ?? []).some((t) => String(t.slug) === String(category)))
-      ?.taxonomies?.category?.find((t) => String(t.slug) === String(category))?.name;
-    const fromCats = (categories ?? []).find((c) => String(c.slug) === String(category))?.name;
+    const fromList = filtered.find((p) => (p.taxonomies?.category ?? []).some((t) => slugKey(t.slug) === category))
+      ?.taxonomies?.category?.find((t) => slugKey(t.slug) === category)?.name;
+    const fromCats = (categories ?? []).find((c) => slugKey(c.slug) === category)?.name;
     return fromList ?? fromCats ?? category;
   }, [category, filtered, categories]);
 
   const onChangeCategory = (nextCategory) => {
     const next = new URLSearchParams(searchParams);
-    if (nextCategory) next.set('category', nextCategory);
+    const normalized = slugKey(nextCategory);
+    if (normalized) next.set('category', normalized);
     else next.delete('category');
     setSearchParams(next, { replace: true });
   };

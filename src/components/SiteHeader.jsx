@@ -84,6 +84,7 @@ export default function SiteHeader({ onCartClick }) {
   const [searchResults, setSearchResults] = useState({ recipes: [], workshops: [] });
   const [searchLoading, setSearchLoading] = useState(false);
   const searchTimer = useRef(null);
+  const searchRef = useRef(null);
 
   useEffect(() => {
     if (!searchOpen) return;
@@ -114,6 +115,12 @@ export default function SiteHeader({ onCartClick }) {
       if (el) el.focus();
     }, 50);
   }
+
+  const firstResult = useMemo(() => {
+    const r = Array.isArray(searchResults?.recipes) ? searchResults.recipes[0] : null;
+    const w = Array.isArray(searchResults?.workshops) ? searchResults.workshops[0] : null;
+    return r?.slug ? { type: 'recipe', slug: r.slug } : w?.slug ? { type: 'workshop', slug: w.slug } : null;
+  }, [searchResults]);
 
   function onResultClick(type, slug) {
     setSearchOpen(false);
@@ -183,13 +190,21 @@ export default function SiteHeader({ onCartClick }) {
       if (e.key === 'Escape') {
         setOpenMenu(null);
         setMobileOpen(false);
+        setSearchOpen(false);
       }
     }
 
     function onPointerDown(e) {
       if (!navRef.current) return;
-      if (navRef.current.contains(e.target)) return;
+      if (navRef.current.contains(e.target)) {
+        // Close open search when clicking outside the search widget.
+        if (searchRef.current && searchOpen && !searchRef.current.contains(e.target)) {
+          setSearchOpen(false);
+        }
+        return;
+      }
       setOpenMenu(null);
+      setSearchOpen(false);
     }
 
     window.addEventListener('keydown', onKeyDown);
@@ -199,6 +214,11 @@ export default function SiteHeader({ onCartClick }) {
       window.removeEventListener('pointerdown', onPointerDown);
     };
   }, []);
+
+  useEffect(() => {
+    setSearchOpen(false);
+    setSearchQuery('');
+  }, [location.pathname]);
 
   useEffect(() => {
     function onScroll() {
@@ -344,7 +364,7 @@ export default function SiteHeader({ onCartClick }) {
         </nav>
 
         <div className="header-actions">
-          <div className={`header-search${searchOpen ? ' is-open' : ''}`}>
+          <div ref={searchRef} className={`header-search${searchOpen ? ' is-open' : ''}`}>
             <button
               className="icon-button header-search-toggle"
               type="button"
@@ -364,6 +384,10 @@ export default function SiteHeader({ onCartClick }) {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Escape') setSearchOpen(false);
+                  if (e.key === 'Enter' && firstResult) {
+                    e.preventDefault();
+                    onResultClick(firstResult.type, firstResult.slug);
+                  }
                 }}
               />
               {searchOpen ? (

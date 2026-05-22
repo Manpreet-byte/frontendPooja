@@ -158,9 +158,46 @@ export default function LoginPage() {
                 onClick={() => setShowPassword((s) => !s)}
               >
                 {showPassword ? (
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c4.97 0 9 3.58 9 7s-4.03 7-9 7-9-3.58-9-7 4.03-7 9-7zm0-2C6 3 1 7.48 1 12s5 9 11 9 11-4.48 11-9S18 3 12 3z" fill="currentColor"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+                    <path
+                      d="M2.4 12s3.6-7 9.6-7 9.6 7 9.6 7-3.6 7-9.6 7-9.6-7-9.6-7Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M12 15.2a3.2 3.2 0 1 0 0-6.4 3.2 3.2 0 0 0 0 6.4Z"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                    />
+                  </svg>
                 ) : (
-                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6a9.77 9.77 0 0 1 7 3.1L20.3 9 22 7.3 20.7 6 19 7.7A9.77 9.77 0 0 0 12 6zm0 12a9.77 9.77 0 0 1-7-3.1L3.7 15 2 16.7 3.3 18 5 16.3A9.77 9.77 0 0 0 12 18z" fill="currentColor"/></svg>
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none">
+                    <path
+                      d="M3 5.5 21 18.5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M9.9 9.2A3.2 3.2 0 0 0 12 15.2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M6.7 7.6C4.4 9.4 2.9 12 2.4 12c0 0 3.6 7 9.6 7 2 0 3.8-.6 5.3-1.5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                    />
+                    <path
+                      d="M14.1 8.8A7.6 7.6 0 0 1 21.6 12s-1.3 2.5-3.8 4.5"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
                 )}
               </button>
             </div>

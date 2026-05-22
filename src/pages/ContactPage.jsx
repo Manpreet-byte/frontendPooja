@@ -4,7 +4,7 @@ import usePageTitle from '../utils/usePageTitle';
 export default function ContactPage() {
   usePageTitle('Contact · Love & Flour');
   return (
-    <main className="section page-60">
+    <main className="page-contact">
       <ContactSection />
     </main>
   );

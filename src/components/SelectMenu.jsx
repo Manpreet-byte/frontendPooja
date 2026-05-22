@@ -34,10 +34,18 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
     if (!open) return;
     if (!triggerRef.current) return;
     const rect = triggerRef.current.getBoundingClientRect();
+    const padding = 8;
+    const viewportLeft = window.scrollX + padding;
+    const viewportRight = window.scrollX + window.innerWidth - padding;
+    const desiredWidth = rect.width;
+    const width = Math.min(desiredWidth, Math.max(240, window.innerWidth - padding * 2));
+    const desiredLeft = rect.left + window.scrollX;
+    const left = Math.min(Math.max(desiredLeft, viewportLeft), Math.max(viewportLeft, viewportRight - width));
     const style = {
-      left: `${rect.left + window.scrollX}px`,
+      left: `${left}px`,
       top: `${rect.bottom + window.scrollY + 8}px`,
-      width: `${rect.width}px`,
+      width: `${width}px`,
+      maxHeight: `min(420px, calc(100vh - ${Math.round(rect.bottom + 40)}px))`,
     };
     setPortalStyle(style);
   }, [open]);
@@ -120,7 +128,14 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
                 tabIndex={-1}
                 ref={listRef}
                 onKeyDown={onListKeyDown}
-                style={{ position: 'absolute', left: portalStyle.left, top: portalStyle.top, width: portalStyle.width, zIndex: 4000 }}
+                style={{
+                  position: 'absolute',
+                  left: portalStyle.left,
+                  top: portalStyle.top,
+                  width: portalStyle.width,
+                  maxHeight: portalStyle.maxHeight,
+                  zIndex: 4000,
+                }}
               >
                 {list.map((opt, idx) => {
             const isSelected = String(opt.value) === String(value);
@@ -152,4 +167,3 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
     </div>
   );
 }
-
