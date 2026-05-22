@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function CancellationPage() {
   return (
-    <main className="section">
+    <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Cancellation &amp; Refund Policy</h1>
 

@@ -35,7 +35,7 @@ export default function AboutPage() {
         title={cms?.title ?? 'About'}
         featuredImage={cms?.content?.featured_image_url ?? featuredImageOverride}
         contentHtml={cms.content_html}
-        pageClassName="page-white"
+        pageClassName="page-white page-60 page-about"
       />
     );
   }
@@ -53,13 +53,13 @@ export default function AboutPage() {
         title={page.title}
         featuredImage={featuredImageOverride || page.featuredImage}
         contentHtml={page.contentHtml}
-        pageClassName="page-white"
+        pageClassName="page-white page-60 page-about"
       />
     );
   }
 
   return (
-    <main>
+    <main className="page-about">
       <AboutSection featuredImage={featuredImageOverride} />
     </main>
   );

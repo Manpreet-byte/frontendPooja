@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { terms } from '../data/seededContent';
 import { api } from '../api/client';
 import { useCartStore } from '../store/cartStore';
@@ -76,6 +76,51 @@ export default function SiteHeader({ onCartClick }) {
     }
     setSession({ token: returnAdminSession.token, user: returnAdminSession.user });
   };
+
+  // Header search
+  const navigate = useNavigate();
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState({ recipes: [], workshops: [] });
+  const [searchLoading, setSearchLoading] = useState(false);
+  const searchTimer = useRef(null);
+
+  useEffect(() => {
+    if (!searchOpen) return;
+    if (!searchQuery || String(searchQuery).trim() === '') {
+      setSearchResults({ recipes: [], workshops: [] });
+      setSearchLoading(false);
+      return;
+    }
+    setSearchLoading(true);
+    if (searchTimer.current) window.clearTimeout(searchTimer.current);
+    searchTimer.current = window.setTimeout(() => {
+      api.public.search({ q: searchQuery })
+        .then((res) => {
+          setSearchResults(res || { recipes: [], workshops: [] });
+        })
+        .catch(() => setSearchResults({ recipes: [], workshops: [] }))
+        .finally(() => setSearchLoading(false));
+    }, 300);
+    return () => {
+      if (searchTimer.current) window.clearTimeout(searchTimer.current);
+    };
+  }, [searchOpen, searchQuery]);
+
+  function openSearch() {
+    setSearchOpen(true);
+    setTimeout(() => {
+      const el = document.querySelector('.header-search-input');
+      if (el) el.focus();
+    }, 50);
+  }
+
+  function onResultClick(type, slug) {
+    setSearchOpen(false);
+    setSearchQuery('');
+    if (type === 'recipe') navigate(`/recipes/${encodeURIComponent(slug)}`);
+    else if (type === 'workshop') navigate(`/courses/${encodeURIComponent(slug)}`);
+  }
 
   useEffect(() => {
     let active = true;
@@ -299,6 +344,58 @@ export default function SiteHeader({ onCartClick }) {
         </nav>
 
         <div className="header-actions">
+          <div className={`header-search${searchOpen ? ' is-open' : ''}`}>
+            <button
+              className="icon-button header-search-toggle"
+              type="button"
+              aria-label="Search"
+              onClick={() => (searchOpen ? setSearchOpen(false) : openSearch())}
+            >
+              <svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18" fill="none">
+                <path d="M21 21l-4.35-4.35" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+                <circle cx="11" cy="11" r="6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none" />
+              </svg>
+            </button>
+            <div className="header-search-box" role="dialog" aria-label="Site search">
+              <input
+                className="input header-search-input"
+                placeholder="Search recipes & workshops…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Escape') setSearchOpen(false);
+                }}
+              />
+              {searchOpen ? (
+                <div className="search-dropdown" role="list">
+                  {searchLoading ? <div className="search-loading">Searching…</div> : null}
+                  {(!searchLoading && searchResults.recipes?.length > 0) ? (
+                    <div className="search-section">
+                      <div className="search-section-title">Recipes</div>
+                      {searchResults.recipes.slice(0,5).map((r) => (
+                        <button key={r.slug} className="search-item" type="button" onClick={() => onResultClick('recipe', r.slug)}>
+                          <div className="search-item-title">{r.title ?? r.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {(!searchLoading && searchResults.workshops?.length > 0) ? (
+                    <div className="search-section">
+                      <div className="search-section-title">Workshops</div>
+                      {searchResults.workshops.slice(0,5).map((w) => (
+                        <button key={w.slug} className="search-item" type="button" onClick={() => onResultClick('workshop', w.slug)}>
+                          <div className="search-item-title">{w.title ?? w.name}</div>
+                        </button>
+                      ))}
+                    </div>
+                  ) : null}
+                  {!searchLoading && searchResults.recipes.length === 0 && searchResults.workshops.length === 0 ? (
+                    <div className="search-empty muted">No results</div>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
+          </div>
           <button className="icon-button header-cart" type="button" onClick={onCartClick} aria-label={`Open cart (${cartCount})`}>
             <svg aria-hidden="true" viewBox="0 0 24 24" width="20" height="20" fill="none">
               <path

@@ -93,14 +93,16 @@ export default function AboutSection({ featuredImage } = {}) {
             subtitle="We believe that baking is more than a skill. It’s a language of creativity, care, and connection."
           />
           <div className="prose">
-            <p>
-              At Love &amp; Flour by Pooja, we exist to make professional-quality, egg-free baking simple, approachable,
-              and inspiring, no matter where you are in your journey.
-            </p>
-            <p>
-              Every workshop, every recipe, and every resource we share is designed with one promise in mind: to help
-              you bake with confidence, express yourself creatively, and build something you’re proud of.
-            </p>
+            <div className="about-intro">
+              <p>
+                At Love &amp; Flour by Pooja, we exist to make professional-quality, egg-free baking simple, approachable,
+                and inspiring, no matter where you are in your journey.
+              </p>
+              <p>
+                Every workshop, every recipe, and every resource we share is designed with one promise in mind: to help
+                you bake with confidence, express yourself creatively, and build something you’re proud of.
+              </p>
+            </div>
 
             <h3 className="h3">Our Values</h3>
             <div className="about-feature-list">

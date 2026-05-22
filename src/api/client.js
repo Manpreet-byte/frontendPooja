@@ -200,6 +200,8 @@ export const api = {
       if (mode) url.searchParams.set('mode', String(mode));
       return url.toString();
     },
+    forgotPassword: ({ email } = {}) => request('/api/auth/password/forgot', { method: 'POST', body: { email } }),
+    resetPassword: ({ token, password } = {}) => request('/api/auth/password/reset', { method: 'POST', body: { token, password } }),
   },
   user: {
     dashboard: (token) => request('/api/user/dashboard', { token }),
@@ -361,6 +363,25 @@ export const api = {
     liveSessions: {
       list: () => request('/api/public/live-sessions'),
       detail: (slug) => request(`/api/public/live-sessions/${encodeURIComponent(slug)}`),
+    },
+    // Convenience combined search used by header search: recipes + workshops
+    search: ({ q } = {}) => {
+      if (!q || String(q).trim() === '') return Promise.resolve({ recipes: [], workshops: [] });
+      const query = String(q).trim();
+      return Promise.all([api.public.recipes.search({ q: query }).catch(() => ({ recipes: [] })), api.public.workshops.list().catch(() => ({ workshops: [] }))]).then(
+        ([recipeRes, workshopsRes]) => {
+          const recipes = Array.isArray(recipeRes?.recipes) ? recipeRes.recipes : recipeRes?.results ?? [];
+          const workshops = Array.isArray(workshopsRes?.workshops) ? workshopsRes.workshops : workshopsRes?.results ?? [];
+          // client-side filter for workshops (some backends may not support search)
+          const qLower = query.toLowerCase();
+          const filteredWorkshops = workshops.filter((w) => {
+            const t = String(w.title ?? w.name ?? '').toLowerCase();
+            const d = String(w.description ?? '').toLowerCase();
+            return t.includes(qLower) || d.includes(qLower);
+          });
+          return { recipes, workshops: filteredWorkshops };
+        },
+      );
     },
   },
   community: {

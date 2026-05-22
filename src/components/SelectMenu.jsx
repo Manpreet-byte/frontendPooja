@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 
 export default function SelectMenu({ value, options, onChange, disabled = false, placeholder = 'Select…', ariaLabel }) {
   const list = Array.isArray(options) ? options : [];
@@ -8,6 +9,8 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
   const [activeIndex, setActiveIndex] = useState(-1);
   const rootRef = useRef(null);
   const listRef = useRef(null);
+  const triggerRef = useRef(null);
+  const [portalStyle, setPortalStyle] = useState(null);
 
   useEffect(() => {
     if (!open) return;
@@ -25,6 +28,18 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
       window.removeEventListener('pointerdown', onPointerDown);
       window.removeEventListener('keydown', onKeyDown);
     };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
+    if (!triggerRef.current) return;
+    const rect = triggerRef.current.getBoundingClientRect();
+    const style = {
+      left: `${rect.left + window.scrollX}px`,
+      top: `${rect.bottom + window.scrollY + 8}px`,
+      width: `${rect.width}px`,
+    };
+    setPortalStyle(style);
   }, [open]);
 
   useEffect(() => {
@@ -80,6 +95,7 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
   return (
     <div className={`select-menu${disabled ? ' is-disabled' : ''}${open ? ' is-open' : ''}`} ref={rootRef}>
       <button
+        ref={triggerRef}
         className="input select-trigger"
         type="button"
         aria-label={ariaLabel}
@@ -96,8 +112,17 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
       </button>
 
       {open ? (
-        <div className="select-popover" role="listbox" tabIndex={-1} ref={listRef} onKeyDown={onListKeyDown}>
-          {list.map((opt, idx) => {
+        portalStyle
+          ? createPortal(
+              <div
+                className="select-popover"
+                role="listbox"
+                tabIndex={-1}
+                ref={listRef}
+                onKeyDown={onListKeyDown}
+                style={{ position: 'absolute', left: portalStyle.left, top: portalStyle.top, width: portalStyle.width, zIndex: 4000 }}
+              >
+                {list.map((opt, idx) => {
             const isSelected = String(opt.value) === String(value);
             const isActive = idx === activeIndex;
             return (
@@ -119,7 +144,10 @@ export default function SelectMenu({ value, options, onChange, disabled = false,
               </button>
             );
           })}
-        </div>
+              </div>,
+              document.body,
+            )
+          : null
       ) : null}
     </div>
   );

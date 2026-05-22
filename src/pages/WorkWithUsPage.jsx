@@ -57,7 +57,7 @@ export default function WorkWithUsPage() {
   const activeImage = useMemo(() => galleryImages[activeSlide] ?? galleryImages[0], [activeSlide]);
 
   return (
-    <main className="section page-white">
+    <main className="section page-white page-60 page-work-with-us page-typography">
       <div className="container">
         <div className="story-layout">
           <article className="story-card panel prose-block">
@@ -143,7 +143,9 @@ export default function WorkWithUsPage() {
               >
                 <div className="story-carousel-badge">Team Life</div>
                 <div className="story-carousel-stage">
-                  <SafeImage src={activeImage.src} alt={activeImage.alt} loading="eager" />
+                  <div key={activeImage.src} className="story-carousel-frame">
+                    <SafeImage src={activeImage.src} alt={activeImage.alt} loading="eager" />
+                  </div>
                 </div>
 
                 <div className={`story-carousel-nav${isHovered ? ' is-visible' : ''}`}>

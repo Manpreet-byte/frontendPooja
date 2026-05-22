@@ -255,7 +255,7 @@ export default function RecipeDetailPage() {
 
   if (!post) {
     return (
-      <main className="section">
+      <main className="section page-60">
         <div className="container">
           <SectionHeading badge="Not Found" title="Recipe not found" subtitle="Try going back to the library." />
           <Link className="button" to="/recipe-library">
@@ -267,7 +267,7 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <main className="section recipe-detail-page">
+    <main className="section recipe-detail-page page-60">
       <article className="recipe-detail-card recipe-detail-card-split recipe-detail-full-width">
         <div className="recipe-detail-split">
           <div className="recipe-detail-split-media">

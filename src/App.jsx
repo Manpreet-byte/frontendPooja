@@ -27,6 +27,7 @@ const WorkWithUsPage = lazy(() => import('./pages/WorkWithUsPage'));
 const Elementor7819Page = lazy(() => import('./pages/Elementor7819Page'));
 const LoginPage = lazy(() => import('./pages/LoginPage'));
 const SignupPage = lazy(() => import('./pages/SignupPage'));
+const RetrievePasswordPage = lazy(() => import('./pages/RetrievePasswordPage'));
 const ProfilePage = lazy(() => import('./pages/ProfilePage'));
 const CheckoutPage = lazy(() => import('./pages/CheckoutPage'));
 const OrdersPage = lazy(() => import('./pages/OrdersPage'));
@@ -207,6 +208,7 @@ export default function App() {
             <Route path="/recipes/:slug" element={<RecipeDetailPage />} />
             <Route path="/login" element={<LoginPage />} />
             <Route path="/signup" element={<SignupPage />} />
+            <Route path="/retrieve-password" element={<RetrievePasswordPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/certificates/verify/:certificateCode" element={<CertificateVerifyPage />} />
             <Route

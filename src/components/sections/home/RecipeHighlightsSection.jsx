@@ -135,13 +135,13 @@ export default function RecipeHighlightsSection() {
             <SectionHeading
               badge="Recipe Library"
               title="Find your next bake"
-              subtitle="Browse by category or jump into the latest recipe drops."
+              subtitle="Browse by category, or jump into the newest recipe drops."
               align="left"
             />
 
             <p className="home-recipes-copy">
-              A curated recipe wall designed like a bakery moodboard: one standout feature, supporting bakes, and quick category paths to help
-              you find what to make next.
+              A bakery-style recipe wall: one featured bake, fresh drops, and quick category shortcuts—so you can pick what to make next in
+              seconds.
             </p>
 
             <div className="category-pills">

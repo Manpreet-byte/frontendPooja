@@ -5,7 +5,7 @@ export default function Elementor7819Page() {
   usePageTitle("From Passion to Purpose: Pooja's Journey · Love & Flour");
 
   return (
-    <main className="section page-white">
+    <main className="section page-white page-60 page-story page-typography">
       <div className="container">
         <div className="two-column-layout" style={{ display: 'grid', gap: 'clamp(20px, 4vw, 36px)', alignItems: 'start', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(280px, 0.85fr)' }}>
           <article

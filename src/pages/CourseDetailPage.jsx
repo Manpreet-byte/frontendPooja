@@ -14,6 +14,29 @@ function extractGalleryFromHtml(contentHtml) {
     return { sanitizedHtml: contentHtml ?? '', images: [] };
   }
 
+  const bestFromSrcset = (srcset, fallback) => {
+    const raw = String(srcset ?? '').trim();
+    if (!raw) return String(fallback ?? '').trim();
+    const parts = raw
+      .split(',')
+      .map((p) => p.trim())
+      .filter(Boolean);
+    let bestUrl = '';
+    let bestWidth = -1;
+    for (const part of parts) {
+      const [url, widthToken] = part.split(/\s+/);
+      const width = Number(String(widthToken ?? '').replace(/[^\d.]/g, ''));
+      if (!url) continue;
+      if (Number.isFinite(width) && width > bestWidth) {
+        bestWidth = width;
+        bestUrl = url;
+      } else if (bestWidth < 0) {
+        bestUrl = url;
+      }
+    }
+    return String(bestUrl || fallback || '').trim();
+  };
+
   const parser = new DOMParser();
   const document = parser.parseFromString(`<div id="course-html">${contentHtml}</div>`, 'text/html');
   const root = document.getElementById('course-html');
@@ -23,8 +46,10 @@ function extractGalleryFromHtml(contentHtml) {
   const galleries = root.querySelectorAll('.gallery');
   galleries.forEach((gallery) => {
     gallery.querySelectorAll('img').forEach((img) => {
-      const src = img.getAttribute('src');
-      if (src) images.push(src);
+      const src = img.getAttribute('src') || img.getAttribute('data-src') || '';
+      const srcset = img.getAttribute('srcset') || img.getAttribute('data-srcset') || '';
+      const best = bestFromSrcset(srcset, src);
+      if (best) images.push(best);
     });
     gallery.remove();
   });
@@ -88,7 +113,7 @@ export default function CourseDetailPage() {
 
   if (!course) {
     return (
-      <main className="section course-detail-page">
+      <main className="section course-detail-page page-60">
         <div className="container">
           <SectionHeading badge="Not Found" title="Course not found" subtitle="Try going back to all courses." />
           <Link className="button" to="/courses">
@@ -100,8 +125,8 @@ export default function CourseDetailPage() {
   }
 
   return (
-    <main className="section course-detail-page">
-      <div className="container">
+    <main className="section course-detail-page page-60">
+      <div className="container-wide">
         <div className="page-topline">
           <Link className="button" to="/courses">
             ← All courses

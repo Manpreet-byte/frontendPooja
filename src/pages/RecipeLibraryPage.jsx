@@ -147,7 +147,7 @@ export default function RecipeLibraryPage() {
   };
 
   return (
-    <main className="section">
+    <main className="section page-60">
       <div className="container">
         <SectionHeading
           badge="Recipe Library"

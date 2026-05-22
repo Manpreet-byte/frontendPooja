@@ -204,7 +204,7 @@ export default function CoursesPage() {
   const categoryName = category ? categoryLabelBySlug.get(category) ?? category : null;
 
   return (
-    <main className="section">
+    <main className="section page-60">
       <div className="container-wide">
         <SectionHeading
           badge="Online Workshops"
@@ -236,7 +236,7 @@ export default function CoursesPage() {
                     className="input courses-search-input"
                     value={query}
                     onChange={(e) => onChangeQuery(e.target.value)}
-                    placeholder="Search workshops…"
+                    placeholder="Search workshops"
                   />
                   {query ? (
                     <button

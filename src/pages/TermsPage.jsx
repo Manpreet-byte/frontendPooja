@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function TermsPage() {
   return (
-    <main className="section">
+    <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Terms &amp; Conditions</h1>
         <p>Effective Date: 30 August 2025</p>

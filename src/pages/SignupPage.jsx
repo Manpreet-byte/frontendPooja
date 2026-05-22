@@ -17,6 +17,7 @@ export default function SignupPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [heroIndex, setHeroIndex] = useState(0);
 
   const disabled = useMemo(() => status === 'loading', [status]);
@@ -160,22 +161,36 @@ export default function SignupPage() {
             />
           </label>
 
-          <label className="field">
+          <label className="field password-field">
             <span className="field-label">Password</span>
-            <input
-              className="input"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Enter password"
-              type="password"
-              autoComplete="new-password"
-              minLength={8}
-              required
-            />
+            <div className="password-input-wrap">
+              <input
+                className="input"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                placeholder="Enter password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="new-password"
+                minLength={8}
+                required
+              />
+              <button
+                type="button"
+                className="password-toggle"
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                onClick={() => setShowPassword((s) => !s)}
+              >
+                {showPassword ? (
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5c4.97 0 9 3.58 9 7s-4.03 7-9 7-9-3.58-9-7 4.03-7 9-7zm0-2C6 3 1 7.48 1 12s5 9 11 9 11-4.48 11-9S18 3 12 3z" fill="currentColor"/></svg>
+                ) : (
+                  <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 6a9.77 9.77 0 0 1 7 3.1L20.3 9 22 7.3 20.7 6 19 7.7A9.77 9.77 0 0 0 12 6zm0 12a9.77 9.77 0 0 1-7-3.1L3.7 15 2 16.7 3.3 18 5 16.3A9.77 9.77 0 0 0 12 18z" fill="currentColor"/></svg>
+                )}
+              </button>
+            </div>
           </label>
 
           <div className="auth-forgot">
-            <a className="link" href="mailto:support@loveandflourbypooja.com?subject=Password%20reset%20help">
+            <a className="link" href="/retrieve-password">
               Forgot password?
             </a>
           </div>

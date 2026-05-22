@@ -300,6 +300,213 @@ iframe {
   background: transparent;
 }
 
+.page-typography h1,
+.page-typography .h1 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
+  font-size: clamp(2.1rem, 4.6vw, 3.1rem);
+  line-height: 1.16;
+  font-weight: 300;
+  margin: 0 0 14px;
+}
+
+.page-typography h2 {
+  font-family: var(--font-display);
+  letter-spacing: -0.015em;
+  font-size: 1.25rem;
+  line-height: 1.18;
+  font-weight: 650;
+  margin: 26px 0 10px;
+}
+
+.page-typography h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+  font-size: 1.12rem;
+  line-height: 1.22;
+  font-weight: 650;
+  margin: 20px 0 8px;
+}
+
+.page-typography p,
+.page-typography li {
+  font-family: var(--font-subtext);
+  font-weight: 200;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-secondary);
+}
+
+.page-typography p strong,
+.page-typography li strong {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.page-typography ul,
+.page-typography ol {
+  padding-left: 1.2em;
+}
+
+.page-typography li {
+  margin: 6px 0;
+}
+
+.page-work-with-us .story-layout {
+  display: grid;
+  gap: clamp(18px, 4vw, 34px);
+  align-items: start;
+}
+
+@media (min-width: 980px) {
+  .page-work-with-us .story-layout {
+    grid-template-columns: minmax(280px, 0.95fr) minmax(0, 1.25fr);
+  }
+
+  .page-work-with-us .story-aside {
+    position: sticky;
+    top: calc(var(--header-height, 84px) + 16px);
+    align-self: start;
+  }
+}
+
+.page-work-with-us .story-carousel {
+  display: grid;
+  gap: 12px;
+}
+
+.page-work-with-us .story-carousel-media {
+  position: relative;
+  border-radius: clamp(18px, 4vw, 26px);
+  border: 1px solid rgba(99, 77, 55, 0.14);
+  background: rgba(255, 253, 248, 0.82);
+  box-shadow: 0 22px 54px rgba(36, 22, 18, 0.12);
+  padding: 14px;
+  overflow: hidden;
+}
+
+.page-work-with-us .story-carousel-badge {
+  position: absolute;
+  left: 18px;
+  top: 16px;
+  z-index: 2;
+  font-family: var(--font-subtext);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: rgba(58, 43, 38, 0.86);
+  padding: 7px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(140, 59, 43, 0.16);
+  background: rgba(255, 250, 244, 0.72);
+  backdrop-filter: blur(8px);
+}
+
+.page-work-with-us .story-carousel-stage {
+  border-radius: clamp(16px, 3.2vw, 22px);
+  overflow: hidden;
+  border: 1px solid rgba(99, 77, 55, 0.10);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.88), rgba(252, 246, 244, 0.82));
+  aspect-ratio: 4 / 5;
+}
+
+.page-work-with-us .story-carousel-frame {
+  width: 100%;
+  height: 100%;
+  animation: storyFadeIn 360ms var(--ease-out);
+}
+
+.page-work-with-us .story-carousel-stage img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+@keyframes storyFadeIn {
+  from {
+    opacity: 0;
+    transform: scale(1.015);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.page-work-with-us .story-carousel-nav {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding: 16px;
+  opacity: 0;
+  transition: opacity 180ms ease;
+  pointer-events: none;
+}
+
+.page-work-with-us .story-carousel-nav.is-visible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.page-work-with-us .story-carousel-arrow {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 236, 212, 0.78);
+  background: rgba(140, 59, 43, 0.92);
+  color: #fffaf4;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(36, 22, 18, 0.18);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.page-work-with-us .story-carousel-arrow:hover {
+  background: var(--accent-hover);
+  transform: translateY(-1px);
+}
+
+.page-work-with-us .story-carousel-controls {
+  display: flex;
+  justify-content: center;
+}
+
+.page-work-with-us .story-carousel-dots {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.page-work-with-us .story-carousel-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 223, 188, 0.58);
+  background: rgba(255, 236, 212, 0.45);
+  padding: 0;
+  cursor: pointer;
+}
+
+.page-work-with-us .story-carousel-dot.is-active {
+  background: #f2be86;
+  border-color: rgba(255, 236, 212, 0.88);
+  box-shadow: 0 0 0 5px rgba(234, 173, 108, 0.24);
+}
+
+.page-work-with-us .story-carousel-caption {
+  margin: 0;
+  color: var(--text-secondary);
+  font-family: var(--font-subtext);
+  font-weight: 200;
+  line-height: 1.7;
+  text-align: center;
+}
+
 .page.course-detail-theme {
   background:
     radial-gradient(1100px 560px at 50% 18%, rgba(255, 252, 248, 0.92), rgba(255, 252, 248, 0.0) 62%),
@@ -3022,6 +3229,10 @@ h1, h2, h3, h4, h5, h6 {
     padding-right: 14px;
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* IE/Edge legacy */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    gap: 14px;
   }
 
   .home-recipes-intro::-webkit-scrollbar {
@@ -3033,7 +3244,7 @@ h1, h2, h3, h4, h5, h6 {
 .home-recipes-intro {
   position: relative;
   display: grid;
-  gap: clamp(8px, 2vw, 12px);
+  gap: clamp(4px, 1.2vw, 8px);
   padding: 0 clamp(8px, 3vw, 16px);
 }
 
@@ -3046,7 +3257,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .home-recipes-intro .subtitle {
-  margin-top: 8px;
+  margin: 6px 0 0;
 }
 
 .recipe-showcase-carousel {
@@ -3095,19 +3306,21 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-recipes-copy {
   margin: 0;
-  margin-top: -6px;
+  margin-top: 0;
   color: var(--text-secondary);
-  line-height: 1.72;
-  max-width: 42ch;
+  line-height: 1.62;
+  max-width: 46ch;
   font-size: clamp(0.9rem, 2.5vw, 1rem);
   word-wrap: break-word;
   overflow-wrap: break-word;
+  font-family: var(--font-subtext);
 }
 
 .category-pills {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
+  margin-top: 10px;
   padding: 8px;
   border-radius: 999px;
   border: 1px solid rgba(99, 77, 55, 0.08);
@@ -3139,6 +3352,45 @@ h1, h2, h3, h4, h5, h6 {
   box-shadow: 0 16px 34px rgba(36, 22, 18, 0.08);
 }
 
+.home-recipes .category-pills {
+  padding: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  width: min(520px, 100%);
+}
+
+.home-recipes .category-pill {
+  width: 100%;
+  border-radius: clamp(16px, 4vw, 20px);
+  min-height: 80px;
+  padding: 16px 18px;
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  background: linear-gradient(180deg, var(--accent), var(--accent-hover));
+  border: 1px solid rgba(140, 59, 43, 0.22);
+  color: #fffaf4;
+  box-shadow: 0 16px 38px rgba(36, 22, 18, 0.10);
+  justify-content: flex-start;
+  text-align: left;
+  font-size: 0.98rem;
+}
+
+.home-recipes .category-pill:hover {
+  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 20px 48px rgba(36, 22, 18, 0.14);
+  color: #fffaf4;
+}
+
+.home-recipes .category-pill:focus-visible {
+  outline: 2px solid rgba(140, 59, 43, 0.55);
+  outline-offset: 3px;
+}
+
 .home-recipes-stats {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3149,6 +3401,16 @@ h1, h2, h3, h4, h5, h6 {
 .home-recipes-cta {
   margin-top: 16px;
   width: fit-content;
+}
+
+@media (min-width: 1080px) {
+  .home-recipes-stats {
+    margin-top: 0;
+  }
+
+  .home-recipes-cta {
+    margin-top: auto;
+  }
 }
 
 .home-recipes-stat {
@@ -4129,14 +4391,19 @@ h1, h2, h3, h4, h5, h6 {
 
 .section-heading-subtitle {
   max-width: 62ch;
-  margin-left: auto;
-  margin-right: auto;
+  margin: 10px auto 0;
+  line-height: 1.55;
 }
 
 .section-heading-left {
   margin-left: 0;
   margin-right: 0;
   max-width: 860px;
+}
+
+.section-heading-left .section-heading-subtitle {
+  margin-left: 0;
+  margin-right: 0;
 }
 
 .section-heading-center {
@@ -4556,7 +4823,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .course-card-pricing {
   display: flex;
-  gap: 8px;
+  gap: 0;
   align-items: baseline;
   margin-bottom: 8px;
   font-weight: 600;
@@ -4610,6 +4877,7 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-muted);
   text-decoration: line-through;
   opacity: 0.85;
+  margin-left: 8px;
 }
 
 .course-card-price {
@@ -4618,6 +4886,16 @@ h1, h2, h3, h4, h5, h6 {
   letter-spacing: 0.01em;
   line-height: 1;
   white-space: nowrap;
+  margin-left: 8px;
+}
+
+.course-card-cart-icon + .course-card-original,
+.course-card-cart-icon + .course-card-price {
+  margin-left: 0;
+}
+
+.course-card-original + .course-card-price {
+  margin-left: 8px;
 }
 
 .course-card-actions {
@@ -4732,7 +5010,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (min-width: 980px) {
   .course-detail-grid {
-    grid-template-columns: 440px minmax(0, 1fr);
+    grid-template-columns: minmax(480px, 560px) minmax(0, 1fr);
     align-items: start;
     gap: 22px;
   }
@@ -4829,21 +5107,22 @@ h1, h2, h3, h4, h5, h6 {
 .course-hero-thumb {
   appearance: none;
   border: 1px solid rgba(99, 77, 55, 0.18);
-  background: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 253, 248, 0.78);
   box-shadow: var(--elev-0);
-  padding: 0;
+  padding: 4px;
   border-radius: 14px;
   width: 92px;
   height: 64px;
   flex: 0 0 auto;
   overflow: hidden;
   cursor: pointer;
+  box-sizing: border-box;
 }
 
 .course-hero-thumb img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: contain;
   display: block;
 }
 
@@ -7149,10 +7428,19 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .prose p {
-  margin: 14px 0 0;
+  margin: 0;
   color: var(--text-secondary);
   line-height: 1.8;
   font-size: 1.03rem;
+}
+
+.prose p + p {
+  margin-top: 10px;
+}
+
+.about-intro p,
+.about-intro p + p {
+  margin-top: 0;
 }
 
 .prose .about-feature-list {
@@ -7705,6 +7993,7 @@ h1, h2, h3, h4, h5, h6 {
   color: rgba(255, 250, 244, 0.8);
   line-height: 1.7;
   font-size: clamp(0.9rem, 2.5vw, 1rem);
+  font-family: var(--font-subtext);
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
@@ -7713,15 +8002,17 @@ h1, h2, h3, h4, h5, h6 {
   margin: clamp(10px, 2vw, 16px) 0 0;
   color: rgba(255, 250, 244, 0.68);
   font-size: clamp(0.75rem, 2vw, 0.9rem);
+  font-family: var(--font-subtext);
   word-wrap: break-word;
   overflow-wrap: break-word;
 }
 
 .footer-heading {
-  font-family: var(--font-body);
+  font-family: var(--font-display);
   letter-spacing: -0.02em;
   margin: 0 0 clamp(8px, 2vw, 12px);
   font-size: clamp(0.95rem, 3vw, 1.1rem);
+  font-weight: 650;
   color: #fffaf4;
   word-wrap: break-word;
   overflow-wrap: break-word;
@@ -7735,6 +8026,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 2px;
   color: rgba(255, 250, 244, 0.86);
   font-size: clamp(0.85rem, 2.5vw, 0.95rem);
+  font-family: var(--font-subtext);
 }
 
 .footer-list a {

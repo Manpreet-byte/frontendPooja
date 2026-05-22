@@ -61,7 +61,7 @@ function formatInr(amount) {
 
 function parseWorkshopPrices(contentHtml) {
   const text = stripHtml(contentHtml);
-  if (!text) return { priceInr: null, compareAtPriceInr: null };
+  if (!text) return { priceInr: 2000, compareAtPriceInr: null };
 
   const earlyBird = text.match(/Early Bird Fee:\s*₹\s*([\d,]+)/i)?.[1];
   const regular = text.match(/Regular Price:\s*₹\s*([\d,]+)/i)?.[1];
@@ -73,7 +73,7 @@ function parseWorkshopPrices(contentHtml) {
     return Number.isFinite(amount) && amount > 0 ? amount : null;
   };
 
-  const priceInr = toAmount(earlyBird ?? classFee ?? fee ?? regular);
+  const priceInr = toAmount(earlyBird ?? classFee ?? fee ?? regular) ?? parseInrPriceFromHtml(contentHtml) ?? 2000;
   const compareAtPriceInr =
     earlyBird && regular && toAmount(regular) && toAmount(regular) > (priceInr ?? 0) ? toAmount(regular) : null;
 

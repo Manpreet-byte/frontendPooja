@@ -2,7 +2,7 @@ import React from 'react';
 
 export default function PrivacyPage() {
   return (
-    <main className="section">
+    <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Privacy Policy</h1>
         <p>Last updated: August 30, 2025</p>
