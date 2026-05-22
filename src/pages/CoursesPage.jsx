@@ -217,21 +217,6 @@ export default function CoursesPage() {
               <label className="field">
                 <span className="field-label">Search</span>
                 <div className="courses-search">
-                  <span className="courses-search-icon" aria-hidden="true">
-                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
-                      <path
-                        d="M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                      />
-                      <path
-                        d="M16.4 16.4 21 21"
-                        stroke="currentColor"
-                        strokeWidth="2"
-                        strokeLinecap="round"
-                      />
-                    </svg>
-                  </span>
                   <input
                     className="input courses-search-input"
                     value={query}
@@ -247,7 +232,14 @@ export default function CoursesPage() {
                     >
                       ×
                     </button>
-                  ) : null}
+                  ) : (
+                    <span className="courses-search-icon" aria-hidden="true">
+                      <svg viewBox="0 0 24 24" width="18" height="18" fill="none">
+                        <path d="M10.8 18.2a7.4 7.4 0 1 1 0-14.8 7.4 7.4 0 0 1 0 14.8Z" stroke="currentColor" strokeWidth="2" />
+                        <path d="M16.4 16.4 21 21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+                      </svg>
+                    </span>
+                  )}
                 </div>
               </label>
               <label className="field">

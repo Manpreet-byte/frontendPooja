@@ -2840,7 +2840,7 @@ export default function AdminDashboardPage() {
 
           {tab === 'orders' ? (
             <div className="admin-panel">
-              <div className="admin-split">
+              <div className="admin-split admin-orders-filters">
                 <label className="field">
                   <span className="field-label">Status</span>
                   <select
@@ -2903,8 +2903,8 @@ export default function AdminDashboardPage() {
                 </p>
               ) : null}
 
-              <div className="admin-table">
-                <div className="admin-row admin-head">
+              <div className="admin-table admin-orders-table">
+                <div className="admin-row admin-head" role="row">
                   <div>ID</div>
                   <div>User</div>
                   <div>Status</div>

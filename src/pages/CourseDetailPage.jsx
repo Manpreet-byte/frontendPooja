@@ -1,5 +1,5 @@
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, useRef } from 'react';
 import SectionHeading from '../components/SectionHeading';
 import { api } from '../api/client';
 import { useCartStore } from '../store/cartStore';
@@ -66,6 +66,7 @@ export default function CourseDetailPage() {
   const buyNowCourse = useCartStore((state) => state.buyNowCourse);
   const cartCount = useCartStore((state) => state.items.length);
   const [activeImage, setActiveImage] = useState(null);
+  const thumbsRef = useRef(null);
   const token = useAuthStore((s) => s.token);
   const [waitlistStatus, setWaitlistStatus] = useState('idle');
   const [waitlistMessage, setWaitlistMessage] = useState('');
@@ -111,6 +112,13 @@ export default function CourseDetailPage() {
     setActiveImage(allImages[0] ?? null);
   }, [allImages]);
 
+  const scrollThumbs = (dir = 1) => {
+    const node = thumbsRef.current;
+    if (!node) return;
+    const amount = Math.max(220, Math.round(node.clientWidth * 0.7));
+    node.scrollBy({ left: dir * amount, behavior: 'smooth' });
+  };
+
   if (!course) {
     return (
       <main className="section course-detail-page page-60">
@@ -141,21 +149,39 @@ export default function CourseDetailPage() {
                   <SafeImage src={activeImage} alt={course.title} loading="eager" />
                 </div>
                 {allImages.length > 1 ? (
-                  <div className="course-hero-thumbs" aria-label="Gallery thumbnails">
-                    {allImages.map((src) => {
-                      const selected = src === activeImage;
-                      return (
-                        <button
-                          key={src}
-                          type="button"
-                          className={`course-hero-thumb ${selected ? 'is-active' : ''}`}
-                          onClick={() => setActiveImage(src)}
-                          aria-label={selected ? 'Selected image' : 'View image'}
-                        >
-                          <SafeImage src={src} alt="" />
-                        </button>
-                      );
-                    })}
+                  <div className="course-hero-thumbs-wrap" aria-label="Gallery thumbnails">
+                    <button
+                      type="button"
+                      className="course-hero-thumbs-arrow"
+                      onClick={() => scrollThumbs(-1)}
+                      aria-label="Previous thumbnails"
+                    >
+                      ‹
+                    </button>
+                    <div ref={thumbsRef} className="course-hero-thumbs">
+                      {allImages.map((src) => {
+                        const selected = src === activeImage;
+                        return (
+                          <button
+                            key={src}
+                            type="button"
+                            className={`course-hero-thumb ${selected ? 'is-active' : ''}`}
+                            onClick={() => setActiveImage(src)}
+                            aria-label={selected ? 'Selected image' : 'View image'}
+                          >
+                            <SafeImage src={src} alt="" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <button
+                      type="button"
+                      className="course-hero-thumbs-arrow"
+                      onClick={() => scrollThumbs(1)}
+                      aria-label="Next thumbnails"
+                    >
+                      ›
+                    </button>
                   </div>
                 ) : null}
               </div>
