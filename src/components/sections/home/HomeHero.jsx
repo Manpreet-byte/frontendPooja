@@ -4,6 +4,8 @@ import SafeImage from '../../SafeImage';
 const heroImage =
   '/heroImage.webp';
 
+const workWithUsImage3 = 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634.jpg';
+
 function sentenceCase(text) {
   const value = String(text ?? '').trim();
   if (!value) return '';
@@ -16,7 +18,16 @@ export default function HomeHero({ cms }) {
   const subtitle =
     cms?.subtitle ??
     'Join Pooja Ganeriwala \u2013 an award-\nwinning tutor \u2013 on a journey to master\negg free recipes, savouries, and\ndelights that elevate your skills and\nspark joy in every bake.';
-  const imageUrl = heroImage;
+  const imageUrl =
+    cms?.image_url ??
+    cms?.imageUrl ??
+    cms?.featured_image_url ??
+    cms?.featuredImageUrl ??
+    cms?.image ??
+    cms?.background_image ??
+    cms?.backgroundImage ??
+    workWithUsImage3 ??
+    heroImage;
   const primaryLabel = cms?.primary_cta_label ?? 'Explore All Courses';
   const primaryHref = cms?.primary_cta_href ?? '/courses';
   const secondaryLabel = cms?.secondary_cta_label ?? '';
@@ -28,7 +39,14 @@ export default function HomeHero({ cms }) {
   return (
     <section className="hero-premium" aria-label="Hero">
       <div className="hero-premium-media" aria-hidden="true">
-        <SafeImage src={imageUrl} alt="" loading="eager" />
+        <SafeImage
+          src={imageUrl}
+          alt=""
+          loading="eager"
+          decoding="async"
+          fetchpriority="high"
+          className="hero-premium-image is-active"
+        />
       </div>
       <div className="hero-premium-overlay" />
       <div className="container-wide hero-premium-inner">

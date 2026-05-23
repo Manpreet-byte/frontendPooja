@@ -18,8 +18,12 @@ export default function CoursesPage() {
   const [error, setError] = useState('');
   const [categories, setCategories] = useState([]);
   const [categoryLoading, setCategoryLoading] = useState(false);
+  const [expandedGroups, setExpandedGroups] = useState(() => new Set());
+  const [expandedResults, setExpandedResults] = useState(false);
+  const [pendingScrollTarget, setPendingScrollTarget] = useState('');
   const debounceRef = useRef(null);
   usePageTitle('Courses · Love & Flour');
+  const maxVisibleWorkshops = 6;
 
   const allowedCategorySlugs = useMemo(
     () => ['upcoming-live-workshops', 'upcoming-live-session', 'recorded-live-workshop', 'e-book', 'hands-on-classes'],
@@ -40,6 +44,22 @@ export default function CoursesPage() {
   useEffect(() => {
     setQuery(qParam);
   }, [qParam]);
+
+  useEffect(() => {
+    setExpandedGroups(new Set());
+    setExpandedResults(false);
+    setPendingScrollTarget('');
+  }, [category, qParam]);
+
+  useEffect(() => {
+    if (!pendingScrollTarget) return;
+    if (typeof window === 'undefined') return;
+    window.requestAnimationFrame(() => {
+      const el = document.getElementById(pendingScrollTarget);
+      if (!el) return;
+      el.scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  }, [pendingScrollTarget]);
 
   useEffect(() => {
     let active = true;
@@ -274,23 +294,75 @@ export default function CoursesPage() {
                   const slug = String(cat.slug);
                   const list = groupedByCategory.get(slug) ?? [];
                   if (!list.length) return null;
+                  const expanded = expandedGroups.has(slug);
+                  const primary = list.slice(0, maxVisibleWorkshops);
+                  const extra = list.slice(maxVisibleWorkshops);
                   return (
                     <section key={slug} aria-label={cat.name ?? slug}>
                       <div className="h3 courses-group-title">{categoryLabelBySlug.get(slug) ?? cat.name ?? slug}</div>
                       <div className="grid cards-grid">
-                        {list.map((course) => (
+                        {primary.map((course) => (
                           <CourseCard key={course.id} course={course} />
                         ))}
                       </div>
+                      {list.length > maxVisibleWorkshops ? (
+                        <button
+                          type="button"
+                          className="button button-ghost"
+                          style={{ marginTop: 16 }}
+                          aria-expanded={expanded}
+                          onClick={() =>
+                            setExpandedGroups((prev) => {
+                              const next = new Set(prev);
+                              if (next.has(slug)) next.delete(slug);
+                              else next.add(slug);
+                              setPendingScrollTarget(next.has(slug) ? `courses-group-extra-${slug}` : '');
+                              return next;
+                            })}
+                        >
+                          {expanded ? 'View less' : 'View more'}
+                        </button>
+                      ) : null}
+                      {expanded && extra.length ? (
+                        <div id={`courses-group-extra-${slug}`} className="grid cards-grid" style={{ marginTop: 16 }}>
+                          {extra.map((course) => (
+                            <CourseCard key={course.id} course={course} />
+                          ))}
+                        </div>
+                      ) : null}
                     </section>
                   );
                 })}
               </div>
             ) : (
               <div className="grid cards-grid">
-                {filtered.map((course) => (
+                {filtered.slice(0, maxVisibleWorkshops).map((course) => (
                   <CourseCard key={course.id} course={course} />
                 ))}
+                {filtered.length > maxVisibleWorkshops ? (
+                  <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'center', marginTop: 18 }}>
+                    <button
+                      type="button"
+                      className="button button-ghost"
+                      aria-expanded={expandedResults}
+                      onClick={() =>
+                        setExpandedResults((v) => {
+                          const next = !v;
+                          setPendingScrollTarget(next ? 'courses-results-extra' : '');
+                          return next;
+                        })}
+                    >
+                      {expandedResults ? 'View less' : 'View more'}
+                    </button>
+                  </div>
+                ) : null}
+                {expandedResults ? (
+                  <div id="courses-results-extra" className="grid cards-grid" style={{ gridColumn: '1 / -1', marginTop: 18 }}>
+                    {filtered.slice(maxVisibleWorkshops).map((course) => (
+                      <CourseCard key={course.id} course={course} />
+                    ))}
+                  </div>
+                ) : null}
               </div>
             )}
           </section>

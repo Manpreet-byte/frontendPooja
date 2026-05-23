@@ -346,23 +346,13 @@ iframe {
 
 .page-legal.page-typography p,
 .page-legal.page-typography li {
-  font-size: 1.03rem;
-  line-height: 1.8;
-  font-weight: 300;
-}
-
-.page-work-with-us p {
-  font-weight: 400;
+  font-size: 1.12rem;
+  line-height: 1.85;
+  font-weight: 420;
 }
 
 .page-work-with-us .story-card .lead {
   font-weight: 450;
-}
-
-.page-work-with-us.page-typography p,
-.page-work-with-us.page-typography li {
-  font-size: 0.98rem;
-  line-height: 1.8;
 }
 
 .page-work-with-us .story-scroller-track {
@@ -373,9 +363,9 @@ iframe {
 
 .page-privacy.page-typography p,
 .page-privacy.page-typography li {
-  font-size: 0.98rem;
-  line-height: 1.8;
-  font-weight: 400;
+  font-size: 1.12rem;
+  line-height: 1.85;
+  font-weight: 420;
 }
 
 .page-typography p strong,
@@ -2504,18 +2494,22 @@ h1, h2, h3, h4, h5, h6 {
   display: flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
 }
 
-.hero-premium-media img {
+.hero-premium-media img,
+.hero-premium-media .hero-premium-image {
   width: 100%;
   height: 100%;
   max-width: 100%;
   object-fit: cover;
-  object-position: center top;
+  object-position: center center;
   filter: none;
   transform: none;
   animation: none;
 }
+
+.hero-premium-media .hero-premium-image { display: block; }
 
 @keyframes heroZoom {
   from {
@@ -3698,10 +3692,11 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  object-position: center;
+  /* Slightly bias to the right to crop out empty margins in some WP media. */
+  object-position: 78% 50%;
   display: block;
   /* Crop out baked-in margins in some images so the card feels edge-to-edge. */
-  transform: scale(1.18);
+  transform: scale(1.4);
 }
 
 .recipe-feature-card::after {
@@ -7870,7 +7865,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (min-width: 980px) {
   .about-grid {
-    grid-template-columns: 1.1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
   }
 }
 

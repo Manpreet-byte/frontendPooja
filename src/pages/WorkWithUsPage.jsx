@@ -57,7 +57,7 @@ export default function WorkWithUsPage() {
   const activeImage = useMemo(() => galleryImages[activeSlide] ?? galleryImages[0], [activeSlide]);
 
   return (
-    <main className="section page-white page-60 page-work-with-us page-typography">
+    <main className="section page-white page-60 page-work-with-us page-legal page-typography">
       <div className="container">
         <div className="story-layout">
           <article className="story-card panel prose-block">
