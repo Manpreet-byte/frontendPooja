@@ -59,7 +59,7 @@ export default function AboutPage() {
   }
 
   return (
-    <main className="page-about">
+    <main className="page-white page-60 page-about">
       <AboutSection featuredImage={featuredImageOverride} />
     </main>
   );

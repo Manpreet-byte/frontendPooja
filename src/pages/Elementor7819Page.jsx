@@ -104,7 +104,7 @@ export default function Elementor7819Page() {
                 />
               </div>
               <div style={{ padding: '16px 14px 6px', color: '#f8efe7' }}>
-                <p style={{ margin: 0, fontSize: '0.92rem', letterSpacing: '0.08em', textTransform: 'uppercase', opacity: 0.8 }}>
+                <p style={{ margin: 0, fontSize: '0.92rem', letterSpacing: '0.08em', textTransform: 'uppercase', color: 'rgba(255,255,255,0.9)' }}>
                   Founder, Mentor, Baker
                 </p>
                 <p style={{ margin: '8px 0 0', lineHeight: 1.7, color: 'rgba(248,239,231,0.9)' }}>

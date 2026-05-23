@@ -284,7 +284,7 @@ iframe {
 
 /* Layout */
 :root {
-  --header-height: 84px;
+  --header-height: 72px;
 }
 
 .page {
@@ -335,6 +335,47 @@ iframe {
   font-size: 1rem;
   line-height: 1.75;
   color: var(--text-secondary);
+}
+
+.page-story.page-typography p,
+.page-story.page-typography li {
+  font-size: 1.03rem;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.page-legal.page-typography p,
+.page-legal.page-typography li {
+  font-size: 1.03rem;
+  line-height: 1.8;
+  font-weight: 300;
+}
+
+.page-work-with-us p {
+  font-weight: 400;
+}
+
+.page-work-with-us .story-card .lead {
+  font-weight: 450;
+}
+
+.page-work-with-us.page-typography p,
+.page-work-with-us.page-typography li {
+  font-size: 0.98rem;
+  line-height: 1.8;
+}
+
+.page-work-with-us .story-scroller-track {
+  font-family: var(--font-subtext);
+  font-weight: 500;
+  font-size: 0.98rem;
+}
+
+.page-privacy.page-typography p,
+.page-privacy.page-typography li {
+  font-size: 0.98rem;
+  line-height: 1.8;
+  font-weight: 400;
 }
 
 .page-typography p strong,
@@ -438,7 +479,7 @@ iframe {
   position: absolute;
   inset: 0;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
   padding: 16px;
   opacity: 0;
@@ -588,6 +629,11 @@ iframe {
 .section {
   padding: var(--section-y) 0;
   scroll-margin-top: 104px;
+}
+
+/* Reduce top/bottom spacing for inner pages (everything except Home). */
+.page-60 {
+  --section-y: clamp(40px, 4.5vw, 70px);
 }
 
 .course-detail-page.section {
@@ -905,14 +951,14 @@ h1, h2, h3, h4, h5, h6 {
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  min-height: 84px;
-  padding: 10px 0;
+  min-height: var(--header-height);
+  padding: 8px 0;
   transition: min-height 200ms ease, padding 200ms ease;
 }
 
 .site-header.is-scrolled .header-inner {
-  min-height: 72px;
-  padding: 8px 0;
+  min-height: 64px;
+  padding: 6px 0;
 }
 
 .brand {
@@ -3226,6 +3272,12 @@ h1, h2, h3, h4, h5, h6 {
   display: block;
 }
 
+.course-value-tile.tile-1 img,
+.course-value-tile.tile-2 img {
+  object-fit: contain;
+  background: rgba(255, 255, 255, 0.55);
+}
+
 .course-value-tile.tile-1 {
   aspect-ratio: 4 / 5;
 }
@@ -3394,6 +3446,19 @@ h1, h2, h3, h4, h5, h6 {
   margin: 6px 0 0;
 }
 
+/* Home recipes intro: keep readable dark typography on the light background. */
+.home-recipes-intro,
+.home-recipes-intro .section-heading,
+.home-recipes-intro .section-heading-subtitle,
+.home-recipes-intro .home-recipes-copy {
+  color: var(--text);
+}
+
+.home-recipes-intro .subtitle,
+.home-recipes-copy {
+  color: var(--text-secondary);
+}
+
 .recipe-showcase-carousel {
   display: grid;
   gap: clamp(10px, 2vw, 14px);
@@ -3406,8 +3471,8 @@ h1, h2, h3, h4, h5, h6 {
   border: 1px solid rgba(99, 77, 55, 0.18);
   background: rgba(255, 253, 248, 0.76);
   box-shadow: 0 22px 54px rgba(36, 22, 18, 0.12);
-  /* Extra inset so the supporting cards' borders/shadows don't get clipped by the viewport overflow. */
-  padding: clamp(14px, 2.6vw, 22px);
+  /* Let the featured image fill the full container (no inner gap). */
+  padding: 0;
 }
 
 .recipe-showcase-track {
@@ -3417,12 +3482,14 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .recipe-showcase-slide {
+  flex: 0 0 100%;
   min-width: 100%;
 }
 
 .recipe-slide-layout {
   display: grid;
-  gap: 14px;
+  gap: 0;
+  height: 100%;
 }
 
 @media (min-width: 920px) {
@@ -3611,13 +3678,14 @@ h1, h2, h3, h4, h5, h6 {
 
 .recipe-feature-card {
   grid-area: feature;
+  display: block;
   position: relative;
   min-height: 100%;
   overflow: hidden;
-  border-radius: 34px;
-  background: linear-gradient(180deg, rgba(255, 250, 244, 0.98), rgba(248, 239, 230, 0.94));
-  border: 1px solid var(--soft-border);
-  box-shadow: 0 22px 54px rgba(36, 22, 18, 0.1);
+  border-radius: inherit;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
   min-height: 520px;
 }
 
@@ -3630,8 +3698,10 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  object-position: center;
   display: block;
-  transform: scale(1.02);
+  /* Crop out baked-in margins in some images so the card feels edge-to-edge. */
+  transform: scale(1.18);
 }
 
 .recipe-feature-card::after {
@@ -3639,7 +3709,7 @@ h1, h2, h3, h4, h5, h6 {
   position: absolute;
   inset: 0;
   /* Stronger scrim so text stays readable on bright images */
-  background: linear-gradient(180deg, rgba(18, 12, 9, 0.06) 0%, rgba(18, 12, 9, 0.18) 40%, rgba(255, 250, 244, 0.97) 100%);
+  background: linear-gradient(180deg, rgba(10, 7, 6, 0.18) 0%, rgba(10, 7, 6, 0.42) 42%, rgba(10, 7, 6, 0.62) 100%);
 }
 
 .recipe-feature-overlay {
@@ -3650,14 +3720,14 @@ h1, h2, h3, h4, h5, h6 {
   align-content: end;
   gap: 12px;
   padding: 28px;
-  color: var(--text);
+  color: rgba(255, 255, 255, 0.94);
 }
 
 .recipe-feature-pill {
   justify-self: start;
-  background: rgba(199, 164, 106, 0.16);
-  border-color: rgba(140, 59, 43, 0.14);
-  color: var(--accent);
+  background: rgba(255, 255, 255, 0.18);
+  border-color: rgba(255, 255, 255, 0.24);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .recipe-feature-overlay h3 {
@@ -3667,12 +3737,14 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 0.96;
   letter-spacing: -0.03em;
   font-weight: 700;
+  color: #ffffff;
+  text-shadow: 0 16px 34px rgba(0, 0, 0, 0.35);
 }
 
 .recipe-feature-overlay p {
   margin: 0;
   max-width: 34ch;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.82);
   line-height: 1.7;
 }
 
@@ -3681,7 +3753,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: 0.9rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--accent);
+  color: rgba(255, 255, 255, 0.92);
 }
 
 .recipe-support-stack {
@@ -6119,7 +6191,7 @@ h1, h2, h3, h4, h5, h6 {
   font-size: clamp(2.5rem, 3vw + 1rem, 4rem);
   line-height: 0.95;
   margin-top: 2px;
-  color: #fff2e4;
+  color: #ffffff;
 }
 
 .recipe-detail-subtitle {
@@ -6253,11 +6325,15 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.75;
   font-size: 0.92rem;
   list-style: none;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .recipe-simple-steps {
   padding-left: 0;
   counter-reset: recipe-step;
+  word-break: break-word;
+  overflow-wrap: anywhere;
 }
 
 .recipe-detail-ingredients .recipe-simple-list li,
@@ -6405,6 +6481,157 @@ h1, h2, h3, h4, h5, h6 {
   color: var(--text-secondary);
 }
 
+.recipe-pagination {
+  margin-top: 22px;
+  width: min(100%, 980px);
+  margin-left: auto;
+  margin-right: auto;
+  border-radius: 18px;
+  border: 1px solid rgba(231, 217, 226, 0.95);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 18px 52px rgba(36, 22, 18, 0.14);
+  padding: 18px 20px;
+}
+
+.recipe-pagination-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  align-items: center;
+}
+
+.recipe-pagination-link {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;
+  color: inherit;
+  border-radius: 16px;
+  border: 0;
+  background: transparent;
+  padding: 8px;
+  min-height: 0;
+  flex: 1 1 0;
+  transition: transform 180ms ease, opacity 180ms ease;
+}
+
+.recipe-pagination-link:hover {
+  transform: translateY(-1px);
+  opacity: 0.92;
+}
+
+.recipe-pagination-link.is-prev {
+  justify-content: flex-start;
+}
+
+.recipe-pagination-link.is-next {
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.recipe-pagination-thumb {
+  width: 54px;
+  height: 54px;
+  border-radius: 12px;
+  overflow: hidden;
+  background: rgba(140, 59, 43, 0.06);
+  border: 1px solid rgba(99, 77, 55, 0.12);
+  flex: 0 0 auto;
+}
+
+.recipe-pagination-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.recipe-pagination-kicker {
+  display: block;
+  font-family: var(--font-subtext);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(166, 93, 78, 0.95);
+  margin-bottom: 4px;
+}
+
+.recipe-pagination-title {
+  display: block;
+  font-family: var(--font-body);
+  font-weight: 500;
+  line-height: 1.2;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.recipe-pagination-split {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  width: 100%;
+  max-width: 1320px;
+  margin: 22px auto 0;
+  padding: 0 16px;
+}
+
+.recipe-pagination-split .recipe-pagination-col {
+  min-width: 0;
+  display: flex;
+}
+
+.recipe-pagination-split .recipe-pagination-col.is-prev {
+  justify-content: flex-start;
+}
+
+.recipe-pagination-split .recipe-pagination-col.is-next {
+  justify-content: flex-end;
+}
+
+.recipe-pagination-split .recipe-pagination-link {
+  flex: 0 1 460px;
+  max-width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(231, 217, 226, 0.9);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 16px 44px rgba(36, 22, 18, 0.14);
+  padding: 14px 16px;
+}
+
+.recipe-pagination-split .recipe-pagination-kicker {
+  color: rgba(166, 93, 78, 0.95);
+}
+
+.recipe-pagination-split .recipe-pagination-title {
+  font-weight: 600;
+}
+
+@media (max-width: 720px) {
+  .recipe-pagination-inner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .recipe-pagination-link.is-next {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  .recipe-pagination-split {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .recipe-pagination-split .recipe-pagination-col.is-next {
+    justify-content: flex-start;
+  }
+}
+
 .stat {
   border: 1px solid rgba(228, 171, 105, 0.22);
   border-radius: 16px;
@@ -6434,6 +6661,13 @@ h1, h2, h3, h4, h5, h6 {
     gap: 28px;
     max-width: 1320px;
     margin: 0 auto;
+    padding: 0 28px;
+  }
+
+  .recipe-pagination-split {
+    grid-template-columns: minmax(320px, 0.92fr) minmax(0, 1.08fr);
+    gap: 28px;
+    max-width: 1320px;
     padding: 0 28px;
   }
 
@@ -6469,7 +6703,7 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .recipe-detail-grid-simple {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:
       'desc desc'
       'ing inst'
@@ -7656,6 +7890,10 @@ h1, h2, h3, h4, h5, h6 {
   margin-right: 0;
 }
 
+.page-about .about-content .section-heading {
+  margin-bottom: 0;
+}
+
 @media (min-width: 980px) {
   .about-content {
     max-height: none;
@@ -7803,6 +8041,36 @@ h1, h2, h3, h4, h5, h6 {
   transition: transform 180ms ease;
   width: 26px;
   height: 26px;
+}
+
+/* About page: make stat icons match Classroom cards */
+.page-about .stat-icon {
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
+  color: rgba(193, 88, 28, 0.98);
+  border-color: rgba(229, 138, 31, 0.62);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.98), rgba(255, 246, 238, 0.74)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 241, 231, 0.82));
+  box-shadow: 0 10px 22px rgba(36, 22, 18, 0.10), 0 10px 30px rgba(229, 138, 31, 0.14);
+}
+
+.page-about .stat-icon svg {
+  width: 34px;
+  height: 34px;
+}
+
+@media (max-width: 520px) {
+  .page-about .stat-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .page-about .stat-icon svg {
+    width: 30px;
+    height: 30px;
+  }
 }
 
 /* Courses (workshops list) */
@@ -8299,8 +8567,13 @@ h1, h2, h3, h4, h5, h6 {
 .footer-social {
   display: flex;
   gap: clamp(8px, 2vw, 10px);
-  margin-bottom: clamp(8px, 2vw, 12px);
+  margin-top: 18px;
+  margin-bottom: 0;
   flex-wrap: wrap;
+}
+
+.footer-follow-heading {
+  margin-top: 26px;
 }
 
 .site-footer .icon-button-dark {
@@ -9385,7 +9658,7 @@ h1, h2, h3, h4, h5, h6 {
   background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 253, 248, 0.88));
   border: none;
   cursor: pointer;
-  font-size: 1.05rem;
+  font-size: 1.15rem;
   font-weight: 600;
   line-height: 1.4;
   color: var(--text);
@@ -9495,7 +9768,7 @@ h1, h2, h3, h4, h5, h6 {
 
 /* FAQ page heading (WpContentPage: /pages/frequently-asked-questions) */
 .faq-page .section-heading .h2 {
-  font-size: clamp(2.2rem, 4.5vw, 3.1rem);
+  font-size: clamp(2.7rem, 5.4vw, 3.6rem);
   font-weight: 300;
   line-height: 1.12;
 }
@@ -9503,6 +9776,8 @@ h1, h2, h3, h4, h5, h6 {
 /* FAQ page section headings inside the content (e.g. "About Love & Flour by Pooja") */
 .faq-page .prose-block .elementor h2.elementor-heading-title {
   font-weight: 200;
+  font-size: clamp(1.95rem, 3.8vw, 2.45rem);
+  line-height: 1.18;
 }
 
 /* Content typography */

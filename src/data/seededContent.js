@@ -6,6 +6,8 @@ import homeTestimonials from './seed/home-testimonials.json';
 
 function rewriteLegacyHostToRelative(value) {
   let out = String(value ?? '');
+  // Keep WordPress media URLs absolute so images load correctly even when the frontend is hosted elsewhere.
+  if (/https?:\/\/loveandflourbypooja\.com\/wp-content\//i.test(out)) return out;
   out = out.replace(/https?:\/\/loveandflourbypooja\.com/gi, '');
   return out;
 }

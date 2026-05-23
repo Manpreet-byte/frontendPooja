@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
 import SectionHeading from '../SectionHeading';
 import { api } from '../../api/client';
 
@@ -66,16 +65,6 @@ export default function ContactSection() {
               <p className="muted" style={{ marginTop: 10 }}>
                 Or simply fill out the form and we’ll get back to you shortly.
               </p>
-            </div>
-
-            <div className="panel panel-gradient contact-card">
-              <h3 className="h4" style={{ marginTop: 0 }}>Join the newsletter</h3>
-              <p className="panel-gradient-text">
-                Get weekly recipes, baking tips, and exclusive content delivered to your inbox.
-              </p>
-              <Link className="button button-ghost" to="/newsletter">
-                Subscribe
-              </Link>
             </div>
           </div>
 

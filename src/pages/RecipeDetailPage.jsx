@@ -3,10 +3,12 @@ import { Link, useParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import SectionHeading from '../components/SectionHeading';
 import { findPostBySlug } from '../data/seededContent';
+import { posts as seededPosts } from '../data/seededContent';
 import { api } from '../api/client';
 import RecipeCard from '../components/RecipeCard';
 import SafeImage from '../components/SafeImage';
 import { sanitizeHtmlForApp } from '../utils/htmlSanitize';
+import { sortByDateDesc } from '../utils/publicContent';
 
 function normalizeRecipeDetail(recipe) {
   if (!recipe) return null;
@@ -177,6 +179,7 @@ export default function RecipeDetailPage() {
   const [post, setPost] = useState(() => findPostBySlug(slug));
   const [related, setRelated] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [allRecipes, setAllRecipes] = useState(() => sortByDateDesc((seededPosts ?? []).map(normalizeRecipeDetail).filter(Boolean)));
 
   useEffect(() => {
     document.body.classList.add('recipe-detail-theme');
@@ -210,6 +213,25 @@ export default function RecipeDetailPage() {
       active = false;
     };
   }, [slug]);
+
+  useEffect(() => {
+    let active = true;
+    api.public.recipes
+      .list()
+      .then((data) => {
+        if (!active) return;
+        const incoming = (data?.recipes ?? data?.data?.recipes ?? []).map(normalizeRecipeDetail).filter(Boolean);
+        const fallback = (seededPosts ?? []).map(normalizeRecipeDetail).filter(Boolean);
+        setAllRecipes(sortByDateDesc(incoming.length ? incoming : fallback));
+      })
+      .catch(() => {
+        if (!active) return;
+        setAllRecipes(sortByDateDesc((seededPosts ?? []).map(normalizeRecipeDetail).filter(Boolean)));
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   useEffect(() => {
     if (!post?.title) return;
@@ -253,6 +275,17 @@ export default function RecipeDetailPage() {
       .filter(Boolean);
   }, [related]);
 
+  const { prevRecipe, nextRecipe } = useMemo(() => {
+    const list = Array.isArray(allRecipes) ? allRecipes : [];
+    if (!slug || !list.length) return { prevRecipe: null, nextRecipe: null };
+    const idx = list.findIndex((r) => String(r.slug ?? '') === String(slug));
+    if (idx < 0) return { prevRecipe: null, nextRecipe: null };
+    return {
+      prevRecipe: list[idx + 1] ?? null,
+      nextRecipe: list[idx - 1] ?? null,
+    };
+  }, [allRecipes, slug]);
+
   if (!post) {
     return (
       <main className="section page-60">
@@ -285,93 +318,125 @@ export default function RecipeDetailPage() {
               </Link>
             </div>
 
-              <h1 className="hero-title recipe-detail-title">{post.title}</h1>
-              {recipeSections.introText ? <p className="recipe-detail-subtitle">{recipeSections.introText}</p> : null}
-              {loading ? <p className="muted">Loading recipe…</p> : null}
+            <h1 className="hero-title recipe-detail-title">{post.title}</h1>
+            {recipeSections.introText ? <p className="recipe-detail-subtitle">{recipeSections.introText}</p> : null}
+            {loading ? <p className="muted">Loading recipe…</p> : null}
 
-              <div className="recipe-detail-stats">
-                <div className="stat">
-                  <p className="stat-label">Ingredients</p>
-                  <p className="stat-value">{recipeSections.ingredients.length || '—'}</p>
-                </div>
-                <div className="stat">
-                  <p className="stat-label">Steps</p>
-                  <p className="stat-value">{recipeSections.instructions.length || '—'}</p>
-                </div>
-                <div className="stat">
-                  <p className="stat-label">Notes</p>
-                  <p className="stat-value">{recipeSections.notesBlocks.length || '—'}</p>
-                </div>
+            <div className="recipe-detail-stats">
+              <div className="stat">
+                <p className="stat-label">Ingredients</p>
+                <p className="stat-value">{recipeSections.ingredients.length || '—'}</p>
               </div>
-
-              <div className="recipe-detail-body">
-                <div className="recipe-detail-grid-simple">
-                  <section className="recipe-block recipe-detail-description">
-                    <h3 className="recipe-block-title">Description</h3>
-                    <div className="prose-block recipe-prose">
-                      {(recipeSections.aboutBlocks.length ? recipeSections.aboutBlocks : recipeSections.introBlocks).map((block, index) => (
-                        <div key={`${post.id}-desc-${index}`} dangerouslySetInnerHTML={{ __html: block }} />
-                      ))}
-                      {!recipeSections.aboutBlocks.length && !recipeSections.introBlocks.length && post.excerptHtml ? (
-                        <p dangerouslySetInnerHTML={{ __html: post.excerptHtml }} />
-                      ) : null}
-                    </div>
-                  </section>
-
-                  <section className="recipe-block recipe-detail-ingredients">
-                    <h3 className="recipe-block-title">Ingredients</h3>
-                    {recipeSections.ingredients.length ? (
-                      <ul className="recipe-simple-list">
-                        {recipeSections.ingredients.map((ingredient, index) => (
-                          <li key={`${post.id}-ingredient-${index}`}>{ingredient}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <div className="prose-block recipe-prose">
-                        <p>Ingredients are not listed in this recipe yet.</p>
-                      </div>
-                    )}
-                  </section>
-
-                  <section className="recipe-block recipe-detail-instructions">
-                    <h3 className="recipe-block-title">Step-by-step Instructions</h3>
-                    {recipeSections.instructions.length ? (
-                      <ol className="recipe-simple-list recipe-simple-steps">
-                        {recipeSections.instructions.map((step, index) => (
-                          <li key={`${post.id}-step-${index}`}>{step}</li>
-                        ))}
-                      </ol>
-                    ) : (
-                      <div className="prose-block recipe-prose">
-                        <p>Instructions are not listed in this recipe yet.</p>
-                      </div>
-                    )}
-                  </section>
-
-                  {recipeSections.notesBlocks.length ? (
-                    <section className="recipe-block recipe-detail-notes">
-                      <h3 className="recipe-block-title">Notes</h3>
-                      <div className="prose-block recipe-prose">
-                        {recipeSections.notesBlocks.map((block, index) => (
-                          <div key={`${post.id}-note-${index}`} dangerouslySetInnerHTML={{ __html: block }} />
-                        ))}
-                      </div>
-                    </section>
-                  ) : null}
-
-                  {relatedRecipes.length ? (
-                    <section className="recipe-block" style={{ marginTop: 10 }}>
-                      <h3 className="recipe-block-title">Related recipes</h3>
-                      <div className="grid cards-grid" style={{ marginTop: 12 }}>
-                        {relatedRecipes.slice(0, 6).map((r) => (
-                          <RecipeCard key={r.id ?? r.slug} recipe={r} to={`/recipes/${encodeURIComponent(r.slug ?? '')}`} />
-                        ))}
-                      </div>
-                    </section>
-                  ) : null}
-                </div>
+              <div className="stat">
+                <p className="stat-label">Steps</p>
+                <p className="stat-value">{recipeSections.instructions.length || '—'}</p>
+              </div>
+              <div className="stat">
+                <p className="stat-label">Notes</p>
+                <p className="stat-value">{recipeSections.notesBlocks.length || '—'}</p>
               </div>
             </div>
+
+            <div className="recipe-detail-body">
+              <div className="recipe-detail-grid-simple">
+                <section className="recipe-block recipe-detail-description">
+                  <h3 className="recipe-block-title">Description</h3>
+                  <div className="prose-block recipe-prose">
+                    {(recipeSections.aboutBlocks.length ? recipeSections.aboutBlocks : recipeSections.introBlocks).map((block, index) => (
+                      <div key={`${post.id}-desc-${index}`} dangerouslySetInnerHTML={{ __html: block }} />
+                    ))}
+                    {!recipeSections.aboutBlocks.length && !recipeSections.introBlocks.length && post.excerptHtml ? (
+                      <p dangerouslySetInnerHTML={{ __html: post.excerptHtml }} />
+                    ) : null}
+                  </div>
+                </section>
+
+                <section className="recipe-block recipe-detail-ingredients">
+                  <h3 className="recipe-block-title">Ingredients</h3>
+                  {recipeSections.ingredients.length ? (
+                    <ul className="recipe-simple-list">
+                      {recipeSections.ingredients.map((ingredient, index) => (
+                        <li key={`${post.id}-ingredient-${index}`}>{ingredient}</li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="prose-block recipe-prose">
+                      <p>Ingredients are not listed in this recipe yet.</p>
+                    </div>
+                  )}
+                </section>
+
+                <section className="recipe-block recipe-detail-instructions">
+                  <h3 className="recipe-block-title">Step-by-step Instructions</h3>
+                  {recipeSections.instructions.length ? (
+                    <ol className="recipe-simple-list recipe-simple-steps">
+                      {recipeSections.instructions.map((step, index) => (
+                        <li key={`${post.id}-step-${index}`}>{step}</li>
+                      ))}
+                    </ol>
+                  ) : (
+                    <div className="prose-block recipe-prose">
+                      <p>Instructions are not listed in this recipe yet.</p>
+                    </div>
+                  )}
+                </section>
+
+                {recipeSections.notesBlocks.length ? (
+                  <section className="recipe-block recipe-detail-notes">
+                    <h3 className="recipe-block-title">Notes</h3>
+                    <div className="prose-block recipe-prose">
+                      {recipeSections.notesBlocks.map((block, index) => (
+                        <div key={`${post.id}-note-${index}`} dangerouslySetInnerHTML={{ __html: block }} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+
+                {relatedRecipes.length ? (
+                  <section className="recipe-block" style={{ marginTop: 10 }}>
+                    <h3 className="recipe-block-title">Related recipes</h3>
+                    <div className="grid cards-grid" style={{ marginTop: 12 }}>
+                      {relatedRecipes.slice(0, 6).map((r) => (
+                        <RecipeCard key={r.id ?? r.slug} recipe={r} to={`/recipes/${encodeURIComponent(r.slug ?? '')}`} />
+                      ))}
+                    </div>
+                  </section>
+                ) : null}
+              </div>
+            </div>
+          </div>
+
+          {prevRecipe || nextRecipe ? (
+            <nav className="recipe-pagination-split" aria-label="Recipe navigation">
+              <div className="recipe-pagination-col is-prev">
+                {prevRecipe?.slug ? (
+                  <Link className="recipe-pagination-link is-prev" to={`/recipes/${encodeURIComponent(prevRecipe.slug)}`}>
+                    <div className="recipe-pagination-thumb" aria-hidden="true">
+                      {prevRecipe.featuredImage ? <SafeImage src={prevRecipe.featuredImage} alt="" /> : null}
+                    </div>
+                    <div className="recipe-pagination-meta">
+                      <span className="recipe-pagination-kicker">Previous</span>
+                      <span className="recipe-pagination-title">{prevRecipe.title}</span>
+                    </div>
+                  </Link>
+                ) : null}
+              </div>
+
+              <div className="recipe-pagination-col is-next">
+                {nextRecipe?.slug ? (
+                  <Link className="recipe-pagination-link is-next" to={`/recipes/${encodeURIComponent(nextRecipe.slug)}`}>
+                    <div className="recipe-pagination-meta">
+                      <span className="recipe-pagination-kicker">Next</span>
+                      <span className="recipe-pagination-title">{nextRecipe.title}</span>
+                    </div>
+                    <div className="recipe-pagination-thumb" aria-hidden="true">
+                      {nextRecipe.featuredImage ? <SafeImage src={nextRecipe.featuredImage} alt="" /> : null}
+                    </div>
+                  </Link>
+                ) : null}
+              </div>
+            </nav>
+          ) : null}
         </div>
       </article>
     </main>

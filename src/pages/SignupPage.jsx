@@ -152,7 +152,7 @@ export default function SignupPage() {
               className="input"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@example.com"
+              placeholder="Enter your Email"
               type="email"
               autoComplete="email"
               inputMode="email"

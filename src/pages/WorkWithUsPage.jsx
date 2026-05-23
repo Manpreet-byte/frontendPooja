@@ -4,39 +4,39 @@ import usePageTitle from '../utils/usePageTitle';
 
 const galleryImages = [
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_8226-230x300.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_8226.jpg',
     alt: 'Love and Flour by Pooja team image 1',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2791-300x251.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2791.jpg',
     alt: 'Love and Flour by Pooja team image 2',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634-225x300.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634.jpg',
     alt: 'Love and Flour by Pooja team image 3',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2790-300x296.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2790.jpg',
     alt: 'Love and Flour by Pooja team image 4',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2789-281x300.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2789.jpg',
     alt: 'Love and Flour by Pooja team image 5',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_1179-225x300.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_1179.jpg',
     alt: 'Love and Flour by Pooja team image 6',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_3561-300x225.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_3561.jpg',
     alt: 'Love and Flour by Pooja team image 7',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2795-298x300.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2795.jpg',
     alt: 'Love and Flour by Pooja team image 8',
   },
   {
-    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2793-300x262.jpg',
+    src: 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_2793.jpg',
     alt: 'Love and Flour by Pooja team image 9',
   },
 ];

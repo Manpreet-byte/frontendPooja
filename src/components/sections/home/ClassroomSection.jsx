@@ -14,12 +14,12 @@ const features = [
   {
     title: 'All-in-One Resources',
     description: 'Access recipes, notes, and video lessons — neatly organized to revisit anytime.',
-    image: '/Frame%20141.svg',
+    image: '/Frame%20142.svg',
   },
   {
     title: 'Exclusive Access',
     description: 'Insider content, workshop replays, and member-only guidance — available only here.',
-    image: '/Frame%20142.svg',
+    image: '/Frame%20141.svg',
   },
 ];
 
