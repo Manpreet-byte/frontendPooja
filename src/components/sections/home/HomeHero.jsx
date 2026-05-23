@@ -45,6 +45,7 @@ export default function HomeHero({ cms }) {
           loading="eager"
           decoding="async"
           fetchpriority="high"
+          referrerPolicy="no-referrer"
           className="hero-premium-image is-active"
         />
       </div>
