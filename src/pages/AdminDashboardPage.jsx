@@ -127,7 +127,6 @@ export default function AdminDashboardPage() {
   const setSession = useAuthStore((s) => s.setSession);
   usePageTitle('Admin · Love & Flour');
   const refreshProfile = useAuthStore((s) => s.refreshProfile);
-  const importSource = 'loveandflourbypooja';
   const [status, setStatus] = useState('idle');
   const [message, setMessage] = useState('');
   const [mediaUploading, setMediaUploading] = useState(false);
