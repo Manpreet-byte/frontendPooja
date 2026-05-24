@@ -8670,13 +8670,12 @@ h1, h2, h3, h4, h5, h6 {
 /* Admin dashboard layout (matches existing theme; no functional changes) */
 .admin-dashboard {
   width: 100%;
-  max-width: 1320px;
-  margin: 0 auto;
-  padding: 0 16px;
+  max-width: none;
+  margin: 0;
 }
 
 .admin-page {
-  padding: 22px 0 64px;
+  padding: 28px 0 64px;
 }
 
 .dashboard-page .container {
@@ -8691,13 +8690,13 @@ h1, h2, h3, h4, h5, h6 {
 
 .admin-layout {
   display: grid;
-  gap: 16px;
+  gap: 18px;
   min-height: calc(100vh - 220px);
 }
 
 @media (min-width: 1024px) {
   .admin-layout {
-    grid-template-columns: minmax(240px, 280px) minmax(0, 1fr);
+    grid-template-columns: 260px 1fr;
     align-items: start;
   }
 }
@@ -8707,9 +8706,6 @@ h1, h2, h3, h4, h5, h6 {
   top: 18px;
   height: fit-content;
   padding: 18px;
-  max-height: calc(100vh - 36px);
-  overflow: auto;
-  overscroll-behavior: contain;
 }
 
 /* User dashboard (mobile) layout polish */
@@ -8722,8 +8718,6 @@ h1, h2, h3, h4, h5, h6 {
     position: static;
     top: auto;
     padding: 14px;
-    max-height: none;
-    overflow: visible;
   }
 
   .admin-sidebar-brand {
@@ -8758,7 +8752,18 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Note: .admin-topbar styling is defined later near .admin-shell. */
+.admin-topbar {
+  position: sticky;
+  top: calc(var(--header-height) + env(safe-area-inset-top, 0px) + 12px);
+  z-index: 10;
+}
+
+@media (max-width: 1023px) {
+  .admin-topbar {
+    position: static;
+    top: auto;
+  }
+}
 
 /* Checkout layout */
 .checkout-grid {
@@ -8879,22 +8884,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .admin-topbar {
   position: sticky;
-  top: calc(var(--header-height, 72px) + env(safe-area-inset-top, 0px) + 12px);
+  top: 96px;
   z-index: 20;
   border-color: rgba(99, 77, 55, 0.14);
   background: rgba(255, 255, 255, 0.82) !important;
   backdrop-filter: blur(10px);
-}
-
-@media (max-width: 1023px) {
-  .admin-shell {
-    padding: 14px;
-  }
-
-  .admin-topbar {
-    position: static;
-    top: auto;
-  }
 }
 
 .admin-topbar::after {
