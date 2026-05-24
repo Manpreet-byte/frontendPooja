@@ -45,7 +45,7 @@ function deriveFallbackSrcs(src) {
   const safe = normalizeImageSrc(src);
   if (!safe) return [];
 
-  const candidates = [safe];
+  const candidates = [];
 
   // WordPress often emits thumbnail URLs such as `image-225x300.jpg`.
   // If the resized file is missing or blocked, retry the original filename.
@@ -53,10 +53,14 @@ function deriveFallbackSrcs(src) {
     const url = new URL(safe, typeof window !== 'undefined' ? window.location.href : 'https://example.com');
     const match = url.pathname.match(/^(.*)-\d+x\d+(\.[a-z0-9]+)$/i);
     if (match) {
+      // Prefer the original asset for better quality; fall back to the resized variant if needed.
       candidates.push(`${url.origin}${match[1]}${match[2]}${url.search}${url.hash}`);
+      candidates.push(safe);
+    } else {
+      candidates.push(safe);
     }
   } catch {
-    // ignore
+    candidates.push(safe);
   }
 
   return Array.from(new Set(candidates));
