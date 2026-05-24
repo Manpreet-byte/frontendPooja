@@ -1,10 +1,7 @@
 import { Link } from 'react-router-dom';
 import SafeImage from '../../SafeImage';
 
-const heroImage =
-  '/heroImage.webp';
-
-const workWithUsImage3 = 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634.jpg';
+const heroImage = '/heroImage.webp';
 
 function sentenceCase(text) {
   const value = String(text ?? '').trim();
@@ -19,14 +16,11 @@ export default function HomeHero({ cms }) {
     cms?.subtitle ??
     'Join Pooja Ganeriwala \u2013 an award-\nwinning tutor \u2013 on a journey to master\negg free recipes, savouries, and\ndelights that elevate your skills and\nspark joy in every bake.';
   const imageUrl =
-    cms?.image_url ??
-    cms?.imageUrl ??
-    cms?.featured_image_url ??
-    cms?.featuredImageUrl ??
-    cms?.image ??
-    cms?.background_image ??
-    cms?.backgroundImage ??
-    workWithUsImage3 ??
+    (cms?.image_url != null && String(cms.image_url).trim()) ||
+    (cms?.imageUrl != null && String(cms.imageUrl).trim()) ||
+    (cms?.hero_image_url != null && String(cms.hero_image_url).trim()) ||
+    (cms?.featured_image_url != null && String(cms.featured_image_url).trim()) ||
+    workWithUsImage3 ||
     heroImage;
   const primaryLabel = cms?.primary_cta_label ?? 'Explore All Courses';
   const primaryHref = cms?.primary_cta_href ?? '/courses';
