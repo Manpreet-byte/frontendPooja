@@ -17,12 +17,14 @@ export default function HomeHero({ cms }) {
   const subtitle =
     cms?.subtitle ??
     'Join Pooja Ganeriwala \u2013 an award-\nwinning tutor \u2013 on a journey to master\negg free recipes, savouries, and\ndelights that elevate your skills and\nspark joy in every bake.';
-  const imageUrl =
+  const imageCandidates = [
     (cms?.image_url != null && String(cms.image_url).trim()) ||
     (cms?.imageUrl != null && String(cms.imageUrl).trim()) ||
     (cms?.hero_image_url != null && String(cms.hero_image_url).trim()) ||
     (cms?.featured_image_url != null && String(cms.featured_image_url).trim()) ||
-    heroImage;
+    heroImage,
+  ].filter(Boolean);
+  const imageUrl = imageCandidates[0] ?? heroImage;
   const primaryLabel = cms?.primary_cta_label ?? 'Explore All Courses';
   const primaryHref = cms?.primary_cta_href ?? '/courses';
   const secondaryLabel = cms?.secondary_cta_label ?? '';
@@ -36,6 +38,7 @@ export default function HomeHero({ cms }) {
       <div className="hero-premium-media" aria-hidden="true">
         <SafeImage
           src={imageUrl}
+          fallbackSrcs={[...imageCandidates.slice(1), heroImage]}
           alt=""
           loading="eager"
           decoding="async"

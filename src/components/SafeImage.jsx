@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 function normalizeImageSrc(src) {
   const raw = String(src ?? '').trim();
@@ -41,9 +41,42 @@ function normalizeImageSrc(src) {
   return `${base.replace(/\/?$/, '/')}${raw.replace(/^\.?\//, '')}`;
 }
 
-export default function SafeImage({ src, alt = '', className, loading = 'lazy', ...rest }) {
-  const [failed, setFailed] = useState(false);
-  const safeSrc = useMemo(() => normalizeImageSrc(src), [src]);
+function deriveFallbackSrcs(src) {
+  const safe = normalizeImageSrc(src);
+  if (!safe) return [];
+
+  const candidates = [safe];
+
+  // WordPress often emits thumbnail URLs such as `image-225x300.jpg`.
+  // If the resized file is missing or blocked, retry the original filename.
+  try {
+    const url = new URL(safe, typeof window !== 'undefined' ? window.location.href : 'https://example.com');
+    const match = url.pathname.match(/^(.*)-\d+x\d+(\.[a-z0-9]+)$/i);
+    if (match) {
+      candidates.push(`${url.origin}${match[1]}${match[2]}${url.search}${url.hash}`);
+    }
+  } catch {
+    // ignore
+  }
+
+  return Array.from(new Set(candidates));
+}
+
+export default function SafeImage({ src, alt = '', className, loading = 'lazy', fallbackSrcs = [], ...rest }) {
+  const [index, setIndex] = useState(0);
+
+  const candidateSrcs = useMemo(() => {
+    const base = deriveFallbackSrcs(src);
+    const extras = Array.isArray(fallbackSrcs) ? fallbackSrcs.map((item) => normalizeImageSrc(item)).filter(Boolean) : [];
+    return Array.from(new Set([...base, ...extras]));
+  }, [src, fallbackSrcs]);
+
+  useEffect(() => {
+    setIndex(0);
+  }, [candidateSrcs]);
+
+  const safeSrc = candidateSrcs[index] ?? '';
+  const failed = !safeSrc;
 
   if (!safeSrc || failed) return null;
 
@@ -53,7 +86,9 @@ export default function SafeImage({ src, alt = '', className, loading = 'lazy', 
       alt={alt}
       className={className}
       loading={loading}
-      onError={() => setFailed(true)}
+      onError={() => {
+        setIndex((current) => (current + 1 < candidateSrcs.length ? current + 1 : current));
+      }}
       {...rest}
     />
   );

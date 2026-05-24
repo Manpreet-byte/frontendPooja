@@ -19,13 +19,27 @@ export default function HomePage() {
   usePageTitle('Love & Flour by Pooja');
   usePageSeo('home', 'Love & Flour by Pooja');
 
+  const parseJsonMaybe = (value) => {
+    if (value == null) return null;
+    if (typeof value === 'object') return value;
+    if (typeof value !== 'string') return null;
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    try {
+      return JSON.parse(trimmed);
+    } catch {
+      return null;
+    }
+  };
+
   useEffect(() => {
     let active = true;
     api.public.content
       .homepage()
       .then((data) => {
         if (!active) return;
-        setCms(data?.homepage?.content ?? null);
+        const content = data?.homepage?.content ?? null;
+        setCms(parseJsonMaybe(content) ?? content);
       })
       .catch(() => {
         if (active) setCms(null);

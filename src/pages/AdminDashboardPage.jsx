@@ -13,6 +13,39 @@ import { downloadCsv, exportHtmlToPdf } from '../utils/admin/exporters';
 import usePageTitle from '../utils/usePageTitle';
 import { formatDateTimeStandard } from '../utils/formatDate';
 
+function formatDateOnlyValue(value) {
+  return String(value ?? '').trim().slice(0, 10);
+}
+
+function getDefaultDateInputValue(offsetYears = 1) {
+  const nextDate = new Date();
+  nextDate.setFullYear(nextDate.getFullYear() + offsetYears);
+  const year = String(nextDate.getFullYear()).padStart(4, '0');
+  const month = String(nextDate.getMonth() + 1).padStart(2, '0');
+  const day = String(nextDate.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function getTimePart(value, fallback = '18:30') {
+  const raw = String(value ?? '').trim();
+  if (!raw) return fallback;
+  const match = raw.match(/T?(\d{2}):(\d{2})(?::\d{2}(?:\.\d{3})?)?(?:Z|[+-]\d{2}:?\d{2})?$/);
+  if (match) return `${match[1]}:${match[2]}`;
+  const parsed = new Date(raw);
+  if (Number.isNaN(parsed.getTime())) return fallback;
+  return `${String(parsed.getHours()).padStart(2, '0')}:${String(parsed.getMinutes()).padStart(2, '0')}`;
+}
+
+function mergeDateWithTime(dateValue, existingValue, fallbackTime = '18:30') {
+  const date = String(dateValue ?? '').trim();
+  if (!date) return '';
+  const [year, month, day] = date.split('-').map((part) => Number(part));
+  if (![year, month, day].every((part) => Number.isFinite(part))) return '';
+  const [hourPart, minutePart] = getTimePart(existingValue, fallbackTime).split(':').map((part) => Number(part));
+  const nextDate = new Date(year, month - 1, day, Number.isFinite(hourPart) ? hourPart : 0, Number.isFinite(minutePart) ? minutePart : 0, 0, 0);
+  return nextDate.toISOString();
+}
+
 function parseJsonMaybe(value) {
   if (value == null) return null;
   if (typeof value === 'object') return value;
@@ -32,7 +65,6 @@ const tabs = [
   { id: 'coupons', label: 'Coupons' },
   { id: 'courses', label: 'Hands-On Classes' },
   { id: 'workshops', label: 'Workshops' },
-  { id: 'imports', label: 'Import Preview' },
   { id: 'categories', label: 'Categories' },
   { id: 'recipes', label: 'Recipes' },
   { id: 'sessions', label: 'Live Sessions' },
@@ -120,17 +152,6 @@ export default function AdminDashboardPage() {
   const [systemError, setSystemError] = useState('');
   const [systemHealth, setSystemHealth] = useState(null);
   const [systemMetrics, setSystemMetrics] = useState(null);
-
-  const toggleImportWorkshopSlug = (slug) => {
-    const s = String(slug ?? '').trim();
-    if (!s) return;
-    setImportSelectedWorkshopSlugs((prev) => {
-      const next = new Set(prev);
-      if (next.has(s)) next.delete(s);
-      else next.add(s);
-      return next;
-    });
-  };
 
   const sendSupportReply = async () => {
     if (!token || !isAdmin || !selectedSupportTicketId) return;
@@ -313,12 +334,6 @@ export default function AdminDashboardPage() {
     : '';
 
   const [categoryForm, setCategoryForm] = useState({ type: 'course', name: '', slug: '', description: '' });
-  const [importingLoveAndFlour, setImportingLoveAndFlour] = useState(false);
-  const [importingLoveAndFlourRecipes, setImportingLoveAndFlourRecipes] = useState(false);
-  const [importPreviewLoading, setImportPreviewLoading] = useState(false);
-  const [importPreviewError, setImportPreviewError] = useState('');
-  const [importPreview, setImportPreview] = useState(null);
-  const [importSelectedWorkshopSlugs, setImportSelectedWorkshopSlugs] = useState(() => new Set());
   const [recipeForm, setRecipeForm] = useState({
     title: '',
     summary: '',
@@ -354,7 +369,7 @@ export default function AdminDashboardPage() {
     recorded_at: '',
     duration_seconds: '',
   });
-  const [enrollForm, setEnrollForm] = useState({ user_id: '', course_id: '', expiry_date: '' });
+  const [enrollForm, setEnrollForm] = useState(() => ({ user_id: '', course_id: '', expiry_date: getDefaultDateInputValue(1) }));
   const [adminForm, setAdminForm] = useState({ name: '', email: '', password: '' });
   const [couponForm, setCouponForm] = useState({
     code: '',
@@ -845,13 +860,6 @@ export default function AdminDashboardPage() {
         setRecipes(data.recipes ?? []);
         setRecipeCategories(cats.categories ?? []);
         setTags(tagData?.tags ?? []);
-      } else if (nextTab === 'imports') {
-        setImportPreviewLoading(true);
-        setImportPreviewError('');
-        const data = await api.admin.imports.loveAndFlourPreview(token, { include_workshop_groups: true, include_recipe_categories: true });
-        setImportPreview(data ?? null);
-        setImportSelectedWorkshopSlugs(new Set());
-        setImportPreviewLoading(false);
       } else if (nextTab === 'sessions') {
         const data = await api.admin.liveSessions.list(token);
         setSessions(data.live_sessions ?? []);
@@ -2221,6 +2229,27 @@ export default function AdminDashboardPage() {
       if (!authToken) throw new Error('Unauthorized');
       const discountValueInr = couponForm.discount_value_inr ? Number(couponForm.discount_value_inr) : null;
       const minOrderInr = couponForm.min_order_total_inr ? Number(couponForm.min_order_total_inr) : null;
+
+      const normalizeDatetime = (value) => {
+        const raw = String(value ?? '').trim();
+        if (!raw) return null;
+        const dt = new Date(raw);
+        if (Number.isNaN(dt.getTime())) {
+          throw new Error('Invalid coupon date/time. Please re-select Starts/Ends.');
+        }
+        return dt.toISOString();
+      };
+
+      if (couponForm.discount_type === 'amount' && !(discountValueInr != null && Number.isFinite(discountValueInr) && discountValueInr > 0)) {
+        throw new Error('Discount value is required for amount coupons.');
+      }
+      if (couponForm.discount_type === 'percent') {
+        const pct = couponForm.discount_percent ? Number(couponForm.discount_percent) : null;
+        if (!(pct != null && Number.isFinite(pct) && pct > 0 && pct <= 100)) {
+          throw new Error('Discount percent must be between 1 and 100.');
+        }
+      }
+
       const payload = {
         code: couponForm.code,
         description: couponForm.description || null,
@@ -2234,8 +2263,8 @@ export default function AdminDashboardPage() {
         max_redemptions: couponForm.max_redemptions ? Number(couponForm.max_redemptions) : null,
         max_redemptions_per_user: couponForm.max_redemptions_per_user ? Number(couponForm.max_redemptions_per_user) : null,
         min_order_total_cents: minOrderInr != null && Number.isFinite(minOrderInr) ? Math.round(minOrderInr * 100) : null,
-        starts_at: couponForm.starts_at || null,
-        ends_at: couponForm.ends_at || null,
+        starts_at: normalizeDatetime(couponForm.starts_at),
+        ends_at: normalizeDatetime(couponForm.ends_at),
         is_active: Boolean(couponForm.is_active),
       };
       if (editingCouponId) {
@@ -2449,7 +2478,7 @@ export default function AdminDashboardPage() {
         expiry_date: enrollForm.expiry_date || null,
       });
       setMessage('Enrollment created.');
-      setEnrollForm({ user_id: '', course_id: '', expiry_date: '' });
+      setEnrollForm({ user_id: '', course_id: '', expiry_date: getDefaultDateInputValue(1) });
       await loadTabData('enrollments');
     } catch (err) {
       setMessage(err?.message ?? 'Failed to enroll user');
@@ -4732,43 +4761,6 @@ export default function AdminDashboardPage() {
                 </div>
               </form>
 
-              <div className="panel" style={{ marginTop: 16 }}>
-                <h4 className="h4">Import from loveandflourbypooja.com</h4>
-                <p className="muted">Imports workshops (title/slug/price/content/image) and workshop categories via the site’s public APIs.</p>
-                <div className="button-row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-                  <button
-                    className="button button-solid"
-                    type="button"
-                    disabled={disabled || importingLoveAndFlour}
-                    onClick={async () => {
-                      if (!token) return;
-                      setImportingLoveAndFlour(true);
-                      setStatus('loading');
-                      setMessage('');
-                      try {
-                        const result = await api.admin.imports.loveAndFlour(token, { dry_run: false });
-                        const [w, cats] = await Promise.all([
-                          api.admin.courses.list(token, { kind: 'workshop' }),
-                          api.admin.categories.list(token),
-                        ]);
-                        setWorkshops(w?.courses ?? []);
-                        setCategories(cats?.categories ?? []);
-                        const wCats = await api.admin.categories.list(token, 'workshop');
-                        setWorkshopCategories(wCats?.categories ?? []);
-                        setMessage(`Imported: ${Number(result?.imported_workshops ?? 0)} workshops · Categories created: ${Number(result?.created_categories ?? 0)}`);
-                      } catch (err) {
-                        setMessage(err?.message ?? 'Import failed');
-                      } finally {
-                        setStatus('idle');
-                        setImportingLoveAndFlour(false);
-                      }
-                    }}
-                  >
-                    {importingLoveAndFlour ? 'Importing…' : 'Import workshops + categories'}
-                  </button>
-                </div>
-              </div>
-
               <h3 className="h3">Workshops</h3>
               <div className="admin-split" style={{ marginBottom: 10 }}>
                 <label className="field">
@@ -4813,187 +4805,6 @@ export default function AdminDashboardPage() {
                   </div>
                 ))}
               </div>
-            </div>
-          ) : null}
-
-          {tab === 'imports' ? (
-            <div className="admin-panel">
-              <h3 className="h3">Import preview (loveandflourbypooja.com)</h3>
-              <p className="muted">Shows what’s missing in your DB, grouped by workshop type and recipe categories.</p>
-
-              {importPreviewError ? <p className="form-error">{importPreviewError}</p> : null}
-              {importPreviewLoading ? <p className="muted">Loading preview…</p> : null}
-
-              <div className="button-row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-                <button
-                  className="button button-ghost"
-                  type="button"
-                  disabled={disabled || importPreviewLoading}
-                  onClick={async () => {
-                    if (!token) return;
-                    setImportPreviewLoading(true);
-                    setImportPreviewError('');
-                    try {
-                      const data = await api.admin.imports.loveAndFlourPreview(token, { include_workshop_groups: true, include_recipe_categories: true });
-                      setImportPreview(data ?? null);
-                      setImportSelectedWorkshopSlugs(new Set());
-                    } catch (err) {
-                      setImportPreviewError(err?.message ?? 'Failed to load preview');
-                    } finally {
-                      setImportPreviewLoading(false);
-                    }
-                  }}
-                >
-                  Refresh preview
-                </button>
-
-                <button
-                  className="button button-solid"
-                  type="button"
-                  disabled={disabled || importPreviewLoading || importSelectedWorkshopSlugs.size === 0}
-                  onClick={async () => {
-                    if (!token) return;
-                    setStatus('loading');
-                    setMessage('');
-                    try {
-                      const slugs = Array.from(importSelectedWorkshopSlugs);
-                      const result = await api.admin.imports.loveAndFlour(token, {
-                        dry_run: false,
-                        import_workshops: true,
-                        import_recipes: false,
-                        limit_workshops: 500,
-                        filter_workshop_slugs: slugs,
-                      });
-                      setMessage(
-                        `Imported workshops: ${Number(result?.imported_workshops ?? 0)} · Created: ${Number(result?.created_workshops ?? 0)} · Updated: ${Number(result?.updated_workshops ?? 0)}`,
-                      );
-                      await loadTabData('workshops');
-                    } catch (err) {
-                      setMessage(err?.message ?? 'Import failed');
-                    } finally {
-                      setStatus('idle');
-                    }
-                  }}
-                >
-                  Import selected workshops ({importSelectedWorkshopSlugs.size})
-                </button>
-              </div>
-
-              {importPreview?.workshop_groups?.length ? (
-                <div className="panel" style={{ marginTop: 14 }}>
-                  <h4 className="h4">Workshop groups</h4>
-                  {(importPreview.workshop_groups ?? []).map((g) => (
-                    <div key={g.key} style={{ marginTop: 14 }}>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
-                        <div>
-                          <strong>{g.label}</strong>
-                          <div className="muted">
-                            {g.missing_on_source ? 'Category not found on source.' : `Missing: ${Number(g.missing_total ?? 0)} / ${Number(g.remote_total ?? 0)}`}
-                          </div>
-                        </div>
-                        <button
-                          className="button button-ghost"
-                          type="button"
-                          disabled={disabled || !Array.isArray(g.missing) || g.missing.length === 0}
-                          onClick={() => {
-                            const slugs = (g.missing ?? []).map((x) => String(x.slug)).filter(Boolean);
-                            setImportSelectedWorkshopSlugs((prev) => {
-                              const next = new Set(prev);
-                              const anyMissing = slugs.some((s) => !next.has(s));
-                              for (const s of slugs) {
-                                if (anyMissing) next.add(s);
-                                else next.delete(s);
-                              }
-                              return next;
-                            });
-                          }}
-                        >
-                          Toggle select all missing
-                        </button>
-                      </div>
-
-                      {Array.isArray(g.missing) && g.missing.length ? (
-                        <div className="admin-table" style={{ marginTop: 10 }}>
-                          <div className="admin-row admin-head">
-                            <div />
-                            <div>Slug</div>
-                            <div>Title</div>
-                          </div>
-                          {g.missing.slice(0, 50).map((p) => (
-                            <div key={p.slug || p.wp_id} className="admin-row">
-                              <div>
-                                <input
-                                  type="checkbox"
-                                  checked={importSelectedWorkshopSlugs.has(String(p.slug))}
-                                  onChange={() => toggleImportWorkshopSlug(p.slug)}
-                                />
-                              </div>
-                              <div>{p.slug}</div>
-                              <div>{p.title}</div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className="muted" style={{ marginTop: 8 }}>Nothing missing in this group.</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-              {importPreview?.recipe_categories?.length ? (
-                <div className="panel" style={{ marginTop: 14 }}>
-                  <h4 className="h4">Recipe categories</h4>
-                  <div className="admin-table" style={{ marginTop: 10 }}>
-                    <div className="admin-row admin-head">
-                      <div>WP ID</div>
-                      <div>Name</div>
-                      <div>Slug</div>
-                      <div>Posts</div>
-                      <div>Missing?</div>
-                    </div>
-                    {(importPreview.recipe_categories ?? []).map((c) => (
-                      <div key={c.wp_id} className="admin-row">
-                        <div>{c.wp_id}</div>
-                        <div>{c.name}</div>
-                        <div>{c.slug}</div>
-                        <div>{c.count}</div>
-                        <div>{c.missing ? 'Yes' : 'No'}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div className="button-row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-                    <button
-                      className="button button-solid"
-                      type="button"
-                      disabled={disabled || importPreviewLoading}
-                      onClick={async () => {
-                        if (!token) return;
-                        setStatus('loading');
-                        setMessage('');
-                        try {
-                          const result = await api.admin.imports.loveAndFlour(token, {
-                            dry_run: false,
-                            import_workshops: false,
-                            import_recipes: true,
-                            limit_recipes: 1000,
-                          });
-                          setMessage(
-                            `Imported recipes: ${Number(result?.imported_recipes ?? 0)} · Categories created: ${Number(result?.created_recipe_categories ?? 0)}`,
-                          );
-                          await loadTabData('recipes');
-                        } catch (err) {
-                          setMessage(err?.message ?? 'Import failed');
-                        } finally {
-                          setStatus('idle');
-                        }
-                      }}
-                    >
-                      Import recipes + categories
-                    </button>
-                  </div>
-                </div>
-              ) : null}
             </div>
           ) : null}
 
@@ -5221,40 +5032,6 @@ export default function AdminDashboardPage() {
                 </div>
               </form>
 
-              <div className="panel" style={{ marginTop: 16 }}>
-                <h4 className="h4">Import from loveandflourbypooja.com</h4>
-                <p className="muted">Imports recipes (title/slug/content/image) and recipe categories via the site’s public WordPress APIs.</p>
-                <div className="button-row" style={{ marginTop: 10, flexWrap: 'wrap' }}>
-                  <button
-                    className="button button-solid"
-                    type="button"
-                    disabled={disabled || importingLoveAndFlourRecipes}
-                    onClick={async () => {
-                      if (!token) return;
-                      setImportingLoveAndFlourRecipes(true);
-                      setStatus('loading');
-                      setMessage('');
-                      try {
-                        const result = await api.admin.imports.loveAndFlour(token, { dry_run: false, import_workshops: false, import_recipes: true });
-                        const [r, cats] = await Promise.all([api.admin.recipes.list(token), api.admin.categories.list(token, 'recipe')]);
-                        setRecipes(r?.recipes ?? []);
-                        setRecipeCategories(cats?.categories ?? []);
-                        setMessage(
-                          `Imported: ${Number(result?.imported_recipes ?? 0)} recipes · Categories created: ${Number(result?.created_recipe_categories ?? 0)}`,
-                        );
-                      } catch (err) {
-                        setMessage(err?.message ?? 'Import failed');
-                      } finally {
-                        setStatus('idle');
-                        setImportingLoveAndFlourRecipes(false);
-                      }
-                    }}
-                  >
-                    {importingLoveAndFlourRecipes ? 'Importing…' : 'Import recipes + categories'}
-                  </button>
-                </div>
-              </div>
-
               <h3 className="h3">Recipes</h3>
               <div className="admin-table">
                 <div className="admin-row admin-head">
@@ -5293,8 +5070,19 @@ export default function AdminDashboardPage() {
                   <input className="input" value={sessionForm.course_id} onChange={(e) => setSessionForm((s) => ({ ...s, course_id: e.target.value }))} required />
                 </label>
                 <label className="field">
-                  <span className="field-label">Scheduled at (ISO datetime)</span>
-                  <input className="input" value={sessionForm.scheduled_at} onChange={(e) => setSessionForm((s) => ({ ...s, scheduled_at: e.target.value }))} placeholder="2026-05-11T18:30:00.000Z" required />
+                  <span className="field-label">Scheduled date</span>
+                  <input
+                    className="input calendar-input"
+                    type="date"
+                    value={formatDateOnlyValue(sessionForm.scheduled_at)}
+                    onChange={(e) =>
+                      setSessionForm((s) => ({
+                        ...s,
+                        scheduled_at: e.target.value ? mergeDateWithTime(e.target.value, s.scheduled_at) : '',
+                      }))
+                    }
+                    required
+                  />
                 </label>
                 <label className="field">
                   <span className="field-label">Zoom meeting id</span>
@@ -5482,7 +5270,7 @@ export default function AdminDashboardPage() {
                 </div>
                 <label className="field">
                   <span className="field-label">Expiry date (YYYY-MM-DD, optional)</span>
-                  <input className="input" value={enrollForm.expiry_date} onChange={(e) => setEnrollForm((s) => ({ ...s, expiry_date: e.target.value }))} placeholder="2027-05-11" />
+                    <input className="input calendar-input" type="date" value={enrollForm.expiry_date} onChange={(e) => setEnrollForm((s) => ({ ...s, expiry_date: e.target.value }))} />
                 </label>
                 <button className="button button-solid" type="submit" disabled={disabled}>{disabled ? 'Saving…' : 'Enroll'}</button>
               </form>
