@@ -822,7 +822,7 @@ export default function AdminDashboardPage() {
         const data = await api.admin.coupons.list(token);
         setCoupons(data?.coupons ?? []);
       } else if (nextTab === 'courses') {
-        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'workshop' }), api.admin.categories.list(token, 'workshop')]);
+        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'workshop' }), api.admin.categories.list(token, 'course')]);
         const list = data?.courses ?? [];
         setCourseCategories(cats?.categories ?? []);
         const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
@@ -1610,11 +1610,9 @@ export default function AdminDashboardPage() {
   }, [workshopCategories]);
 
   const handsOnCategoryId = useMemo(() => {
-    const fromWorkshop = workshopCategoryIdBySlug.get('hands-on-classes');
-    if (fromWorkshop) return fromWorkshop;
     const fromCourse = (courseCategories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
     return fromCourse ? Number(fromCourse) : null;
-  }, [courseCategories, workshopCategoryIdBySlug]);
+  }, [courseCategories]);
 
   const deriveWorkshopBucketSlug = (workshop) => {
     const ids = (workshop?.category_ids ?? []).map((n) => String(n));
