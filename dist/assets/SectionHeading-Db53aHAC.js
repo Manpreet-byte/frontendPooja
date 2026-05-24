@@ -1,1 +1,0 @@
-import{j as e}from"./index-C6SCMmJ4.js";function l({badge:s,title:i,subtitle:n,align:a="center"}){return e.jsxs("div",{className:`section-heading section-heading-${a}`,children:[s?e.jsx("div",{className:"badge",children:s}):null,e.jsx("h2",{className:"h2",children:i}),n?e.jsx("p",{className:"subtitle section-heading-subtitle",children:n}):null]})}export{l as S};

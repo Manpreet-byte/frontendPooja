@@ -1,1 +1,0 @@
-import{j as t}from"./index-C6SCMmJ4.js";import{N as e}from"./NewsletterSection-UT5Woom1.js";import"./SectionHeading-Db53aHAC.js";function i(){return t.jsx("main",{children:t.jsx(e,{})})}export{i as default};
