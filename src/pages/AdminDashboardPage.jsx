@@ -840,8 +840,21 @@ export default function AdminDashboardPage() {
         const list = data?.courses ?? [];
         setCourseCategories(cats?.categories ?? []);
         const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
-        if (handsOnId) setCourses(list.filter((c) => (c?.category_ids ?? []).map((n) => Number(n)).includes(Number(handsOnId))));
-        else setCourses([]);
+        // Show all courses that are categorized as Hands-On classes OR were imported from the external source
+        if (handsOnId) {
+          setCourses(
+            list.filter((c) => {
+              const catIds = (c?.category_ids ?? []).map((n) => Number(n));
+              const hasHandsOn = catIds.includes(Number(handsOnId));
+              const imported = String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id);
+              return hasHandsOn || imported;
+            }),
+          );
+        } else {
+          // No explicit Hands-On category found — fall back to showing any imported items so offline content remains editable
+          setCourses(list.filter((c) => String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id)));
+        }
+      } else if (nextTab === 'workshops') {
       } else if (nextTab === 'workshops') {
         const data = await api.admin.courses.list(token, { kind: 'workshop' });
         setWorkshops(data.courses ?? []);
