@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import SafeImage from '../../SafeImage';
 
-const heroImage = '/heroImage.webp';
+const heroImage = 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634.jpg';
 
 function sentenceCase(text) {
   const value = String(text ?? '').trim();
@@ -20,7 +20,6 @@ export default function HomeHero({ cms }) {
     (cms?.imageUrl != null && String(cms.imageUrl).trim()) ||
     (cms?.hero_image_url != null && String(cms.hero_image_url).trim()) ||
     (cms?.featured_image_url != null && String(cms.featured_image_url).trim()) ||
-    workWithUsImage3 ||
     heroImage;
   const primaryLabel = cms?.primary_cta_label ?? 'Explore All Courses';
   const primaryHref = cms?.primary_cta_href ?? '/courses';

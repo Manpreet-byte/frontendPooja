@@ -36,6 +36,16 @@ function mergePreferPrimary(primary, fallback) {
     if (base[key] !== undefined) merged[key] = base[key];
   }
 
+  // Taxonomies are nested objects; preserve fallback taxonomy arrays when primary arrays are empty.
+  if (base.taxonomies && over.taxonomies && typeof base.taxonomies === 'object' && typeof over.taxonomies === 'object') {
+    const nextTaxonomies = { ...base.taxonomies, ...over.taxonomies };
+    for (const [taxKey, overValue] of Object.entries(over.taxonomies)) {
+      if (!isEmptyValue(overValue)) continue;
+      if (base.taxonomies[taxKey] !== undefined) nextTaxonomies[taxKey] = base.taxonomies[taxKey];
+    }
+    merged.taxonomies = nextTaxonomies;
+  }
+
   // Normalize common content fields even if primary never had them.
   if (isEmptyValue(merged.contentHtml) && !isEmptyValue(base.contentHtml)) merged.contentHtml = base.contentHtml;
   if (isEmptyValue(merged.excerptHtml) && !isEmptyValue(base.excerptHtml)) merged.excerptHtml = base.excerptHtml;
