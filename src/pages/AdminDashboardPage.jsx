@@ -59,6 +59,84 @@ function parseJsonMaybe(value) {
   }
 }
 
+async function loadOfflineSeededContent() {
+  try {
+    const mod = await import('../data/seededContent');
+    return {
+      offlineWorkshops: Array.isArray(mod?.courses) ? mod.courses : [],
+      offlineRecipes: Array.isArray(mod?.posts) ? mod.posts : [],
+    };
+  } catch {
+    return { offlineWorkshops: [], offlineRecipes: [] };
+  }
+}
+
+function normalizeOfflineWorkshop(course) {
+  const slug = String(course?.slug ?? '').trim();
+  const sourceExternalId = course?.id != null ? String(course.id) : '';
+  return {
+    __offline: true,
+    id: `offline-workshop:${slug || sourceExternalId || String(Math.random()).slice(2)}`,
+    source: 'offline-seed',
+    source_external_id: sourceExternalId || null,
+    slug: slug || null,
+    title: course?.title ?? 'Untitled workshop',
+    summary: course?.excerptHtml ?? null,
+    content: course?.contentHtml ?? null,
+    featured_image_url: course?.featuredImage ?? null,
+    currency: 'INR',
+    amount_cents: course?.priceInr ? Number(course.priceInr) * 100 : null,
+    compare_at_amount_cents: course?.compareAtPriceInr ? Number(course.compareAtPriceInr) * 100 : null,
+    sale_amount_cents: null,
+    sale_starts_at: null,
+    sale_ends_at: null,
+    category_ids: [],
+    publish_at: null,
+    qa_enabled: true,
+    is_published: true,
+  };
+}
+
+function normalizeOfflineRecipe(post) {
+  const slug = String(post?.slug ?? '').trim();
+  const sourceExternalId = post?.id != null ? String(post.id) : '';
+  return {
+    __offline: true,
+    id: `offline-recipe:${slug || sourceExternalId || String(Math.random()).slice(2)}`,
+    source: 'offline-seed',
+    source_external_id: sourceExternalId || null,
+    slug: slug || null,
+    title: post?.title ?? 'Untitled recipe',
+    summary: post?.excerptHtml ?? null,
+    content: post?.contentHtml ?? null,
+    featured_image_url: post?.featuredImage ?? null,
+    category_ids: [],
+    tag_ids: [],
+    publish_at: null,
+    is_published: true,
+  };
+}
+
+function mergeBySlugOrExternalId({ online = [], offline = [] } = {}) {
+  const seen = new Set();
+  const takeKey = (item) => {
+    const slug = String(item?.slug ?? '').trim().toLowerCase();
+    if (slug) return `slug:${slug}`;
+    const ext = String(item?.source_external_id ?? '').trim();
+    if (ext) return `ext:${ext}`;
+    return `id:${String(item?.id ?? '')}`;
+  };
+  for (const item of online) seen.add(takeKey(item));
+  const merged = [...online];
+  for (const item of offline) {
+    const key = takeKey(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(item);
+  }
+  return merged;
+}
+
 const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'orders', label: 'Orders' },
@@ -831,21 +909,29 @@ export default function AdminDashboardPage() {
 	          // No explicit Hands-On category found — show all courses so offline content remains editable
 	          setCourses(list);
 	        }
-		      } else if (nextTab === 'workshops') {
-		        const data = await api.admin.courses.list(token, { kind: 'workshop' });
-		        setWorkshops(data.courses ?? []);
-		        const cats = await api.admin.categories.list(token, 'workshop');
-		        setWorkshopCategories(cats.categories ?? []);
+	      } else if (nextTab === 'workshops') {
+	        const [data, cats, offline] = await Promise.all([
+	          api.admin.courses.list(token, { kind: 'workshop' }),
+	          api.admin.categories.list(token, 'workshop'),
+	          loadOfflineSeededContent(),
+	        ]);
+	        const onlineWorkshops = data?.courses ?? [];
+	        const offlineWorkshops = (offline?.offlineWorkshops ?? []).map(normalizeOfflineWorkshop);
+	        setWorkshops(mergeBySlugOrExternalId({ online: onlineWorkshops, offline: offlineWorkshops }));
+	        setWorkshopCategories(cats?.categories ?? []);
 	      } else if (nextTab === 'recipes') {
-	        const [data, cats, tagData] = await Promise.all([
+	        const [data, cats, tagData, offline] = await Promise.all([
 	          api.admin.recipes.list(token),
 	          api.admin.categories.list(token, 'recipe'),
-          api.admin.tags.list(token, { type: 'recipe' }),
-        ]);
-        setRecipes(data.recipes ?? []);
-        setRecipeCategories(cats.categories ?? []);
-        setTags(tagData?.tags ?? []);
-      } else if (nextTab === 'sessions') {
+	          api.admin.tags.list(token, { type: 'recipe' }),
+	          loadOfflineSeededContent(),
+	        ]);
+	        const onlineRecipes = data?.recipes ?? [];
+	        const offlineRecipes = (offline?.offlineRecipes ?? []).map(normalizeOfflineRecipe);
+	        setRecipes(mergeBySlugOrExternalId({ online: onlineRecipes, offline: offlineRecipes }));
+	        setRecipeCategories(cats.categories ?? []);
+	        setTags(tagData?.tags ?? []);
+	      } else if (nextTab === 'sessions') {
         const data = await api.admin.liveSessions.list(token);
         setSessions(data.live_sessions ?? []);
       } else if (nextTab === 'recordings') {
@@ -1808,13 +1894,18 @@ export default function AdminDashboardPage() {
     }));
   };
 
-  const beginWorkshopEdit = (workshop) => {
-    setEditingWorkshopId(workshop.id);
-    setWorkshopForm({
-      title: workshop.title ?? '',
-      summary: workshop.summary ?? '',
-      content: workshop.content ?? '',
-      featured_image_url: workshop.featured_image_url ?? '',
+	  const beginWorkshopEdit = (workshop) => {
+	    if (workshop?.__offline) {
+	      setEditingWorkshopId(null);
+	      setMessage('Offline workshop loaded. Saving will create a new workshop record.');
+	    } else {
+	      setEditingWorkshopId(workshop.id);
+	    }
+	    setWorkshopForm({
+	      title: workshop.title ?? '',
+	      summary: workshop.summary ?? '',
+	      content: workshop.content ?? '',
+	      featured_image_url: workshop.featured_image_url ?? '',
       currency: String(workshop.currency ?? 'INR').trim().toUpperCase(),
       price_inr: workshop.amount_cents ? String(Math.round(workshop.amount_cents / 100)) : '',
       compare_at_inr: workshop.compare_at_amount_cents ? String(Math.round(workshop.compare_at_amount_cents / 100)) : '',
@@ -1826,11 +1917,11 @@ export default function AdminDashboardPage() {
       zoom_meeting_id: '',
       zoom_join_url: '',
       publish_at: workshop.publish_at ? String(workshop.publish_at) : '',
-      qa_enabled: workshop.qa_enabled == null ? true : Boolean(workshop.qa_enabled),
-      is_published: Boolean(workshop.is_published),
-    });
-    setTab('workshops');
-  };
+	      qa_enabled: workshop.qa_enabled == null ? true : Boolean(workshop.qa_enabled),
+	      is_published: Boolean(workshop.is_published),
+	    });
+	    setTab('workshops');
+	  };
 
   const cancelWorkshopEdit = () => {
     setEditingWorkshopId(null);
@@ -2014,12 +2105,17 @@ export default function AdminDashboardPage() {
     }
   };
 
-  const beginRecipeEdit = (recipe) => {
-    setEditingRecipeId(recipe.id);
-    const ids = (recipe?.category_ids ?? recipe?.categories ?? [])
-      .map((c) => (typeof c === 'number' ? c : c?.id))
-      .filter(Boolean)
-      .map((n) => String(n));
+	  const beginRecipeEdit = (recipe) => {
+	    if (recipe?.__offline) {
+	      setEditingRecipeId(null);
+	      setMessage('Offline recipe loaded. Saving will create a new recipe record.');
+	    } else {
+	      setEditingRecipeId(recipe.id);
+	    }
+	    const ids = (recipe?.category_ids ?? recipe?.categories ?? [])
+	      .map((c) => (typeof c === 'number' ? c : c?.id))
+	      .filter(Boolean)
+	      .map((n) => String(n));
     setRecipeForm({
       title: recipe.title ?? '',
       summary: recipe.summary ?? '',
@@ -4713,22 +4809,27 @@ export default function AdminDashboardPage() {
                   <div>Published</div>
                   <div />
                 </div>
-                {filteredWorkshops.map((w) => (
-                  <div key={w.id} className="admin-row">
-                    <div>{w.id}</div>
-                    <div>{w.title}</div>
-                    <div>{w.amount_cents ? `${w.currency} ${(w.amount_cents / 100).toFixed(0)}` : '—'}</div>
-                    <div>{w.is_published ? 'Yes' : 'No'}</div>
-                    <div>
-                      <button className="button" type="button" onClick={() => beginWorkshopEdit(w)} disabled={disabled}>
-                        Edit
-                      </button>
-                      <button className="button button-solid admin-danger" type="button" onClick={() => removeWorkshop(w.id)} disabled={disabled}>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+	                {filteredWorkshops.map((w) => (
+	                  <div key={w.id} className="admin-row">
+	                    <div>{w.id}</div>
+	                    <div>{w.title}</div>
+	                    <div>{w.amount_cents ? `${w.currency} ${(w.amount_cents / 100).toFixed(0)}` : '—'}</div>
+	                    <div>{w.is_published ? 'Yes' : 'No'}</div>
+	                    <div>
+	                      <button className="button" type="button" onClick={() => beginWorkshopEdit(w)} disabled={disabled}>
+	                        Edit
+	                      </button>
+	                      <button
+	                        className="button button-solid admin-danger"
+	                        type="button"
+	                        onClick={() => removeWorkshop(w.id)}
+	                        disabled={disabled || Boolean(w.__offline)}
+	                      >
+	                        Delete
+	                      </button>
+	                    </div>
+	                  </div>
+	                ))}
               </div>
             </div>
           ) : null}
@@ -4966,22 +5067,22 @@ export default function AdminDashboardPage() {
                   <div>Published</div>
                   <div />
                 </div>
-                {recipes.map((r) => (
-                  <div key={r.id} className="admin-row">
-                    <div>{r.id}</div>
-                    <div>{r.title}</div>
-                    <div>{r.slug}</div>
-                    <div>{r.is_published ? 'Yes' : 'No'}</div>
-                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                      <button className="button" type="button" onClick={() => beginRecipeEdit(r)} disabled={disabled}>
-                        Edit
-                      </button>
-                      <button className="button" type="button" onClick={() => deleteRecipe(r.id)} disabled={disabled}>
-                        Delete
-                      </button>
-                    </div>
-                  </div>
-                ))}
+	                {recipes.map((r) => (
+	                  <div key={r.id} className="admin-row">
+	                    <div>{r.id}</div>
+	                    <div>{r.title}</div>
+	                    <div>{r.slug}</div>
+	                    <div>{r.is_published ? 'Yes' : 'No'}</div>
+	                    <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
+	                      <button className="button" type="button" onClick={() => beginRecipeEdit(r)} disabled={disabled}>
+	                        Edit
+	                      </button>
+	                      <button className="button" type="button" onClick={() => deleteRecipe(r.id)} disabled={disabled || Boolean(r.__offline)}>
+	                        Delete
+	                      </button>
+	                    </div>
+	                  </div>
+	                ))}
               </div>
             </div>
           ) : null}
