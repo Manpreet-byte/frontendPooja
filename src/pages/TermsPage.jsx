@@ -1,8 +1,14 @@
 import React from 'react';
+import PublicLegalPage from '../components/PublicLegalPage';
 
 export default function TermsPage() {
   return (
-    <main className="section page-60 page-legal page-typography">
+    <PublicLegalPage
+      slug="terms-and-conditions"
+      defaultTitle="Terms & Conditions"
+      pageClassName="page-60 page-legal page-typography"
+    >
+      <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Terms &amp; Conditions</h1>
         <p>Effective Date: 30 August 2025</p>
@@ -87,5 +93,6 @@ export default function TermsPage() {
         </p>
       </div>
     </main>
+    </PublicLegalPage>
   );
 }

@@ -2,6 +2,8 @@ import { Link } from 'react-router-dom';
 import SafeImage from '../../SafeImage';
 
 const heroImage = 'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_5634.jpg';
+// Back-compat: some builds referenced this name; keep defined to avoid runtime ReferenceError.
+const workWithUsImage3 = heroImage;
 
 function sentenceCase(text) {
   const value = String(text ?? '').trim();

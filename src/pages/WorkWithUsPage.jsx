@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import SafeImage from '../components/SafeImage';
+import { api } from '../api/client';
 import usePageTitle from '../utils/usePageTitle';
+import usePageSeo from '../utils/usePageSeo';
 
 const galleryImages = [
   {
@@ -43,18 +45,45 @@ const galleryImages = [
 
 export default function WorkWithUsPage() {
   usePageTitle('Work With Us · Love & Flour');
+  usePageSeo('work-with-us', 'Work With Us · Love & Flour');
   const [activeSlide, setActiveSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [remoteImages, setRemoteImages] = useState([]);
 
   useEffect(() => {
-    if (galleryImages.length < 2 || isHovered) return undefined;
+    let active = true;
+    api.public.gallery
+      .list()
+      .then((data) => {
+        if (!active) return;
+        const items = (data?.gallery ?? [])
+          .filter((item) => String(item?.image_url ?? '').trim())
+          .map((item, index) => ({
+            src: String(item.image_url).trim(),
+            alt: String(item.alt_text ?? item.caption ?? `Gallery image ${index + 1}`),
+          }));
+        setRemoteImages(items);
+      })
+      .catch(() => {
+        if (active) setRemoteImages([]);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const images = remoteImages.length ? remoteImages : galleryImages;
+
+  useEffect(() => {
+    if (images.length < 2 || isHovered) return undefined;
     const timer = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % galleryImages.length);
+      setActiveSlide((current) => (current + 1) % images.length);
     }, 4200);
     return () => window.clearInterval(timer);
-  }, [isHovered]);
+  }, [images.length, isHovered]);
 
-  const activeImage = useMemo(() => galleryImages[activeSlide] ?? galleryImages[0], [activeSlide]);
+  const activeImage = useMemo(() => images[activeSlide] ?? images[0], [activeSlide, images]);
 
   return (
     <main className="section page-white page-60 page-work-with-us page-legal page-typography">
@@ -152,7 +181,7 @@ export default function WorkWithUsPage() {
                   <button
                     type="button"
                     className="story-carousel-arrow"
-                    onClick={() => setActiveSlide((current) => (current - 1 + galleryImages.length) % galleryImages.length)}
+                    onClick={() => setActiveSlide((current) => (current - 1 + images.length) % images.length)}
                     aria-label="Previous image"
                   >
                     ‹
@@ -160,7 +189,7 @@ export default function WorkWithUsPage() {
                   <button
                     type="button"
                     className="story-carousel-arrow"
-                    onClick={() => setActiveSlide((current) => (current + 1) % galleryImages.length)}
+                    onClick={() => setActiveSlide((current) => (current + 1) % images.length)}
                     aria-label="Next image"
                   >
                     ›
@@ -169,7 +198,7 @@ export default function WorkWithUsPage() {
               </div>
               <div className="story-carousel-controls">
                 <div className="story-carousel-dots" aria-label="Gallery navigation">
-                  {galleryImages.map((image, index) => (
+                  {images.map((image, index) => (
                     <button
                       key={image.src}
                       type="button"

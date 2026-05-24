@@ -1,8 +1,14 @@
 import React from 'react';
+import PublicLegalPage from '../components/PublicLegalPage';
 
 export default function CancellationPage() {
   return (
-    <main className="section page-60 page-legal page-typography">
+    <PublicLegalPage
+      slug="cancellation-refund-policy"
+      defaultTitle="Cancellation & Refund Policy"
+      pageClassName="page-60 page-legal page-typography"
+    >
+      <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Cancellation &amp; Refund Policy</h1>
 
@@ -57,5 +63,6 @@ export default function CancellationPage() {
         </p>
       </div>
     </main>
+    </PublicLegalPage>
   );
 }

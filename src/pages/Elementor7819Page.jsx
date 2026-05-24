@@ -1,8 +1,10 @@
 import SafeImage from '../components/SafeImage';
 import usePageTitle from '../utils/usePageTitle';
+import usePageSeo from '../utils/usePageSeo';
 
 export default function Elementor7819Page() {
   usePageTitle("From Passion to Purpose: Pooja's Journey · Love & Flour");
+  usePageSeo('elementor-7819', "From Passion to Purpose: Pooja's Journey · Love & Flour");
 
   return (
     <main className="section page-white page-60 page-story page-legal page-typography">

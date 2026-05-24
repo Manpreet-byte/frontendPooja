@@ -12,6 +12,15 @@ function initialsFromName(name) {
   return (parts.map((part) => part[0]?.toUpperCase()).join('') || 'S').slice(0, 2);
 }
 
+function normalizeTestimonial(item, index) {
+  return {
+    id: item?.id ?? `cms-${index}`,
+    quote: item?.testimonial_text ?? item?.quote ?? '',
+    student_name: item?.student_name ?? item?.name ?? '',
+    avatar_url: item?.avatar_url ?? '',
+  };
+}
+
 export default function TestimonialsSection({ cms }) {
   const [remote, setRemote] = useState(null);
   const fallback = useMemo(() => (homeTestimonials ?? []).filter(Boolean).slice(0, 8), []);
@@ -30,12 +39,7 @@ export default function TestimonialsSection({ cms }) {
       .list()
       .then((data) => {
         if (!active) return;
-        const list = (data?.testimonials ?? []).map((t) => ({
-          id: t.id,
-          quote: t.testimonial_text,
-          student_name: t.student_name,
-          avatar_url: t.avatar_url,
-        }));
+        const list = (data?.testimonials ?? []).map(normalizeTestimonial);
         setRemote(list);
       })
       .catch(() => {

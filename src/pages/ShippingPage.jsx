@@ -1,8 +1,14 @@
 import React from 'react';
+import PublicLegalPage from '../components/PublicLegalPage';
 
 export default function ShippingPage() {
   return (
-    <main className="section page-60 page-legal page-typography">
+    <PublicLegalPage
+      slug="shipping-delivery-policy"
+      defaultTitle="Shipping & Delivery Policy"
+      pageClassName="page-60 page-legal page-typography"
+    >
+      <main className="section page-60 page-legal page-typography">
       <div className="container">
         <h1>Shipping &amp; Delivery Policy</h1>
         <p>
@@ -40,5 +46,6 @@ export default function ShippingPage() {
         </p>
       </div>
     </main>
+    </PublicLegalPage>
   );
 }

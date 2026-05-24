@@ -1,8 +1,14 @@
 import React from 'react';
+import PublicLegalPage from '../components/PublicLegalPage';
 
 export default function PrivacyPage() {
   return (
-    <main className="section page-60 page-legal page-privacy page-typography">
+    <PublicLegalPage
+      slug="privacy-policy"
+      defaultTitle="Privacy Policy"
+      pageClassName="page-60 page-legal page-privacy page-typography"
+    >
+      <main className="section page-60 page-legal page-privacy page-typography">
       <div className="container">
         <h1>Privacy Policy</h1>
 
@@ -373,5 +379,6 @@ export default function PrivacyPage() {
         <p>By email: tech.loveandflourbypooja@gmail.com</p>
       </div>
     </main>
+    </PublicLegalPage>
   );
 }

@@ -12,10 +12,12 @@ import NewsletterSection from '../components/sections/NewsletterSection';
 import { useEffect, useState } from 'react';
 import { api } from '../api/client';
 import usePageTitle from '../utils/usePageTitle';
+import usePageSeo from '../utils/usePageSeo';
 
 export default function HomePage() {
   const [cms, setCms] = useState(null);
   usePageTitle('Love & Flour by Pooja');
+  usePageSeo('home', 'Love & Flour by Pooja');
 
   useEffect(() => {
     let active = true;

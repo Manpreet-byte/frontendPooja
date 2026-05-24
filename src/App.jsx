@@ -6,6 +6,7 @@ import { Navigate, Route, Routes } from 'react-router-dom';
 import { useLocation } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
 import { api } from './api/client';
+import AnnouncementBar from './components/AnnouncementBar';
 
 const HomePage = lazy(() => import('./pages/HomePage'));
 const CoursesPage = lazy(() => import('./pages/CoursesPage'));
@@ -180,6 +181,7 @@ export default function App() {
         Skip to content
       </a>
       <SiteHeader onCartClick={() => setCartOpen(true)} />
+      <AnnouncementBar />
       <div id="content" tabIndex={-1}>
         <Suspense
           fallback={
