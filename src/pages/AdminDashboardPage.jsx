@@ -65,7 +65,6 @@ const tabs = [
   { id: 'coupons', label: 'Coupons' },
   { id: 'courses', label: 'Hands-On Classes' },
   { id: 'workshops', label: 'Workshops' },
-  { id: 'categories', label: 'Categories' },
   { id: 'recipes', label: 'Recipes' },
   { id: 'sessions', label: 'Live Sessions' },
   { id: 'recordings', label: 'Recordings' },
@@ -75,7 +74,6 @@ const tabs = [
   { id: 'instructors', label: 'Instructors' },
   { id: 'discount_rules', label: 'Discount Rules' },
   { id: 'notifications', label: 'Notifications' },
-  { id: 'content', label: 'Content & Media' },
   { id: 'reports', label: 'Reports' },
   { id: 'settings', label: 'Site Settings' },
   { id: 'admins', label: 'Admins' },
@@ -96,27 +94,6 @@ function formatMoney(cents, currency = 'INR') {
   } catch {
     return `${currency} ${amount.toFixed(2)}`;
   }
-}
-
-function isoToDatetimeLocal(value) {
-  const iso = String(value ?? '').trim();
-  if (!iso) return '';
-  const dt = new Date(iso);
-  if (Number.isNaN(dt.getTime())) return '';
-  const yyyy = String(dt.getFullYear()).padStart(4, '0');
-  const mm = String(dt.getMonth() + 1).padStart(2, '0');
-  const dd = String(dt.getDate()).padStart(2, '0');
-  const hh = String(dt.getHours()).padStart(2, '0');
-  const min = String(dt.getMinutes()).padStart(2, '0');
-  return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-}
-
-function datetimeLocalToIso(value) {
-  const raw = String(value ?? '').trim();
-  if (!raw) return '';
-  const dt = new Date(raw);
-  if (Number.isNaN(dt.getTime())) return '';
-  return dt.toISOString();
 }
 
 export default function AdminDashboardPage() {
@@ -835,38 +812,34 @@ export default function AdminDashboardPage() {
       } else if (nextTab === 'coupons') {
         const data = await api.admin.coupons.list(token);
         setCoupons(data?.coupons ?? []);
-      } else if (nextTab === 'courses') {
-        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'workshop' }), api.admin.categories.list(token, 'course')]);
-        const list = data?.courses ?? [];
-        setCourseCategories(cats?.categories ?? []);
-        const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
-        // Show all courses that are categorized as Hands-On classes OR were imported from the external source
-        if (handsOnId) {
+	      } else if (nextTab === 'courses') {
+	        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'course' }), api.admin.categories.list(token, 'course')]);
+	        const list = data?.courses ?? [];
+	        setCourseCategories(cats?.categories ?? []);
+	        const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
+	        // Show all courses that are categorized as Hands-On classes OR were imported from the external source
+	        if (handsOnId) {
           setCourses(
             list.filter((c) => {
               const catIds = (c?.category_ids ?? []).map((n) => Number(n));
               const hasHandsOn = catIds.includes(Number(handsOnId));
               const imported = String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id);
               return hasHandsOn || imported;
-            }),
-          );
-        } else {
-          // No explicit Hands-On category found — fall back to showing any imported items so offline content remains editable
-          setCourses(list.filter((c) => String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id)));
-        }
-      } else if (nextTab === 'workshops') {
-      } else if (nextTab === 'workshops') {
-        const data = await api.admin.courses.list(token, { kind: 'workshop' });
-        setWorkshops(data.courses ?? []);
-        const cats = await api.admin.categories.list(token, 'workshop');
-        setWorkshopCategories(cats.categories ?? []);
-      } else if (nextTab === 'categories') {
-        const data = await api.admin.categories.list(token);
-        setCategories(data.categories ?? []);
-      } else if (nextTab === 'recipes') {
-        const [data, cats, tagData] = await Promise.all([
-          api.admin.recipes.list(token),
-          api.admin.categories.list(token, 'recipe'),
+	            }),
+	          );
+	        } else {
+	          // No explicit Hands-On category found — show all courses so offline content remains editable
+	          setCourses(list);
+	        }
+		      } else if (nextTab === 'workshops') {
+		        const data = await api.admin.courses.list(token, { kind: 'workshop' });
+		        setWorkshops(data.courses ?? []);
+		        const cats = await api.admin.categories.list(token, 'workshop');
+		        setWorkshopCategories(cats.categories ?? []);
+	      } else if (nextTab === 'recipes') {
+	        const [data, cats, tagData] = await Promise.all([
+	          api.admin.recipes.list(token),
+	          api.admin.categories.list(token, 'recipe'),
           api.admin.tags.list(token, { type: 'recipe' }),
         ]);
         setRecipes(data.recipes ?? []);
@@ -934,75 +907,21 @@ export default function AdminDashboardPage() {
           gst_number: s.gst_number ?? prev.gst_number,
           currency: s.currency ?? prev.currency,
           maintenance_mode: s.maintenance_mode ?? prev.maintenance_mode,
-        }));
-        const cfg = rp?.config ?? {};
-        setRazorpayConfig((prev) => ({ ...prev, ...cfg }));
-        setRazorpayForm((prev) => ({ ...prev, mode: cfg.mode ?? prev.mode }));
-      } else if (nextTab === 'content') {
-        setCmsStatus('loading');
-        setCmsError('');
-        const [hp, about, t, f, a, g, subs] = await Promise.all([
-          api.admin.cms.getHomepage(token),
-          api.admin.cms.getAbout(token),
-          api.admin.cms.testimonials.list(token),
-          api.admin.cms.faqs.list(token),
-          api.admin.cms.announcements.list(token),
-          api.admin.cms.gallery.list(token),
-          api.admin.cms.newsletter.subscribers(token),
-        ]);
-
-        const homepageContent = parseJsonMaybe(hp?.homepage?.content) ?? (hp?.homepage?.content ?? null);
-        const hero = homepageContent?.hero ?? {};
-        setHomepageForm((s) => ({
-          ...s,
-          title: hp?.homepage?.title ?? s.title,
-          hero_badge: hero?.badge ?? '',
-          hero_title: hero?.title ?? '',
-          hero_subtitle: hero?.subtitle ?? '',
-          hero_image_url: hero?.image_url ?? '',
-          hero_primary_cta_label: hero?.primary_cta_label ?? '',
-          hero_primary_cta_href: hero?.primary_cta_href ?? '',
-          hero_secondary_cta_label: hero?.secondary_cta_label ?? '',
-          hero_secondary_cta_href: hero?.secondary_cta_href ?? '',
-          is_published: hp?.homepage?.is_published ?? true,
-        }));
-
-        const aboutRow = about?.about ?? null;
-        const aboutContent = parseJsonMaybe(aboutRow?.content) ?? (aboutRow?.content ?? null);
-        setAboutCmsForm((s) => ({
-          ...s,
-          title: aboutRow?.title ?? s.title,
-          featured_image_url: aboutContent?.featured_image_url ?? '',
-          content_html: aboutRow?.content_html ?? '',
-          is_published: aboutRow?.is_published ?? true,
-        }));
-
-        setCmsMeta({
-          homepage_updated_at: hp?.homepage?.updated_at ?? null,
-          about_updated_at: aboutRow?.updated_at ?? null,
-        });
-
-        setCmsTestimonials(t?.testimonials ?? []);
-        setCmsFaqs(f?.faqs ?? []);
-        setCmsAnnouncements(a?.announcements ?? []);
-        setCmsGallery(g?.gallery ?? []);
-        setNewsletterSubscribers(subs?.subscribers ?? []);
-        setCmsStatus('idle');
-      }
-    } catch (err) {
-      setMessage(err?.message ?? 'Failed');
-      if (nextTab === 'overview') {
-        setOverviewStatus('error');
-        setOverviewError(err?.message ?? 'Failed to load analytics');
-      }
-      if (nextTab === 'content') {
-        setCmsStatus('error');
-        setCmsError(err?.message ?? 'Failed to load content module');
-      }
-    } finally {
-      setStatus('idle');
-    }
-  };
+	        }));
+	        const cfg = rp?.config ?? {};
+	        setRazorpayConfig((prev) => ({ ...prev, ...cfg }));
+	        setRazorpayForm((prev) => ({ ...prev, mode: cfg.mode ?? prev.mode }));
+	      }
+	    } catch (err) {
+	      setMessage(err?.message ?? 'Failed');
+	      if (nextTab === 'overview') {
+	        setOverviewStatus('error');
+	        setOverviewError(err?.message ?? 'Failed to load analytics');
+	      }
+	    } finally {
+	      setStatus('idle');
+	    }
+	  };
 
   const onTab = async (next) => {
     const nextId = String(next ?? '');
@@ -3466,7 +3385,7 @@ export default function AdminDashboardPage() {
             </div>
           ) : null}
 
-          {tab === 'content' ? (
+          {false ? (
             <div className="admin-panel">
               <h3 className="h3">Content & media management</h3>
               {cmsError ? <p className="form-error">{cmsError}</p> : null}
@@ -4415,28 +4334,24 @@ export default function AdminDashboardPage() {
                     <input className="input" value={courseForm.sale_price_inr} onChange={(e) => setCourseForm((s) => ({ ...s, sale_price_inr: e.target.value }))} placeholder="899" />
                   </label>
                 </div>
-                <div className="admin-split">
-                  <label className="field">
-                    <span className="field-label">Sale starts (date &amp; time, optional)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(courseForm.sale_starts_at)}
-                      onChange={(e) => setCourseForm((s) => ({ ...s, sale_starts_at: datetimeLocalToIso(e.target.value) }))}
-                    />
-                  </label>
-                  <label className="field">
-                    <span className="field-label">Sale ends (date &amp; time, optional)</span>
-                    <input
-                      className="input"
-                      type="datetime-local"
-                      step="60"
-                      value={isoToDatetimeLocal(courseForm.sale_ends_at)}
-                      onChange={(e) => setCourseForm((s) => ({ ...s, sale_ends_at: datetimeLocalToIso(e.target.value) }))}
-                    />
-                  </label>
-                </div>
+	                <div className="admin-split">
+	                  <label className="field">
+	                    <span className="field-label">Sale starts (date &amp; time, optional)</span>
+	                    <DateTimePicker
+	                      value={courseForm.sale_starts_at}
+	                      onChange={(next) => setCourseForm((s) => ({ ...s, sale_starts_at: next }))}
+	                      disabled={disabled}
+	                    />
+	                  </label>
+	                  <label className="field">
+	                    <span className="field-label">Sale ends (date &amp; time, optional)</span>
+	                    <DateTimePicker
+	                      value={courseForm.sale_ends_at}
+	                      onChange={(next) => setCourseForm((s) => ({ ...s, sale_ends_at: next }))}
+	                      disabled={disabled}
+	                    />
+	                  </label>
+	                </div>
                 <label className="field">
                   <span className="field-label">Image URL</span>
                   <input className="input" value={courseForm.featured_image_url} onChange={(e) => setCourseForm((s) => ({ ...s, featured_image_url: e.target.value }))} placeholder="https://..." />
@@ -4445,16 +4360,14 @@ export default function AdminDashboardPage() {
                   <input type="checkbox" checked={courseForm.is_published} onChange={(e) => setCourseForm((s) => ({ ...s, is_published: e.target.checked }))} />
                   <span className="field-label">Publish on save</span>
                 </label>
-                <label className="field">
-                  <span className="field-label">Schedule publish at (date &amp; time, optional)</span>
-                  <input
-                    className="input"
-                    type="datetime-local"
-                    step="60"
-                    value={isoToDatetimeLocal(courseForm.publish_at)}
-                    onChange={(e) => setCourseForm((s) => ({ ...s, publish_at: datetimeLocalToIso(e.target.value) }))}
-                  />
-                </label>
+	                <label className="field">
+	                  <span className="field-label">Schedule publish at (date &amp; time, optional)</span>
+	                  <DateTimePicker
+	                    value={courseForm.publish_at}
+	                    onChange={(next) => setCourseForm((s) => ({ ...s, publish_at: next }))}
+	                    disabled={disabled}
+	                  />
+	                </label>
                 <label className="field field-inline">
                   <input type="checkbox" checked={courseForm.qa_enabled} onChange={(e) => setCourseForm((s) => ({ ...s, qa_enabled: e.target.checked }))} />
                   <span className="field-label">Enable Q&amp;A for this class</span>
@@ -4820,7 +4733,7 @@ export default function AdminDashboardPage() {
             </div>
           ) : null}
 
-          {tab === 'categories' ? (
+          {false ? (
             <div className="admin-panel">
               <h3 className="h3">Add category</h3>
               <form className="contact-form" onSubmit={submitCategory}>
