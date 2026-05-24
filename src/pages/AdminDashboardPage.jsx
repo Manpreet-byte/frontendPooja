@@ -1763,7 +1763,10 @@ export default function AdminDashboardPage() {
 
   const submitWorkshop = async (e) => {
     e.preventDefault();
-    if (!token) return;
+    if (!token) {
+      setMessage('Unauthorized. Please sign in as an admin to create workshops.');
+      return;
+    }
     setStatus('loading');
     setMessage('');
     try {
@@ -4496,6 +4499,46 @@ export default function AdminDashboardPage() {
                       </option>
                     ))}
                   </select>
+                  {(!workshopCategories || workshopCategories.length === 0) ? (
+                    <div style={{ marginTop: 8 }}>
+                      <p className="muted">No workshop categories found.</p>
+                      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="button button-ghost"
+                          disabled={!token || status === 'loading'}
+                          onClick={async () => {
+                            if (!token) return setMessage('Unauthorized. Please sign in as an admin.');
+                            setStatus('loading');
+                            setMessage('Creating default workshop categories...');
+                            try {
+                              const defaults = [
+                                { type: 'workshop', name: 'Upcoming Live Workshops', slug: 'upcoming-live-workshops' },
+                                { type: 'workshop', name: 'Recorded Live Workshops', slug: 'recorded-live-workshop' },
+                                { type: 'workshop', name: 'E-Books', slug: 'e-book' },
+                              ];
+                              for (const d of defaults) {
+                                try {
+                                  await api.admin.categories.create(token, d);
+                                } catch (err) {
+                                  // ignore individual failures
+                                }
+                              }
+                              const fresh = await api.admin.categories.list(token, 'workshop');
+                              setWorkshopCategories(fresh?.categories ?? []);
+                              setMessage('Default workshop categories created.');
+                            } catch (err) {
+                              setMessage(err?.message ?? 'Failed to create default categories');
+                            } finally {
+                              setStatus('idle');
+                            }
+                          }}
+                        >
+                          Create default categories
+                        </button>
+                      </div>
+                    </div>
+                  ) : null}
                   <p className="muted">Tip: Hold Ctrl/Cmd to select multiple categories.</p>
                 </label>
                 <details className="admin-inline-add">
