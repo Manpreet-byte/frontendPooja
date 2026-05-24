@@ -3751,16 +3751,24 @@ export default function AdminDashboardPage() {
                         <input className="input" value={announcementForm.cta_url} onChange={(e) => setAnnouncementForm((s) => ({ ...s, cta_url: e.target.value }))} />
                       </label>
                     </div>
-                    <div className="admin-split">
-                      <label className="field">
-                        <span className="field-label">Starts at</span>
-                        <input className="input" type="datetime-local" value={announcementForm.starts_at} onChange={(e) => setAnnouncementForm((s) => ({ ...s, starts_at: e.target.value }))} />
-                      </label>
-                      <label className="field">
-                        <span className="field-label">Ends at</span>
-                        <input className="input" type="datetime-local" value={announcementForm.ends_at} onChange={(e) => setAnnouncementForm((s) => ({ ...s, ends_at: e.target.value }))} />
-                      </label>
-                    </div>
+	                    <div className="admin-split">
+	                      <div className="field">
+	                        <DateTimePicker
+	                          label="Starts at"
+	                          value={announcementForm.starts_at}
+	                          onChange={(iso) => setAnnouncementForm((s) => ({ ...s, starts_at: iso }))}
+	                          disabled={disabled}
+	                        />
+	                      </div>
+	                      <div className="field">
+	                        <DateTimePicker
+	                          label="Ends at"
+	                          value={announcementForm.ends_at}
+	                          onChange={(iso) => setAnnouncementForm((s) => ({ ...s, ends_at: iso }))}
+	                          disabled={disabled}
+	                        />
+	                      </div>
+	                    </div>
                     <label className="field field-inline">
                       <input type="checkbox" checked={announcementForm.is_active} onChange={(e) => setAnnouncementForm((s) => ({ ...s, is_active: e.target.checked }))} />
                       <span className="field-label">Active</span>
