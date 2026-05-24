@@ -705,7 +705,11 @@ export const api = {
       remove: (token, id) => request(`/api/admin/courses/${id}`, { method: 'DELETE', token }),
     },
 
-    // Import endpoints removed from frontend UI to avoid accidental use.
+    imports: {
+      loveAndFlour: (token, payload) => request('/api/admin/imports/loveandflour', { method: 'POST', token, body: payload }),
+      previewLoveAndFlour: (token, payload) =>
+        request('/api/admin/imports/loveandflour/preview', { method: 'POST', token, body: payload }),
+    },
 
     categories: {
       list: (token, type, { source } = {}) => {

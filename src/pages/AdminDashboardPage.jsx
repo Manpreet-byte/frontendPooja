@@ -1007,7 +1007,34 @@ export default function AdminDashboardPage() {
 	    } finally {
 	      setStatus('idle');
 	    }
-	  };
+		  };
+
+  const importLoveAndFlourRecipes = async () => {
+    if (!token || !isAdmin) return;
+    if (!api?.admin?.imports?.loveAndFlour) {
+      setMessage('Import is not available (missing API client method).');
+      return;
+    }
+    const ok = typeof window !== 'undefined' ? window.confirm('Import recipes + recipe categories from loveandflourbypooja.com?') : true;
+    if (!ok) return;
+    setStatus('loading');
+    setMessage('Importing recipes...');
+    try {
+      const result = await api.admin.imports.loveAndFlour(token, {
+        dry_run: false,
+        import_workshops: false,
+        import_recipes: true,
+      });
+      await loadTabData('recipes');
+      setMessage(
+        `Import complete. Recipes: ${Number(result?.imported_recipes ?? 0)} imported (${Number(result?.created_recipes ?? 0)} new, ${Number(result?.updated_recipes ?? 0)} updated). Categories: ${Number(result?.created_recipe_categories ?? 0)} added/updated.`,
+      );
+    } catch (err) {
+      setMessage(err?.message ?? 'Failed to import recipes');
+    } finally {
+      setStatus('idle');
+    }
+  };
 
   const onTab = async (next) => {
     const nextId = String(next ?? '');
@@ -2645,6 +2672,11 @@ export default function AdminDashboardPage() {
                         applyOverviewRangeFromTopbar({ from: nextFrom, to: nextTo });
                       }}
                     />
+                  </div>
+                ) : null}
+                {typeof __BUILD_SHA__ !== 'undefined' && __BUILD_SHA__ ? (
+                  <div className="muted" style={{ fontSize: 12, marginRight: 10, whiteSpace: 'nowrap' }}>
+                    Build: {String(__BUILD_SHA__).slice(0, 7)}
                   </div>
                 ) : null}
                 {user ? (
@@ -5065,6 +5097,17 @@ export default function AdminDashboardPage() {
                   ) : null}
                 </div>
               </form>
+
+              <div className="panel" style={{ marginTop: 14 }}>
+                <h3 className="h3" style={{ marginTop: 0 }}>Import from loveandflourbypooja.com</h3>
+                <p className="muted" style={{ marginTop: 6 }}>
+                  Imports recipes (title/slug/content/image) and recipe categories via the site&apos;s public APIs. Existing imported and offline
+                  items stay editable in the admin list.
+                </p>
+                <button className="button button-solid" type="button" onClick={importLoveAndFlourRecipes} disabled={disabled}>
+                  Import recipes + categories
+                </button>
+              </div>
 
               <h3 className="h3">Recipes</h3>
               <div className="admin-table">

@@ -3,8 +3,19 @@ import react from '@vitejs/plugin-react';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+const buildSha =
+  process.env.VERCEL_GIT_COMMIT_SHA ||
+  process.env.GITHUB_SHA ||
+  process.env.COMMIT_SHA ||
+  process.env.RENDER_GIT_COMMIT ||
+  '';
+
 export default defineConfig({
   plugins: [react()],
+  define: {
+    __BUILD_SHA__: JSON.stringify(String(buildSha)),
+    __BUILD_TIME__: JSON.stringify(new Date().toISOString()),
+  },
   resolve: {
     // Prevent "Invalid hook call" issues caused by bundling more than one copy of React.
     dedupe: ['react', 'react-dom'],
