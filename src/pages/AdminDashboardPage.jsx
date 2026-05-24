@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { api } from '../api/client';
+import SelectMenu from '../components/SelectMenu';
 import ChartCard from '../components/admin/ChartCard';
 import SparklineBarChart from '../components/admin/SparklineBarChart';
 import SparklineLineChart from '../components/admin/SparklineLineChart';
@@ -216,6 +217,7 @@ export default function AdminDashboardPage() {
   const [discountRules, setDiscountRules] = useState([]);
   const [courseCategories, setCourseCategories] = useState([]);
   const [workshopCategories, setWorkshopCategories] = useState([]);
+  const [workshopCategoryPicker, setWorkshopCategoryPicker] = useState('');
   const [recipeCategories, setRecipeCategories] = useState([]);
   const [editingCourseId, setEditingCourseId] = useState(null);
   const [editingWorkshopId, setEditingWorkshopId] = useState(null);
@@ -1581,6 +1583,23 @@ export default function AdminDashboardPage() {
     return map;
   }, [workshopCategories]);
 
+  const workshopCategoryOptions = useMemo(
+    () =>
+      (workshopCategories ?? []).map((cat) => ({
+        value: String(cat.id),
+        label: workshopCategoryLabelBySlug.get(String(cat.slug)) ?? String(cat.name ?? ''),
+      })),
+    [workshopCategories, workshopCategoryLabelBySlug],
+  );
+
+  const workshopSelectedCategoryLabels = useMemo(
+    () =>
+      (workshopForm.category_ids ?? [])
+        .map((id) => workshopCategoryById.get(String(id))?.name ?? workshopCategoryLabelBySlug.get(workshopCategoryById.get(String(id))?.slug ?? '') ?? String(id))
+        .filter(Boolean),
+    [workshopCategoryById, workshopCategoryLabelBySlug, workshopForm.category_ids],
+  );
+
   const workshopCategoryIdBySlug = useMemo(() => {
     const map = new Map();
     for (const c of workshopCategories ?? []) {
@@ -1832,6 +1851,24 @@ export default function AdminDashboardPage() {
     } finally {
       setStatus('idle');
     }
+  };
+
+  const addWorkshopCategory = (categoryId) => {
+    const nextId = String(categoryId ?? '').trim();
+    if (!nextId) return;
+    setWorkshopForm((state) => ({
+      ...state,
+      category_ids: Array.from(new Set([...(state.category_ids ?? []).map((value) => String(value)), nextId])),
+    }));
+  };
+
+  const removeWorkshopCategory = (categoryId) => {
+    const nextId = String(categoryId ?? '').trim();
+    if (!nextId) return;
+    setWorkshopForm((state) => ({
+      ...state,
+      category_ids: (state.category_ids ?? []).filter((value) => String(value) !== nextId),
+    }));
   };
 
   const beginWorkshopEdit = (workshop) => {
@@ -4484,21 +4521,18 @@ export default function AdminDashboardPage() {
                 </label>
                 <label className="field">
                   <span className="field-label">Categories</span>
-                  <select
-                    className="input"
-                    multiple
-                    value={workshopForm.category_ids}
-                    onChange={(e) => {
-                      const selected = Array.from(e.target.selectedOptions).map((opt) => opt.value);
-                      setWorkshopForm((s) => ({ ...s, category_ids: selected }));
-                    }}
-                  >
-                    {workshopCategories.map((cat) => (
-                      <option key={cat.id} value={String(cat.id)}>
-                        {workshopCategoryLabelBySlug.get(String(cat.slug)) ?? cat.name}
-                      </option>
-                    ))}
-                  </select>
+                  {workshopCategories && workshopCategories.length ? (
+                    <SelectMenu
+                      value={workshopCategoryPicker}
+                      options={workshopCategoryOptions}
+                      placeholder="Add a workshop category"
+                      ariaLabel="Add workshop category"
+                      onChange={(value) => {
+                        addWorkshopCategory(value);
+                        setWorkshopCategoryPicker('');
+                      }}
+                    />
+                  ) : null}
                   {(!workshopCategories || workshopCategories.length === 0) ? (
                     <div style={{ marginTop: 8 }}>
                       <p className="muted">No workshop categories found.</p>
@@ -4539,7 +4573,26 @@ export default function AdminDashboardPage() {
                       </div>
                     </div>
                   ) : null}
-                  <p className="muted">Tip: Hold Ctrl/Cmd to select multiple categories.</p>
+                  {workshopSelectedCategoryLabels.length ? (
+                    <div className="admin-chip-list" style={{ marginTop: 10 }}>
+                      {workshopSelectedCategoryLabels.map((label, index) => {
+                        const selectedId = String(workshopForm.category_ids?.[index] ?? '');
+                        return (
+                          <button
+                            key={`${label}-${selectedId}`}
+                            type="button"
+                            className="pill admin-chip"
+                            onClick={() => removeWorkshopCategory(selectedId)}
+                            title="Remove category"
+                          >
+                            <span>{label}</span>
+                            <span aria-hidden="true" style={{ marginLeft: 8 }}>×</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  ) : null}
+                  <p className="muted">Pick a category from the dropdown. Click a chip to remove it.</p>
                 </label>
                 <details className="admin-inline-add">
                   <summary className="link">Add a new workshop category</summary>
