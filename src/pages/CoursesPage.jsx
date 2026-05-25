@@ -10,7 +10,7 @@ import SelectMenu from '../components/SelectMenu';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const category = searchParams.get('category') || '';
+  const category = String(searchParams.get('category') || '').trim().toLowerCase();
   const qParam = searchParams.get('q') || '';
   const [query, setQuery] = useState(qParam);
   const [courses, setCourses] = useState([]);
@@ -132,7 +132,8 @@ export default function CoursesPage() {
 
   const onChangeCategory = (nextCategory) => {
     const next = new URLSearchParams(searchParams);
-    if (nextCategory) next.set('category', nextCategory);
+    const normalized = String(nextCategory ?? '').trim().toLowerCase();
+    if (normalized) next.set('category', normalized);
     else next.delete('category');
     setSearchParams(next, { replace: true });
   };
@@ -187,7 +188,7 @@ export default function CoursesPage() {
     const q = String(qParam ?? '').trim().toLowerCase();
     return list.filter((c) => {
       if (category) {
-        const matches = (c.taxonomies?.['course-category'] ?? []).some((t) => t.slug === category);
+        const matches = (c.taxonomies?.['course-category'] ?? []).some((t) => String(t?.slug ?? '').toLowerCase() === category);
         if (!matches && deriveWorkshopCategorySlug(c) !== category) return false;
       }
       if (!q) return true;
@@ -300,7 +301,7 @@ export default function CoursesPage() {
                   return (
                     <section key={slug} aria-label={cat.name ?? slug}>
                       <div className="h3 courses-group-title">{categoryLabelBySlug.get(slug) ?? cat.name ?? slug}</div>
-                      <div className="grid cards-grid">
+                      <div className="grid cards-grid courses-cards-grid">
                         {primary.map((course) => (
                           <CourseCard key={course.id} course={course} />
                         ))}
@@ -324,7 +325,7 @@ export default function CoursesPage() {
                         </button>
                       ) : null}
                       {expanded && extra.length ? (
-                        <div id={`courses-group-extra-${slug}`} className="grid cards-grid" style={{ marginTop: 16 }}>
+                        <div id={`courses-group-extra-${slug}`} className="grid cards-grid courses-cards-grid" style={{ marginTop: 16 }}>
                           {extra.map((course) => (
                             <CourseCard key={course.id} course={course} />
                           ))}
@@ -335,7 +336,7 @@ export default function CoursesPage() {
                 })}
               </div>
             ) : (
-              <div className="grid cards-grid">
+              <div className="grid cards-grid courses-cards-grid">
                 {filtered.slice(0, maxVisibleWorkshops).map((course) => (
                   <CourseCard key={course.id} course={course} />
                 ))}
@@ -357,7 +358,11 @@ export default function CoursesPage() {
                   </div>
                 ) : null}
                 {expandedResults ? (
-                  <div id="courses-results-extra" className="grid cards-grid" style={{ gridColumn: '1 / -1', marginTop: 18 }}>
+                  <div
+                    id="courses-results-extra"
+                    className="grid cards-grid courses-cards-grid"
+                    style={{ gridColumn: '1 / -1', marginTop: 18 }}
+                  >
                     {filtered.slice(maxVisibleWorkshops).map((course) => (
                       <CourseCard key={course.id} course={course} />
                     ))}

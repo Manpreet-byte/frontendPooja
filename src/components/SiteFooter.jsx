@@ -99,7 +99,7 @@ export default function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <div className="container footer-bottom-inner">
+        <div className="footer-inner footer-bottom-inner">
           <p className="footer-fineprint footer-bottom-line">
             © 2026 Love &amp; Flour by Pooja. All rights reserved. Designed &amp; Developed by Innovins
           </p>

@@ -95,10 +95,18 @@ export default function CourseCard({ course }) {
               aria-label={hasCourse ? 'Remove from cart' : 'Add to cart'}
               title={hasCourse ? 'Remove from cart' : 'Add to cart'}
             >
-              <RupeeIcon size={20} />
+              <CartIcon size={20} />
             </button>
-            {compareAtLabel ? <span className="course-card-original">{compareAtLabel}</span> : null}
-            <span className="course-card-price">{priceLabel}</span>
+            {compareAtLabel ? (
+              <span className="course-card-original">
+                <RupeeIcon size={18} />
+                <span>{compareAtLabel}</span>
+              </span>
+            ) : null}
+            <span className="course-card-price">
+              <RupeeIcon size={18} />
+              <span>{priceLabel}</span>
+            </span>
           </div>
         ) : null}
         <div className="course-card-footer">
