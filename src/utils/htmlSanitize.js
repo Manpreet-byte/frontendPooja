@@ -70,6 +70,23 @@ export function sanitizeHtmlForApp(html) {
     root.querySelectorAll('a[href]').forEach((a) => {
       const href = a.getAttribute('href');
       if (!href) return;
+
+      // Fix legacy internal FAQ CTA: `/pages/contact-us` is not a real route in this app.
+      // Always send users to the real contact page.
+      const trimmedHref = String(href).trim();
+      if (trimmedHref === '/pages/contact-us' || trimmedHref === 'pages/contact-us') {
+        a.setAttribute('href', '/contact');
+        a.removeAttribute('target');
+        a.removeAttribute('rel');
+        return;
+      }
+      if (/^https?:\/\/loveandflourbypooja\.com\/pages\/contact-us\/?/i.test(trimmedHref)) {
+        a.setAttribute('href', '/contact');
+        a.removeAttribute('target');
+        a.removeAttribute('rel');
+        return;
+      }
+
       if (!isLegacyUrl(href) && !isLegacyLocalUrl(href)) return;
       try {
         const u = new URL(href, window.location.origin);
