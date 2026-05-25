@@ -12,11 +12,21 @@ export default function TermsPage() {
       <div className="container">
         <h1>Terms &amp; Conditions</h1>
         <p>Effective Date: 30 August 2025</p>
-        <p>Website: https://loveandflourbypooja.com</p>
+        <p>
+          Website:{' '}
+          <a className="legal-link" href="https://loveandflourbypooja.com" target="_blank" rel="noreferrer">
+            https://loveandflourbypooja.com
+          </a>
+        </p>
         <p>Legal Entity: Fab Foods, operating under the brand Love and Flour by Pooja</p>
 
         <p>Address: 1311, Corporate Annexe, Next to Udyog Bhavan, Sonawala Road, Goregaon East, Mumbai 400063, Maharashtra, India</p>
-        <p>Contact Email: tech.loveandflourbypooja@gmail.com</p>
+        <p>
+          Contact Email:{' '}
+          <a className="legal-link" href="mailto:contact@loveandflourbypooja.com">
+            contact@loveandflourbypooja.com
+          </a>
+        </p>
 
         <p>
           Welcome to Love and Flour by Pooja, operated by Fab Foods (“we,” “us,” “our”). By accessing or using our website, services, and
@@ -87,9 +97,14 @@ export default function TermsPage() {
 
         <h2>14. Contact Us</h2>
         <p>If you have any questions about these Terms and Conditions, please write to us at:</p>
-        <p>📧 tech.loveandflourbypooja@gmail.com</p>
         <p>
-          📍 Fab Foods, 1311, Corporate Annexe, Next to Udyog Bhavan, Sonawala Road, Goregaon East, Mumbai 400063, Maharashtra, Inhondia
+          📧{' '}
+          <a className="legal-link" href="mailto:contact@loveandflourbypooja.com">
+            contact@loveandflourbypooja.com
+          </a>
+        </p>
+        <p>
+          📍 Fab Foods, 1311, Corporate Annexe, Next to Udyog Bhavan, Sonawala Road, Goregaon East, Mumbai 400063, Maharashtra, India
         </p>
       </div>
     </main>

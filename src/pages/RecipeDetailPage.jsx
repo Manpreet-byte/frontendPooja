@@ -10,6 +10,15 @@ import SafeImage from '../components/SafeImage';
 import { sanitizeHtmlForApp } from '../utils/htmlSanitize';
 import { sortByDateDesc } from '../utils/publicContent';
 
+function slugKey(value) {
+  return String(value ?? '')
+    .trim()
+    .toLowerCase()
+    .replace(/&/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
 function normalizeRecipeDetail(recipe) {
   if (!recipe) return null;
   const contentHtml =
@@ -21,6 +30,14 @@ function normalizeRecipeDetail(recipe) {
 
   return {
     ...recipe,
+    slug:
+      recipe.slug ??
+      recipe.post_slug ??
+      recipe.postSlug ??
+      recipe.post_name ??
+      recipe.postName ??
+      recipe.name ??
+      slugKey(recipe.title ?? ''),
     contentHtml: sanitizeHtmlForApp(String(contentHtml ?? '')),
     excerptHtml:
       recipe.excerptHtml ??
@@ -251,7 +268,7 @@ export default function RecipeDetailPage() {
         r
           ? {
               ...r,
-              slug: r.slug,
+              slug: r.slug ?? r.post_slug ?? r.postSlug ?? r.post_name ?? r.postName ?? slugKey(r.title ?? ''),
               title: r.title,
               featuredImage: r.featuredImage ?? r.thumbnail_url ?? r.thumbnailUrl ?? r.hero_image ?? r.heroImage ?? '',
               excerptHtml:
@@ -278,8 +295,17 @@ export default function RecipeDetailPage() {
   const { prevRecipe, nextRecipe } = useMemo(() => {
     const list = Array.isArray(allRecipes) ? allRecipes : [];
     if (!slug || !list.length) return { prevRecipe: null, nextRecipe: null };
-    const idx = list.findIndex((r) => String(r.slug ?? '') === String(slug));
-    if (idx < 0) return { prevRecipe: null, nextRecipe: null };
+    const target = slugKey(slug);
+    const idx = list.findIndex((r) => slugKey(r?.slug ?? '') === target);
+    if (idx < 0) {
+      // If the API returned an id-based route or mismatched slug, try to match by title.
+      const titleTarget = slugKey(post?.title ?? '');
+      const titleIdx = titleTarget ? list.findIndex((r) => slugKey(r?.title ?? '') === titleTarget) : -1;
+      if (titleIdx < 0) return { prevRecipe: null, nextRecipe: null };
+      const prevIndex = titleIdx - 1 < 0 ? list.length - 1 : titleIdx - 1;
+      const nextIndex = titleIdx + 1 >= list.length ? 0 : titleIdx + 1;
+      return { prevRecipe: list[prevIndex] ?? null, nextRecipe: list[nextIndex] ?? null };
+    }
     const prevIndex = idx - 1 < 0 ? list.length - 1 : idx - 1;
     const nextIndex = idx + 1 >= list.length ? 0 : idx + 1;
     return {

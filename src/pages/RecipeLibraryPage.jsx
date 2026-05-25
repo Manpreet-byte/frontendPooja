@@ -21,7 +21,14 @@ function normalizeRecipe(recipe) {
   if (!recipe) return null;
   return {
     ...recipe,
-    slug: recipe.slug,
+    slug:
+      recipe.slug ??
+      recipe.post_slug ??
+      recipe.postSlug ??
+      recipe.post_name ??
+      recipe.postName ??
+      recipe.name ??
+      slugKey(recipe.title ?? ''),
     title: recipe.title,
     featuredImage: recipe.featuredImage ?? recipe.thumbnail_url ?? recipe.thumbnailUrl ?? recipe.hero_image ?? recipe.heroImage ?? '',
     excerptHtml:

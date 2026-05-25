@@ -199,9 +199,6 @@ export default function ContactSection() {
               <button className="button button-solid" type="submit" disabled={status === 'loading'}>
                 {status === 'loading' ? 'Sending…' : 'Send message'}
               </button>
-              <a className="button button-ghost" href="mailto:contact@loveandflourbypooja.com">
-                Email directly
-              </a>
             </div>
 
             {status === 'success' ? (

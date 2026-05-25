@@ -386,6 +386,18 @@ iframe {
   font-weight: 420;
 }
 
+.page-legal .legal-link {
+  color: var(--accent);
+  font-weight: 650;
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
+.page-legal .legal-link:hover {
+  color: var(--accent-hover);
+}
+
 .page-work-with-us .story-card .lead {
   font-weight: 450;
 }
@@ -1032,6 +1044,7 @@ h1, h2, h3, h4, h5, h6 {
   transition: background-color 220ms cubic-bezier(.2,.8,.2,1), color 180ms ease, transform 160ms ease;
   font-weight: 700;
   letter-spacing: 0.02em;
+  white-space: nowrap;
 }
 
 .nav-link::after {
@@ -3547,13 +3560,13 @@ h1, h2, h3, h4, h5, h6 {
 .recipe-showcase-carousel {
   display: grid;
   gap: clamp(10px, 2vw, 14px);
-  padding: 0 clamp(8px, 3vw, 16px);
-  justify-items: center;
+  padding: 0;
+  justify-items: stretch;
 }
 
 .recipe-showcase-viewport {
   width: 100%;
-  max-width: 755px;
+  max-width: 100%;
   overflow: hidden;
   border-radius: clamp(20px, 5vw, 34px);
   border: 1px solid rgba(99, 77, 55, 0.18);
@@ -3844,6 +3857,15 @@ h1, h2, h3, h4, h5, h6 {
   max-width: 34ch;
   color: rgba(255, 255, 255, 0.82);
   line-height: 1.7;
+  max-height: 7.6em;
+  overflow: auto;
+  padding-right: 6px;
+  scrollbar-width: none;
+}
+
+.recipe-feature-overlay p::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .recipe-feature-link {
@@ -6430,6 +6452,29 @@ h1, h2, h3, h4, h5, h6 {
   margin: 0 0 10px;
 }
 
+.recipe-prose h1,
+.recipe-prose h2,
+.recipe-prose h3,
+.recipe-prose h4,
+.recipe-prose h5,
+.recipe-prose h6 {
+  color: rgba(255, 255, 255, 0.94);
+  margin: 14px 0 8px;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
+}
+
+.recipe-prose a {
+  color: rgba(255, 250, 244, 0.96);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.recipe-prose strong {
+  color: rgba(255, 255, 255, 0.94);
+  font-weight: 700;
+}
+
 .recipe-prose ul,
 .recipe-prose ol {
   padding-left: 20px;
@@ -8610,11 +8655,26 @@ h1, h2, h3, h4, h5, h6 {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.footer-inner {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: 0 var(--space-6);
+}
+
+@media (max-width: 560px) {
+  .footer-inner {
+    padding: 0 var(--space-4);
+  }
+}
+
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: clamp(22px, 4vw, 36px);
-  padding: 0 clamp(12px, 3vw, 16px);
+  padding: 0;
+  align-items: start;
+  justify-items: start;
 }
 
 @media (min-width: 680px) {
@@ -8626,7 +8686,7 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (min-width: 860px) {
   .footer-grid {
-    grid-template-columns: 1.6fr 1fr 1fr 1fr;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: clamp(22px, 4vw, 36px);
     padding: 0;
   }
@@ -8642,10 +8702,13 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   justify-items: start;
   text-align: left;
+  justify-self: start;
+  gap: 8px;
 }
 
 .footer-brand-meta {
   width: min(420px, 100%);
+  padding-left: 12px;
 }
 
 .footer-brand-meta .footer-list {
@@ -8655,6 +8718,11 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-brand-meta .footer-list a {
   justify-content: flex-start;
+}
+
+.footer-brand-meta .footer-list a {
+  color: rgba(255, 250, 244, 0.95);
+  font-weight: 650;
 }
 
 .footer-brand-meta .footer-social {
@@ -8736,12 +8804,20 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 16px;
 }
 
+.site-footer .icon-button {
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+}
+
 .site-footer .icon-button-dark {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fffaf4;
-  min-width: 44px;
-  min-height: 44px;
+  border-radius: 999px;
+  min-width: unset;
+  min-height: unset;
+  box-shadow: none;
   padding: clamp(8px, 2vw, 10px);
   font-size: clamp(0.85rem, 2vw, 1rem);
   transition: background 180ms ease, transform 180ms ease;
@@ -8769,12 +8845,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-bottom {
   width: 100%;
-  padding: 40px 0 52px;
+  padding: 40px 0 72px;
 }
 
 .footer-bottom-inner {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding-top: 22px;
+  padding-top: 48px;
 }
 
 .footer-bottom-line {
