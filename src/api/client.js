@@ -60,11 +60,10 @@ function getBaseUrl() {
   if (import.meta.env.DEV) return '';
 
   // When serving a production build locally (no dev proxy), relative `/api/*` will 404.
-  // If we're on localhost, default to the backend dev port.
-  if (typeof window !== 'undefined') {
-    const host = window.location.hostname;
-    if (host === 'localhost' || host === '127.0.0.1') return 'http://localhost:8080';
-  }
+  // Previously we defaulted to `http://localhost:8080` when the SPA was served from localhost.
+  // That breaks common setups where only the frontend is running locally (or in a container)
+  // and the API is hosted remotely. If you want a local backend for a production build,
+  // set `VITE_API_BASE_URL=http://localhost:8080` explicitly.
 
   return productionBackendUrl;
 }

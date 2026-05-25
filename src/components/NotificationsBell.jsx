@@ -1,6 +1,101 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+
+function NotificationRow({ notification, token, onOpen, onDismiss }) {
+  const [dx, setDx] = useState(0);
+  const [dragging, setDragging] = useState(false);
+  const startRef = useRef({ x: 0, y: 0, active: false, moved: false, pointerId: null });
+
+  const reset = useCallback(() => {
+    setDragging(false);
+    setDx(0);
+    startRef.current = { x: 0, y: 0, active: false, moved: false, pointerId: null };
+  }, []);
+
+  const dismiss = useCallback(() => {
+    const id = notification?.id;
+    if (id && token) {
+      // Best-effort: mark as read when dismissing so unread badge stays sane.
+      api.user.notifications.read(token, id).catch(() => {});
+    }
+    onDismiss?.(notification);
+  }, [notification, onDismiss, token]);
+
+  const onPointerDown = (e) => {
+    if (e.button != null && e.button !== 0) return;
+    startRef.current = { x: e.clientX, y: e.clientY, active: true, moved: false, pointerId: e.pointerId ?? null };
+    setDragging(false);
+    setDx(0);
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      // ignore
+    }
+  };
+
+  const onPointerMove = (e) => {
+    const s = startRef.current;
+    if (!s.active) return;
+    const nextDx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+
+    // Don’t start a horizontal drag unless it’s clearly a swipe.
+    if (!s.moved) {
+      if (Math.abs(nextDx) < 6) return;
+      if (Math.abs(nextDx) < Math.abs(dy)) return;
+      s.moved = true;
+      setDragging(true);
+    }
+
+    // Clamp for nicer feel.
+    const clamped = Math.max(-160, Math.min(160, nextDx));
+    setDx(clamped);
+  };
+
+  const onPointerUp = () => {
+    const s = startRef.current;
+    if (!s.active) return;
+    s.active = false;
+    const shouldDismiss = Math.abs(dx) > 90;
+    if (shouldDismiss) dismiss();
+    else reset();
+  };
+
+  const isUnread = !notification?.read_at;
+  const opacity = dragging ? Math.max(0.35, 1 - Math.abs(dx) / 240) : 1;
+
+  return (
+    <li className="notifications-row">
+      <div
+        className="notifications-swipe"
+        style={{
+          transform: dx ? `translateX(${dx}px)` : undefined,
+          opacity,
+          transition: dragging ? 'none' : 'transform 180ms ease, opacity 180ms ease',
+        }}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
+      >
+        <button type="button" className="notifications-item" onClick={() => onOpen(notification)} disabled={dragging}>
+          <div className="notifications-item-head">
+            <div className="notifications-item-title" data-unread={isUnread ? 'true' : 'false'}>
+              {notification?.title ?? 'Update'}
+            </div>
+            {isUnread ? <span className="pill notifications-new">New</span> : null}
+          </div>
+          {notification?.message ? <div className="muted notifications-item-body">{notification.message}</div> : null}
+        </button>
+
+        <button type="button" className="icon-button notifications-item-close" aria-label="Dismiss notification" onClick={dismiss}>
+          ×
+        </button>
+      </div>
+    </li>
+  );
+}
 
 export default function NotificationsBell({ token, enabled = true }) {
   if (!enabled) return null;
@@ -8,6 +103,7 @@ export default function NotificationsBell({ token, enabled = true }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [notifications, setNotifications] = useState([]);
+  const [dismissedIds, setDismissedIds] = useState([]);
   const [unread, setUnread] = useState(0);
   const wrapRef = useRef(null);
   const buttonRef = useRef(null);
@@ -17,7 +113,12 @@ export default function NotificationsBell({ token, enabled = true }) {
 
   const hasUnread = unread > 0;
 
-  const compactList = useMemo(() => (Array.isArray(notifications) ? notifications.slice(0, 8) : []), [notifications]);
+  const visibleList = useMemo(() => {
+    const list = Array.isArray(notifications) ? notifications : [];
+    if (!dismissedIds.length) return list;
+    const dismissed = new Set(dismissedIds);
+    return list.filter((n) => !dismissed.has(n?.id));
+  }, [notifications, dismissedIds]);
   const panelId = useMemo(() => `lf-notifications-${Math.random().toString(36).slice(2, 10)}`, []);
 
   const load = async () => {
@@ -143,6 +244,14 @@ export default function NotificationsBell({ token, enabled = true }) {
     else if (href) window.open(href, '_blank', 'noreferrer');
   };
 
+  const dismissNotification = useCallback((n) => {
+    const id = n?.id;
+    if (!id) return;
+    setDismissedIds((prev) => (prev.includes(id) ? prev : [...prev, id]));
+    setNotifications((prev) => (Array.isArray(prev) ? prev.filter((item) => item?.id !== id) : prev));
+    if (!n?.read_at) setUnread((u) => Math.max(0, Number(u ?? 0) - 1));
+  }, []);
+
   return (
     <div ref={wrapRef} className="notifications">
       <button
@@ -209,26 +318,19 @@ export default function NotificationsBell({ token, enabled = true }) {
           ) : null}
           {loading ? <p className="muted">Loading…</p> : null}
 
-          {!loading && !compactList.length ? <p className="muted">No notifications yet.</p> : null}
+          {!loading && !visibleList.length ? <p className="muted">No notifications yet.</p> : null}
 
-          {compactList.length ? (
+          {visibleList.length ? (
             <ul className="notifications-list" aria-label="Recent notifications">
-              {compactList.map((n) => {
-                const isUnread = !n?.read_at;
-                return (
-                  <li key={n.id}>
-                    <button type="button" className="notifications-item" onClick={() => openNotification(n)}>
-                      <div className="notifications-item-head">
-                        <div className="notifications-item-title" data-unread={isUnread ? 'true' : 'false'}>
-                          {n.title ?? 'Update'}
-                        </div>
-                        {isUnread ? <span className="pill notifications-new">New</span> : null}
-                      </div>
-                      {n.message ? <div className="muted notifications-item-body">{n.message}</div> : null}
-                    </button>
-                  </li>
-                );
-              })}
+              {visibleList.map((n) => (
+                <NotificationRow
+                  key={n.id}
+                  notification={n}
+                  token={token}
+                  onOpen={openNotification}
+                  onDismiss={dismissNotification}
+                />
+              ))}
             </ul>
           ) : null}
 

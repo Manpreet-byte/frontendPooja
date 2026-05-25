@@ -9,6 +9,11 @@ export default function SiteFooter() {
             <img className="footer-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" loading="lazy" />
           </div>
           <p className="footer-muted">Curated workshops, refined recipes, and modern baking guidance with a warm handmade touch.</p>
+          <ul className="footer-list" aria-label="Contact email">
+            <li>
+              <a href="mailto:contact@loveandflourbypooja.com">contact@loveandflourbypooja.com</a>
+            </li>
+          </ul>
           <h3 className="footer-heading footer-follow-heading">Follow</h3>
           <p className="footer-fineprint footer-follow-text">Join 50K+ baking enthusiasts</p>
           <div className="footer-social">
