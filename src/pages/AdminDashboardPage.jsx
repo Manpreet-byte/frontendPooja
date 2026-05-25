@@ -209,8 +209,6 @@ const tabs = [
   { id: 'users', label: 'Users' },
   { id: 'enrollments', label: 'Enrollments' },
   { id: 'support', label: 'Support' },
-  { id: 'instructors', label: 'Instructors' },
-  { id: 'discount_rules', label: 'Discount Rules' },
   { id: 'notifications', label: 'Notifications' },
   { id: 'reports', label: 'Reports' },
   { id: 'settings', label: 'Site Settings' },
