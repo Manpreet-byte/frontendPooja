@@ -71,12 +71,25 @@ async function loadOfflineSeededContent() {
   }
 }
 
+function stableOfflineNumericId(key) {
+  const input = String(key ?? '');
+  let hash = 5381;
+  for (let i = 0; i < input.length; i += 1) {
+    hash = Math.imul(hash, 33) ^ input.charCodeAt(i);
+  }
+  const int32 = hash | 0;
+  // Keep negative to avoid clashing with DB ids (typically positive integers).
+  return int32 < 0 ? int32 : -Math.abs(int32 || 1);
+}
+
 function normalizeOfflineWorkshop(course) {
   const slug = String(course?.slug ?? '').trim();
   const sourceExternalId = course?.id != null ? String(course.id) : '';
+  const offlineKey = `offline-workshop:${slug || sourceExternalId || 'unknown'}`;
   return {
     __offline: true,
-    id: `offline-workshop:${slug || sourceExternalId || String(Math.random()).slice(2)}`,
+    __offline_key: offlineKey,
+    id: stableOfflineNumericId(offlineKey),
     source: 'offline-seed',
     source_external_id: sourceExternalId || null,
     slug: slug || null,
@@ -100,9 +113,11 @@ function normalizeOfflineWorkshop(course) {
 function normalizeOfflineRecipe(post) {
   const slug = String(post?.slug ?? '').trim();
   const sourceExternalId = post?.id != null ? String(post.id) : '';
+  const offlineKey = `offline-recipe:${slug || sourceExternalId || 'unknown'}`;
   return {
     __offline: true,
-    id: `offline-recipe:${slug || sourceExternalId || String(Math.random()).slice(2)}`,
+    __offline_key: offlineKey,
+    id: stableOfflineNumericId(offlineKey),
     source: 'offline-seed',
     source_external_id: sourceExternalId || null,
     slug: slug || null,
@@ -1008,33 +1023,6 @@ export default function AdminDashboardPage() {
 	      setStatus('idle');
 	    }
 		  };
-
-  const importLoveAndFlourRecipes = async () => {
-    if (!token || !isAdmin) return;
-    if (!api?.admin?.imports?.loveAndFlour) {
-      setMessage('Import is not available (missing API client method).');
-      return;
-    }
-    const ok = typeof window !== 'undefined' ? window.confirm('Import recipes + recipe categories from loveandflourbypooja.com?') : true;
-    if (!ok) return;
-    setStatus('loading');
-    setMessage('Importing recipes...');
-    try {
-      const result = await api.admin.imports.loveAndFlour(token, {
-        dry_run: false,
-        import_workshops: false,
-        import_recipes: true,
-      });
-      await loadTabData('recipes');
-      setMessage(
-        `Import complete. Recipes: ${Number(result?.imported_recipes ?? 0)} imported (${Number(result?.created_recipes ?? 0)} new, ${Number(result?.updated_recipes ?? 0)} updated). Categories: ${Number(result?.created_recipe_categories ?? 0)} added/updated.`,
-      );
-    } catch (err) {
-      setMessage(err?.message ?? 'Failed to import recipes');
-    } finally {
-      setStatus('idle');
-    }
-  };
 
   const onTab = async (next) => {
     const nextId = String(next ?? '');
@@ -5097,17 +5085,6 @@ export default function AdminDashboardPage() {
                   ) : null}
                 </div>
               </form>
-
-              <div className="panel" style={{ marginTop: 14 }}>
-                <h3 className="h3" style={{ marginTop: 0 }}>Import from loveandflourbypooja.com</h3>
-                <p className="muted" style={{ marginTop: 6 }}>
-                  Imports recipes (title/slug/content/image) and recipe categories via the site&apos;s public APIs. Existing imported and offline
-                  items stay editable in the admin list.
-                </p>
-                <button className="button button-solid" type="button" onClick={importLoveAndFlourRecipes} disabled={disabled}>
-                  Import recipes + categories
-                </button>
-              </div>
 
               <h3 className="h3">Recipes</h3>
               <div className="admin-table">
