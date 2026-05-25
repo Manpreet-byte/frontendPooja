@@ -82,6 +82,51 @@ function stableOfflineNumericId(key) {
   return int32 < 0 ? int32 : -Math.abs(int32 || 1);
 }
 
+const HANDS_ON_CATEGORY_SLUGS = new Set(['hands-on-classes', 'hands-on-classes-upcoming']);
+
+function getSeedCourseCategorySlugs(course) {
+  const list = course?.taxonomies?.['course-category'];
+  if (!Array.isArray(list)) return [];
+  return list.map((t) => String(t?.slug ?? '').trim()).filter(Boolean);
+}
+
+function categorySlugsToIds(categorySlugs, categories) {
+  if (!Array.isArray(categorySlugs) || !Array.isArray(categories)) return [];
+  const slugSet = new Set(categorySlugs.map((s) => String(s)));
+  return (categories ?? [])
+    .filter((c) => slugSet.has(String(c?.slug ?? '')))
+    .map((c) => Number(c?.id))
+    .filter((n) => Number.isFinite(n) && n > 0);
+}
+
+function normalizeOfflineCourse(course, { categoryIds = [] } = {}) {
+  const slug = String(course?.slug ?? '').trim();
+  const sourceExternalId = course?.id != null ? String(course.id) : '';
+  const offlineKey = `offline-course:${slug || sourceExternalId || 'unknown'}`;
+  return {
+    __offline: true,
+    __offline_key: offlineKey,
+    id: stableOfflineNumericId(offlineKey),
+    source: 'offline-seed',
+    source_external_id: sourceExternalId || null,
+    slug: slug || null,
+    title: course?.title ?? 'Untitled class',
+    summary: course?.excerptHtml ?? null,
+    content: course?.contentHtml ?? null,
+    featured_image_url: course?.featuredImage ?? null,
+    currency: 'INR',
+    amount_cents: course?.priceInr ? Number(course.priceInr) * 100 : null,
+    compare_at_amount_cents: course?.compareAtPriceInr ? Number(course.compareAtPriceInr) * 100 : null,
+    sale_amount_cents: null,
+    sale_starts_at: null,
+    sale_ends_at: null,
+    category_ids: categoryIds,
+    publish_at: null,
+    qa_enabled: true,
+    is_published: true,
+  };
+}
+
 function normalizeOfflineWorkshop(course) {
   const slug = String(course?.slug ?? '').trim();
   const sourceExternalId = course?.id != null ? String(course.id) : '';
@@ -905,26 +950,42 @@ export default function AdminDashboardPage() {
       } else if (nextTab === 'coupons') {
         const data = await api.admin.coupons.list(token);
         setCoupons(data?.coupons ?? []);
-	      } else if (nextTab === 'courses') {
-	        const [data, cats] = await Promise.all([api.admin.courses.list(token, { kind: 'course' }), api.admin.categories.list(token, 'course')]);
-	        const list = data?.courses ?? [];
-	        setCourseCategories(cats?.categories ?? []);
-	        const handsOnId = (cats?.categories ?? []).find((c) => String(c.slug) === 'hands-on-classes')?.id;
-	        // Show all courses that are categorized as Hands-On classes OR were imported from the external source
-	        if (handsOnId) {
-          setCourses(
-            list.filter((c) => {
-              const catIds = (c?.category_ids ?? []).map((n) => Number(n));
-              const hasHandsOn = catIds.includes(Number(handsOnId));
-              const imported = String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id);
-              return hasHandsOn || imported;
-	            }),
-	          );
-	        } else {
-	          // No explicit Hands-On category found — show all courses so offline content remains editable
-	          setCourses(list);
-	        }
-	      } else if (nextTab === 'workshops') {
+		      } else if (nextTab === 'courses') {
+		        const [data, cats, offline] = await Promise.all([
+              api.admin.courses.list(token, { kind: 'course' }),
+              api.admin.categories.list(token, 'course'),
+              loadOfflineSeededContent(),
+            ]);
+		        const list = data?.courses ?? [];
+		        const courseCats = cats?.categories ?? [];
+		        setCourseCategories(courseCats);
+		        const handsOnId = courseCats.find((c) => String(c.slug) === 'hands-on-classes')?.id;
+
+            const seeded = offline?.offlineWorkshops ?? [];
+            const seededHandsOn = (seeded ?? []).filter((c) => getSeedCourseCategorySlugs(c).some((s) => HANDS_ON_CATEGORY_SLUGS.has(s)));
+            const offlineCourses = seededHandsOn.map((c) => {
+              const slugs = getSeedCourseCategorySlugs(c);
+              const categoryIds = categorySlugsToIds(slugs, courseCats);
+              return normalizeOfflineCourse(c, { categoryIds });
+            });
+
+            const merged = mergeBySlugOrExternalId({ online: list, offline: offlineCourses });
+
+		        // Show all courses that are categorized as Hands-On classes OR were imported from the external source
+		        if (handsOnId) {
+		          setCourses(
+		            merged.filter((c) => {
+		              const catIds = (c?.category_ids ?? []).map((n) => Number(n));
+		              const hasHandsOn = catIds.includes(Number(handsOnId));
+		              const imported = String(c?.source ?? '').trim() === 'loveandflourbypooja' || Boolean(c?.source_external_id);
+		              return hasHandsOn || imported;
+		            }),
+		          );
+		        } else {
+		          // No explicit Hands-On category found — show all courses so offline content remains editable
+		          setCourses(merged);
+		        }
+		      } else if (nextTab === 'workshops') {
 	        const [data, cats, offline] = await Promise.all([
 	          api.admin.courses.list(token, { kind: 'workshop' }),
 	          api.admin.categories.list(token, 'workshop'),
