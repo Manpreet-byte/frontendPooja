@@ -89,7 +89,16 @@ function NotificationRow({ notification, token, onOpen, onDismiss }) {
           {notification?.message ? <div className="muted notifications-item-body">{notification.message}</div> : null}
         </button>
 
-        <button type="button" className="icon-button notifications-item-close" aria-label="Dismiss notification" onClick={dismiss}>
+        <button
+          type="button"
+          className="icon-button notifications-item-close"
+          aria-label="Dismiss notification"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            dismiss();
+          }}
+        >
           ×
         </button>
       </div>
