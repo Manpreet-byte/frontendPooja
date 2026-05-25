@@ -9775,6 +9775,19 @@ h1, h2, h3, h4, h5, h6 {
   line-height: 1.18;
 }
 
+/* FAQ category headings when rendered from API (WpPageDetailPage.jsx) */
+.faq-page .prose-block > h2 {
+  font-weight: 250;
+  font-size: clamp(2.1rem, 4.2vw, 2.85rem);
+  line-height: 1.16;
+  margin: 0 0 14px;
+}
+
+/* FAQ question headings */
+.faq-page .faq-toggle-summary {
+  font-size: clamp(1.05rem, 2.2vw, 1.25rem);
+}
+
 /* Content typography */
 .prose-block .elementor-tab-content p {
   margin: 0 0 12px;
