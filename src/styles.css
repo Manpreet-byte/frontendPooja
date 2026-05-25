@@ -2541,7 +2541,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .hero-premium-content {
-  max-width: 650px;
+  max-width: 640px;
   /* Horizontal padding comes from `.container-wide` so the hero aligns with the navbar/logo. */
   padding: 0;
   animation: fadeInUp 800ms var(--ease-out) both;
@@ -2608,7 +2608,8 @@ h1, h2, h3, h4, h5, h6 {
 .hero-premium-title {
   margin: 0 0 16px;
   font-family: var(--font-display);
-  font-size: clamp(2rem, 6vw, var(--type-hero));
+  /* Keep the hero readable on smaller desktop / resized windows. */
+  font-size: clamp(2.25rem, 3.2vw + 1.1rem, 4.6rem);
   line-height: var(--lh-tight);
   color: rgba(255, 255, 255, 0.98);
   font-weight: 500;
@@ -2618,12 +2619,14 @@ h1, h2, h3, h4, h5, h6 {
   word-wrap: break-word;
   overflow-wrap: break-word;
   text-shadow: 0 10px 34px rgba(0, 0, 0, 0.55);
+  max-width: 18ch;
+  text-wrap: balance;
 }
 
 .hero-premium-subtitle {
   margin: 0 0 clamp(20px, 4vw, 32px);
   color: rgba(255, 255, 255, 0.9);
-  font-size: clamp(0.95rem, 3vw, 1.15rem);
+  font-size: clamp(0.98rem, 0.8vw + 0.85rem, 1.15rem);
   line-height: var(--lh-relaxed);
   font-weight: 400;
   max-width: 540px;
