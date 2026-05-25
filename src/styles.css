@@ -3074,7 +3074,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .home-together-feature {
   display: grid;
-  grid-template-columns: clamp(56px, 10vw, 72px) 1fr;
+  grid-template-columns: clamp(72px, 10vw, 84px) 1fr;
   gap: clamp(10px, 2vw, 12px);
   padding: clamp(14px, 2.2vw, 18px);
   border-radius: clamp(14px, 3vw, 18px);
@@ -3082,23 +3082,53 @@ h1, h2, h3, h4, h5, h6 {
   background: rgba(255, 255, 255, 0.55);
   box-shadow: 0 10px 22px rgba(64, 49, 32, 0.04);
   min-height: 106px;
+  align-items: center;
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .home-together-icon {
-  width: 72px;
-  height: 72px;
-  border-radius: 20px;
+  width: 84px;
+  height: 84px;
+  border-radius: 999px;
   display: grid;
   place-items: center;
-  background: rgba(201, 122, 74, 0.12);
-  color: rgba(92, 58, 36, 0.9);
-  border: 1px solid rgba(201, 122, 74, 0.16);
+  color: rgba(193, 88, 28, 0.98);
+  border: 1px solid rgba(229, 138, 31, 0.62);
+  background:
+    radial-gradient(circle at 30% 28%, rgba(255, 255, 255, 0.98), rgba(255, 246, 238, 0.74)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(255, 241, 231, 0.82));
+  box-shadow: 0 10px 22px rgba(36, 22, 18, 0.10), 0 10px 30px rgba(229, 138, 31, 0.14);
+  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
 }
 
 .home-together-icon svg {
-  width: 26px;
-  height: 26px;
+  width: 34px;
+  height: 34px;
   display: block;
+}
+
+.home-together-feature:hover {
+  transform: translateY(-3px);
+  border-color: rgba(229, 138, 31, 0.24);
+  box-shadow: 0 18px 48px rgba(64, 49, 32, 0.08);
+}
+
+.home-together-feature:hover .home-together-icon {
+  border-color: rgba(229, 138, 31, 0.78);
+  box-shadow: 0 14px 34px rgba(36, 22, 18, 0.14), 0 16px 44px rgba(229, 138, 31, 0.18);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 520px) {
+  .home-together-icon {
+    width: 72px;
+    height: 72px;
+  }
+
+  .home-together-icon svg {
+    width: 30px;
+    height: 30px;
+  }
 }
 
 .home-together-title {
