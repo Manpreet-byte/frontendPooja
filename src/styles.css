@@ -3389,7 +3389,7 @@ h1, h2, h3, h4, h5, h6 {
   gap: 24px;
 }
 
-@media (min-width: 1080px) {
+@media (min-width: 980px) {
   .home-recipes-shell {
     grid-template-columns: minmax(280px, 0.86fr) minmax(0, 1.14fr);
     align-items: stretch;
@@ -3696,7 +3696,7 @@ h1, h2, h3, h4, h5, h6 {
   object-position: 78% 50%;
   display: block;
   /* Crop out baked-in margins in some images so the card feels edge-to-edge. */
-  transform: scale(1.4);
+  transform: scale(1.12);
 }
 
 .recipe-feature-card::after {
