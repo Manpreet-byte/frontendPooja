@@ -3329,11 +3329,11 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .course-value-tile.tile-1 {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 16 / 10;
 }
 
 .course-value-tile.tile-2 {
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 16 / 10;
 }
 
 .course-value-tile.tile-3 {
@@ -8673,7 +8673,7 @@ h1, h2, h3, h4, h5, h6 {
 .footer-bottom {
   width: 100%;
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 30px 0 46px;
+  padding: 44px 0 56px;
 }
 
 .footer-bottom-line {
