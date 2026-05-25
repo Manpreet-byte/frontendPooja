@@ -1,5 +1,27 @@
 const LEGACY_DOMAINS = ['loveandflourbypooja.com'];
 const LEGACY_LOCAL_PORTS = ['7070', '7071'];
+const DEFAULT_BACKEND_BASE = 'https://loveandflourbackend.onrender.com';
+
+function getBackendBaseUrl() {
+  const configured = typeof import.meta !== 'undefined' ? import.meta.env?.VITE_API_BASE_URL : '';
+  const raw = String(configured ?? '').trim();
+  if (!raw) return DEFAULT_BACKEND_BASE;
+  const first = raw
+    .split(/[,\n]+/g)
+    .flatMap((part) => part.split(/\s+/g))
+    .map((s) => s.trim())
+    .filter(Boolean)[0];
+  if (!first) return DEFAULT_BACKEND_BASE;
+  let v = first;
+  if (v.startsWith('http//')) v = `http://${v.slice('http//'.length)}`;
+  if (v.startsWith('https//')) v = `https://${v.slice('https//'.length)}`;
+  if (!/^https?:\/\//i.test(v)) v = `https://${v}`;
+  try {
+    return new URL(v).toString().replace(/\/$/, '');
+  } catch {
+    return DEFAULT_BACKEND_BASE;
+  }
+}
 
 function isLegacyUrl(url) {
   try {
@@ -62,6 +84,11 @@ export function sanitizeHtmlForApp(html) {
     root.querySelectorAll('img[src]').forEach((img) => {
       const src = img.getAttribute('src');
       if (!src) return;
+      // Ensure backend-hosted paths work when rendered on a static frontend domain.
+      if (src.startsWith('/api/') || src.startsWith('/uploads/')) {
+        img.setAttribute('src', `${getBackendBaseUrl()}${src}`);
+        return;
+      }
       // For legacy domain images, keep the absolute URL so the browser can load it.
       if (!isLegacyLocalUrl(src)) return;
       try {

@@ -280,9 +280,12 @@ export default function RecipeDetailPage() {
     if (!slug || !list.length) return { prevRecipe: null, nextRecipe: null };
     const idx = list.findIndex((r) => String(r.slug ?? '') === String(slug));
     if (idx < 0) return { prevRecipe: null, nextRecipe: null };
+    const prevIndex = idx - 1 < 0 ? list.length - 1 : idx - 1;
+    const nextIndex = idx + 1 >= list.length ? 0 : idx + 1;
     return {
-      prevRecipe: list[idx + 1] ?? null,
-      nextRecipe: list[idx - 1] ?? null,
+      // List is sorted newest → oldest; previous navigates to newer, next navigates to older.
+      prevRecipe: list[prevIndex] ?? null,
+      nextRecipe: list[nextIndex] ?? null,
     };
   }, [allRecipes, slug]);
 

@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
+import { getBackendBaseUrl } from '../utils/backendBase';
 
 function normalizeImageSrc(src) {
   const raw = String(src ?? '').trim();
   if (!raw) return '';
 
   const base = String(import.meta.env.BASE_URL ?? '/');
+  const backendBase = getBackendBaseUrl();
 
   // Keep already-safe schemes.
   if (/^(https?:|data:|blob:)/i.test(raw)) return raw;
@@ -31,6 +33,10 @@ function normalizeImageSrc(src) {
 
   // Absolute path stays as-is.
   if (raw.startsWith('/')) {
+    // Media + uploads are served by the backend, not the static frontend host.
+    if (raw.startsWith('/api/') || raw.startsWith('/uploads/')) {
+      return `${backendBase}${raw}`;
+    }
     if (base && base !== '/' && !raw.startsWith(base)) {
       return `${base.replace(/\/?$/, '/')}${raw.replace(/^\/+/, '')}`;
     }
