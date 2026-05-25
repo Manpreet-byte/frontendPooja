@@ -5,6 +5,9 @@ export default function SiteFooter() {
     <footer className="site-footer">
       <div className="container footer-grid">
         <div>
+          <div className="footer-brand" aria-label="Love & Flour by Pooja">
+            <img className="footer-logo" src="/brand/logo.png" alt="Love & Flour by Pooja" loading="lazy" />
+          </div>
           <p className="footer-muted">Curated workshops, refined recipes, and modern baking guidance with a warm handmade touch.</p>
           <h3 className="footer-heading footer-follow-heading">Follow</h3>
           <p className="footer-fineprint footer-follow-text">Join 50K+ baking enthusiasts</p>
@@ -94,7 +97,9 @@ export default function SiteFooter() {
       </div>
 
       <div className="footer-bottom">
-        <p className="footer-fineprint footer-bottom-line">© 2026 Love &amp; Flour by Pooja. All rights reserved.</p>
+        <p className="footer-fineprint footer-bottom-line">
+          © 2026 Love &amp; Flour by Pooja. All rights reserved. Designed &amp; Developed by Innovins
+        </p>
       </div>
     </footer>
   );
