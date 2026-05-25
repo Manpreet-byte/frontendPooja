@@ -3,7 +3,15 @@ import SectionHeading from '../SectionHeading';
 import { api } from '../../api/client';
 
 export default function ContactSection() {
-  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' });
+  const [form, setForm] = useState({
+    firstName: '',
+    lastName: '',
+    mobile: '',
+    country: '',
+    email: '',
+    subject: '',
+    message: '',
+  });
   const [status, setStatus] = useState('idle');
   const [error, setError] = useState('');
 
@@ -76,9 +84,19 @@ export default function ContactSection() {
               setStatus('loading');
               setError('');
               try {
-                await api.public.contact.send(form);
+                const name = `${form.firstName} ${form.lastName}`.replace(/\s+/g, ' ').trim();
+                await api.public.contact.send({
+                  name,
+                  email: form.email,
+                  subject: form.subject,
+                  message: form.message,
+                  firstName: form.firstName,
+                  lastName: form.lastName,
+                  mobile: form.mobile,
+                  country: form.country,
+                });
                 setStatus('success');
-                setForm({ name: '', email: '', subject: '', message: '' });
+                setForm({ firstName: '', lastName: '', mobile: '', country: '', email: '', subject: '', message: '' });
               } catch (err) {
                 setStatus('error');
                 setError(err?.message || 'Failed to send message. Please try again.');
@@ -94,16 +112,53 @@ export default function ContactSection() {
 
             <div className="contact-form-grid">
               <label className="field">
-                <span className="field-label">Your name</span>
+                <span className="field-label">First name</span>
                 <input
                   className="input"
-                  value={form.name}
-                  onChange={(e) => setForm((v) => ({ ...v, name: e.target.value }))}
+                  value={form.firstName}
+                  onChange={(e) => setForm((v) => ({ ...v, firstName: e.target.value }))}
                   placeholder="Enter your first name"
                   required
                 />
               </label>
 
+              <label className="field">
+                <span className="field-label">Last name</span>
+                <input
+                  className="input"
+                  value={form.lastName}
+                  onChange={(e) => setForm((v) => ({ ...v, lastName: e.target.value }))}
+                  placeholder="Enter your last name"
+                  required
+                />
+              </label>
+            </div>
+
+            <div className="contact-form-grid">
+              <label className="field">
+                <span className="field-label">Mobile number</span>
+                <input
+                  className="input"
+                  type="tel"
+                  inputMode="tel"
+                  value={form.mobile}
+                  onChange={(e) => setForm((v) => ({ ...v, mobile: e.target.value }))}
+                  placeholder="Enter your mobile number"
+                />
+              </label>
+
+              <label className="field">
+                <span className="field-label">Country</span>
+                <input
+                  className="input"
+                  value={form.country}
+                  onChange={(e) => setForm((v) => ({ ...v, country: e.target.value }))}
+                  placeholder="Enter your country"
+                />
+              </label>
+            </div>
+
+            <div className="contact-form-grid">
               <label className="field">
                 <span className="field-label">Email</span>
                 <input
@@ -115,18 +170,18 @@ export default function ContactSection() {
                   required
                 />
               </label>
-            </div>
 
-            <label className="field">
-              <span className="field-label">Subject</span>
-              <input
-                className="input"
-                value={form.subject}
-                onChange={(e) => setForm((v) => ({ ...v, subject: e.target.value }))}
-                placeholder="What’s this about?"
-                required
-              />
-            </label>
+              <label className="field">
+                <span className="field-label">Subject</span>
+                <input
+                  className="input"
+                  value={form.subject}
+                  onChange={(e) => setForm((v) => ({ ...v, subject: e.target.value }))}
+                  placeholder="What’s this about?"
+                  required
+                />
+              </label>
+            </div>
 
             <label className="field">
               <span className="field-label">Message</span>

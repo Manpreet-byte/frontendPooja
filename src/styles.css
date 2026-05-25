@@ -99,6 +99,41 @@
   }
 }
 
+@media (max-width: 520px) {
+  .site-header .brand-lockup {
+    margin-left: 16px;
+  }
+
+  .site-header .header-actions {
+    padding-right: 16px;
+  }
+}
+
+/* Two-column layouts (e.g. Story page) */
+.two-column-layout {
+  display: grid;
+  gap: clamp(20px, 4vw, 36px);
+  align-items: start;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+}
+
+.two-column-aside {
+  position: sticky;
+  top: calc(var(--header-height) + 20px);
+  align-self: start;
+}
+
+@media (max-width: 900px) {
+  .two-column-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .two-column-aside {
+    position: static;
+    top: auto;
+  }
+}
+
 /* Type scale: Display font for headings, Manrope for body */
 :root {
   /* Display & Hero typography */
@@ -3752,17 +3787,17 @@ h1, h2, h3, h4, h5, h6 {
   height: 100%;
   object-fit: cover;
   /* Bias right + zoom to crop out baked-in left margins from some WP media. */
-  object-position: 140% 50%;
+  object-position: 170% 50%;
   display: block;
   /* Crop out baked-in margins in some images so the card feels edge-to-edge. */
-  transform: scale(1.55);
+  transform: scale(1.75);
   transform-origin: 100% 50%;
 }
 
 @media (max-width: 520px) {
   .recipe-feature-media img {
-    object-position: 150% 50%;
-    transform: scale(1.65);
+    object-position: 190% 50%;
+    transform: scale(1.85);
     transform-origin: 100% 50%;
   }
 }
@@ -4385,6 +4420,29 @@ h1, h2, h3, h4, h5, h6 {
   line-clamp: 4;
   -webkit-box-orient: vertical;
   overflow: hidden;
+}
+
+.testimonial-quote.is-expanded {
+  display: block;
+  -webkit-line-clamp: unset;
+  line-clamp: unset;
+  overflow: visible;
+}
+
+.testimonial-readmore {
+  border: none;
+  background: transparent;
+  color: var(--accent);
+  font-weight: 800;
+  padding: 0;
+  margin-top: 6px;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+.testimonial-readmore:hover {
+  color: var(--accent-hover);
 }
 
 .testimonials-controls {
@@ -8376,7 +8434,17 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 980px) {
   .contact-grid {
     grid-template-columns: 0.95fr 1.05fr;
-    align-items: start;
+    align-items: stretch;
+  }
+
+  .contact-info {
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .contact-card {
+    flex: 1 1 0;
   }
 }
 
@@ -8388,6 +8456,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .contact-card {
   padding: 18px;
+  min-height: 0;
+  overflow: visible;
 }
 
 .contact-card-hero {
@@ -8447,15 +8517,19 @@ h1, h2, h3, h4, h5, h6 {
   }
 
   .contact-info {
-    max-height: calc(100vh - 220px);
-    overflow: auto;
-    padding-right: 10px;
-    scrollbar-width: none;
+    padding-right: 0;
   }
 
   .contact-info::-webkit-scrollbar {
     width: 0;
-    height: 0;
+  }
+
+  .contact-info::-webkit-scrollbar-thumb {
+    background: transparent;
+  }
+
+  .contact-info::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
@@ -8539,21 +8613,21 @@ h1, h2, h3, h4, h5, h6 {
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(14px, 3vw, 26px);
+  gap: clamp(22px, 4vw, 36px);
   padding: 0 clamp(12px, 3vw, 16px);
 }
 
 @media (min-width: 680px) {
   .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(18px, 3vw, 26px);
+    gap: clamp(22px, 4vw, 36px);
   }
 }
 
 @media (min-width: 860px) {
   .footer-grid {
     grid-template-columns: 1.6fr 1fr 1fr 1fr;
-    gap: 34px;
+    gap: clamp(22px, 4vw, 36px);
     padding: 0;
   }
 }
@@ -8562,6 +8636,29 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: center;
   gap: clamp(8px, 2vw, 10px);
+}
+
+.footer-brand-stack {
+  display: grid;
+  justify-items: start;
+  text-align: left;
+}
+
+.footer-brand-meta {
+  width: min(420px, 100%);
+}
+
+.footer-brand-meta .footer-list {
+  display: grid;
+  justify-items: start;
+}
+
+.footer-brand-meta .footer-list a {
+  justify-content: flex-start;
+}
+
+.footer-brand-meta .footer-social {
+  justify-content: flex-start;
 }
 
 .footer-logo {
@@ -8629,22 +8726,22 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-social {
   display: flex;
-  gap: clamp(8px, 2vw, 10px);
-  margin-top: 18px;
+  gap: 14px;
+  margin-top: 22px;
   margin-bottom: 0;
   flex-wrap: wrap;
 }
 
 .footer-follow-heading {
-  margin-top: 26px;
+  margin-top: 16px;
 }
 
 .site-footer .icon-button-dark {
   background: rgba(255, 255, 255, 0.1);
   border: 1px solid rgba(255, 255, 255, 0.12);
   color: #fffaf4;
-  min-width: 40px;
-  min-height: 40px;
+  min-width: 44px;
+  min-height: 44px;
   padding: clamp(8px, 2vw, 10px);
   font-size: clamp(0.85rem, 2vw, 1rem);
   transition: background 180ms ease, transform 180ms ease;
@@ -8672,8 +8769,12 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-bottom {
   width: 100%;
+  padding: 40px 0 52px;
+}
+
+.footer-bottom-inner {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
-  padding: 44px 0 56px;
+  padding-top: 22px;
 }
 
 .footer-bottom-line {
@@ -8774,6 +8875,27 @@ h1, h2, h3, h4, h5, h6 {
   top: 18px;
   height: fit-content;
   padding: 18px;
+}
+
+@media (min-width: 1024px) {
+  .admin-sidebar {
+    max-height: calc(100vh - var(--header-height) - 36px);
+    overflow: hidden;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  .admin-sidebar-body {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-right: 6px;
+    scrollbar-width: none;
+  }
+
+  .admin-sidebar-body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
 }
 
 /* User dashboard (mobile) layout polish */
@@ -9838,9 +9960,9 @@ h1, h2, h3, h4, h5, h6 {
 
 /* FAQ page section headings inside the content (e.g. "About Love & Flour by Pooja") */
 .faq-page .prose-block .elementor h2.elementor-heading-title {
-  font-weight: 200;
-  font-size: clamp(2.2rem, 4.3vw, 2.8rem);
-  line-height: 1.18;
+  font-weight: 800;
+  font-size: clamp(1.75rem, 2.4vw + 0.55rem, 2.2rem);
+  line-height: 1.16;
 }
 
 /* FAQ category headings when rendered from API (WpPageDetailPage.jsx) */

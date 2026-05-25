@@ -3489,7 +3489,14 @@ export default function AdminDashboardPage() {
 
                   {emailOutboxStats ? (
                     <div className="panel" style={{ marginTop: 12, background: 'rgba(201, 122, 74, 0.06)' }}>
-                      <div className="admin-grid" style={{ gridTemplateColumns: 'repeat(3, minmax(0, 1fr))', gap: 12 }}>
+                      <div
+                        className="admin-grid"
+                        style={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+                          gap: 12,
+                        }}
+                      >
                         <div>
                           <div className="muted">Pending</div>
                           <div className="h4" style={{ margin: 0 }}>{Number(emailOutboxStats.pending ?? 0)}</div>
@@ -5326,7 +5333,7 @@ export default function AdminDashboardPage() {
           {tab === 'users' ? (
             <div className="admin-panel">
               <div className="admin-split" style={{ alignItems: 'center' }}>
-                <h3 className="h3" style={{ margin: 0 }}>Users</h3>
+                <div />
                 <div className="button-row" style={{ justifyContent: 'flex-end' }}>
                   <button className="button button-ghost" type="button" onClick={exportAllUsers} disabled={disabled}>
                     Export users (CSV)

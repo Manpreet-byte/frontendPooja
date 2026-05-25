@@ -9,7 +9,7 @@ export default function Elementor7819Page() {
   return (
     <main className="section page-white page-60 page-story page-legal page-typography">
       <div className="container">
-        <div className="two-column-layout" style={{ display: 'grid', gap: 'clamp(20px, 4vw, 36px)', alignItems: 'start', gridTemplateColumns: 'minmax(0, 1.15fr) minmax(280px, 0.85fr)' }}>
+        <div className="two-column-layout">
           <article
             className="panel prose-block"
             style={{
@@ -83,11 +83,7 @@ export default function Elementor7819Page() {
           </article>
 
           <aside
-            style={{
-              position: 'sticky',
-              top: 'calc(var(--header-height) + 20px)',
-              alignSelf: 'start',
-            }}
+            className="two-column-aside"
           >
             <div
               className="panel"

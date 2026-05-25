@@ -32,6 +32,7 @@ export default function TestimonialsSection({ cms }) {
   }, [cms, remote, fallback]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [expandedId, setExpandedId] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -72,6 +73,17 @@ export default function TestimonialsSection({ cms }) {
 
   const total = items.length;
   const clampedIndex = total ? ((activeIndex % total) + total) % total : 0;
+
+  useEffect(() => {
+    setExpandedId(null);
+  }, [clampedIndex]);
+
+  const truncateQuote = (value, limit = 300) => {
+    const text = String(value ?? '').replace(/\s+/g, ' ').trim();
+    if (text.length <= limit) return text;
+    return `${text.slice(0, limit).trimEnd()}…`;
+  };
+
   const at = (offset) => {
     if (!total) return null;
     return items[(clampedIndex + offset + total) % total];
@@ -129,6 +141,12 @@ export default function TestimonialsSection({ cms }) {
               {cards.map((entry, index) => {
                 if (!entry.item) return null;
                 const displayName = entry.item.student_name ? String(entry.item.student_name) : `Student ${entry.visualIndex}`;
+                const isCenter = entry.position === 'center';
+                const rawQuote = String(entry.item.quote ?? '');
+                const cleanedQuote = rawQuote.replace(/\s+/g, ' ').trim();
+                const shouldTruncate = cleanedQuote.length > 300;
+                const isExpanded = Boolean(isCenter && expandedId && String(expandedId) === String(entry.item.id));
+                const shownQuote = shouldTruncate && !isExpanded ? truncateQuote(cleanedQuote, 300) : cleanedQuote;
                 return (
                   <article
                     key={`${entry.item.id ?? index}-${entry.position}`}
@@ -142,7 +160,17 @@ export default function TestimonialsSection({ cms }) {
                     </div>
                     <h3 className="testimonial-name">{displayName}</h3>
                     <p className="testimonial-role">Workshop Student</p>
-                    <p className="testimonial-quote">{entry.item.quote}</p>
+                    <p className={`testimonial-quote${isExpanded ? ' is-expanded' : ''}`}>{shownQuote}</p>
+                    {isCenter && shouldTruncate ? (
+                      <button
+                        type="button"
+                        className="testimonial-readmore"
+                        onClick={() => setExpandedId((current) => (String(current) === String(entry.item.id) ? null : entry.item.id))}
+                        aria-expanded={isExpanded}
+                      >
+                        {isExpanded ? 'Read less' : 'Read more'}
+                      </button>
+                    ) : null}
                   </article>
                 );
               })}
