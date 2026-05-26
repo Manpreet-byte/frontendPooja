@@ -225,7 +225,7 @@ export default function CoursesPage() {
   const categoryName = category ? categoryLabelBySlug.get(category) ?? category : null;
 
   return (
-    <main className="section page-60">
+    <main className="section page-60 courses-page">
       <div className="container-wide">
         <SectionHeading
           badge="Online Workshops"

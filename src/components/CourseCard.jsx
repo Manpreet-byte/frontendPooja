@@ -50,6 +50,17 @@ function RupeeIcon({ size = 18 } = {}) {
   );
 }
 
+function normalizeInrLabel(value) {
+  const raw = String(value ?? '').trim();
+  if (!raw) return '';
+  // Common cases: "₹ 2000", "INR 2000", "₹ INR 2000", "2000.00"
+  const digits = raw.replace(/[^\d.]/g, '');
+  if (!digits) return raw;
+  const asNumber = Number(digits);
+  if (!Number.isFinite(asNumber)) return digits;
+  return `${Math.round(asNumber)}`;
+}
+
 export default function CourseCard({ course }) {
   const navigate = useNavigate();
   const addCourse = useCartStore((state) => state.addCourse);
@@ -57,11 +68,11 @@ export default function CourseCard({ course }) {
   const hasCourse = useCartStore((state) => state.hasCourse(course.id));
   const buyNowCourse = useCartStore((state) => state.buyNowCourse);
   const cartCount = useCartStore((state) => state.items.length);
-  const priceLabel = Number.isFinite(course?.priceInr) ? `${Math.round(course.priceInr)}` : course.priceText;
+  const priceLabel = Number.isFinite(course?.priceInr) ? `${Math.round(course.priceInr)}` : normalizeInrLabel(course.priceText);
   const compareAtLabel =
     Number.isFinite(course?.compareAtPriceInr) && course.compareAtPriceInr > 0
       ? `${Math.round(course.compareAtPriceInr)}`
-      : course.compareAtPriceText;
+      : normalizeInrLabel(course.compareAtPriceText);
   const courseSlug = course?.slug ? encodeURIComponent(String(course.slug)) : '';
   const courseHref = courseSlug ? `/courses/${courseSlug}` : '#';
 
@@ -95,18 +106,20 @@ export default function CourseCard({ course }) {
               aria-label={hasCourse ? 'Remove from cart' : 'Add to cart'}
               title={hasCourse ? 'Remove from cart' : 'Add to cart'}
             >
-              <CartIcon size={20} />
+              <CartIcon size={24} />
             </button>
-            {compareAtLabel ? (
-              <span className="course-card-original">
-                <RupeeIcon size={18} />
-                <span>{compareAtLabel}</span>
+            <div className="course-card-price-group">
+              {compareAtLabel ? (
+                <span className="course-card-original">
+                  <RupeeIcon size={20} />
+                  <span>{compareAtLabel}</span>
+                </span>
+              ) : null}
+              <span className="course-card-price">
+                <RupeeIcon size={20} />
+                <span>{priceLabel}</span>
               </span>
-            ) : null}
-            <span className="course-card-price">
-              <RupeeIcon size={18} />
-              <span>{priceLabel}</span>
-            </span>
+            </div>
           </div>
         ) : null}
         <div className="course-card-footer">

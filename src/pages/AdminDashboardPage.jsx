@@ -5332,8 +5332,7 @@ export default function AdminDashboardPage() {
 
           {tab === 'users' ? (
             <div className="admin-panel">
-              <div className="admin-split" style={{ alignItems: 'center' }}>
-                <div />
+              <div className="admin-split" style={{ alignItems: 'center', gridTemplateColumns: '1fr', justifyItems: 'end' }}>
                 <div className="button-row" style={{ justifyContent: 'flex-end' }}>
                   <button className="button button-ghost" type="button" onClick={exportAllUsers} disabled={disabled}>
                     Export users (CSV)

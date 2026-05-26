@@ -1631,8 +1631,8 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Mid desktop widths: use burger to avoid cramped nav */
-@media (min-width: 1100px) and (max-width: 1240px) {
+/* Mid desktop widths: use burger to avoid cramped nav (esp. when logged in). */
+@media (min-width: 1100px) and (max-width: 1380px) {
   .header-nav {
     display: none;
   }
@@ -3576,6 +3576,14 @@ h1, h2, h3, h4, h5, h6 {
   padding: 0;
 }
 
+/* Match design reference width for the featured card on desktop. */
+@media (min-width: 980px) {
+  .recipe-showcase-viewport {
+    width: 656.92px;
+    max-width: 100%;
+  }
+}
+
 .recipe-showcase-track {
   display: flex;
   transition: transform 520ms cubic-bezier(0.2, 0.8, 0.2, 1);
@@ -5172,11 +5180,20 @@ h1, h2, h3, h4, h5, h6 {
 
 .course-card-pricing {
   display: flex;
-  gap: 0;
-  align-items: baseline;
+  gap: 10px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 8px;
   font-weight: 600;
   flex-wrap: wrap;
+}
+
+.course-card-price-group {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-left: auto;
+  justify-content: flex-end;
 }
 
 .course-card-cart-icon {
@@ -5225,11 +5242,11 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: baseline;
   gap: 0;
-  font-size: 0.86rem;
+  font-size: 0.94rem;
   color: var(--text-muted);
   text-decoration: line-through;
   opacity: 0.85;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .course-card-original svg {
@@ -5240,12 +5257,12 @@ h1, h2, h3, h4, h5, h6 {
   display: inline-flex;
   align-items: baseline;
   gap: 0;
-  font-size: 1.02rem;
+  font-size: 1.14rem;
   color: var(--text);
   letter-spacing: 0.01em;
   line-height: 1;
   white-space: nowrap;
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .course-card-price svg {
@@ -5258,7 +5275,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .course-card-original + .course-card-price {
-  margin-left: 8px;
+  margin-left: 0;
 }
 
 .course-card-actions {
@@ -5393,28 +5410,11 @@ h1, h2, h3, h4, h5, h6 {
   }
 }
 
-/* Only use the "scroll inside right column" pattern on tall viewports. On shorter heights (e.g. 1366x768, 1280x720),
-   let the page scroll naturally so content doesn't get trapped above the footer. */
-@media (min-width: 980px) and (min-height: 860px) {
-  .course-detail-scroll {
-    max-height: calc(100svh - var(--header-height) - 72px);
-    overflow: auto;
-    padding-right: 10px;
-    scrollbar-width: none;
-  }
-
-  .course-detail-scroll::-webkit-scrollbar {
-    width: 0;
-    height: 0;
-  }
-}
-
-@media (min-width: 980px) and (max-height: 859px) {
-  .course-detail-scroll {
-    max-height: none;
-    overflow: visible;
-    padding-right: 0;
-  }
+/* Always let the page scroll (no inner scroll trap on the right column). */
+.course-detail-scroll {
+  max-height: none;
+  overflow: visible;
+  padding-right: 0;
 }
 
 .course-detail-meta {
@@ -9024,6 +9024,7 @@ h1, h2, h3, h4, h5, h6 {
     -webkit-overflow-scrolling: touch;
     padding-right: 6px;
     scrollbar-width: none;
+    min-height: 0;
   }
 
   .admin-sidebar-body::-webkit-scrollbar {
@@ -9360,6 +9361,9 @@ h1, h2, h3, h4, h5, h6 {
   top: calc(100% + 10px);
   z-index: 80;
   width: min(720px, calc(100vw - 24px));
+  max-height: calc(100vh - var(--header-height) - 80px);
+  overflow: auto;
+  scrollbar-width: none;
   border-radius: 18px;
   border: 1px solid rgba(99, 77, 55, 0.18);
   background:
@@ -9367,6 +9371,11 @@ h1, h2, h3, h4, h5, h6 {
     linear-gradient(180deg, rgba(255, 253, 249, 0.98), rgba(246, 233, 222, 0.94));
   box-shadow: 0 26px 74px rgba(36, 22, 18, 0.16);
   padding: 14px;
+}
+
+.drp-popover::-webkit-scrollbar {
+  width: 0;
+  height: 0;
 }
 
 .drp-popover-head {
@@ -9421,6 +9430,21 @@ h1, h2, h3, h4, h5, h6 {
 @media (max-width: 680px) {
   .drp-calendars {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-height: 780px) {
+  .drp-popover {
+    max-height: calc(100vh - var(--header-height) - 56px);
+    padding: 12px;
+  }
+
+  .drp-calendars {
+    grid-template-columns: 1fr;
+  }
+
+  .drp-month {
+    padding: 10px;
   }
 }
 
