@@ -451,6 +451,10 @@ export default function AdminDashboardPage() {
     summary: '',
     featured_image_url: '',
     content: '',
+    description: '',
+    ingredients: '',
+    instructions: '',
+    notes: '',
     category_ids: [],
     tag_ids: [],
     publish_at: '',
@@ -2157,6 +2161,10 @@ export default function AdminDashboardPage() {
         summary: recipeForm.summary || null,
         featured_image_url: recipeForm.featured_image_url || null,
         content: recipeForm.content || null,
+        description: recipeForm.description || null,
+        ingredients: recipeForm.ingredients || null,
+        instructions: recipeForm.instructions || null,
+        notes: recipeForm.notes || null,
         category_ids: categoryIds,
         tag_ids: tagIds,
         is_published: Boolean(recipeForm.is_published),
@@ -2170,7 +2178,7 @@ export default function AdminDashboardPage() {
         await api.admin.recipes.create(token, payload);
         setMessage('Recipe created.');
       }
-      setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
+      setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', description: '', ingredients: '', instructions: '', notes: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
       await loadTabData('recipes');
     } catch (err) {
       setMessage(err?.message ?? 'Failed to save recipe');
@@ -2195,6 +2203,10 @@ export default function AdminDashboardPage() {
       summary: recipe.summary ?? '',
       featured_image_url: recipe.featured_image_url ?? '',
       content: recipe.content ?? '',
+      description: recipe.description ?? recipe.summary ?? '',
+      ingredients: recipe.ingredients ?? '',
+      instructions: recipe.instructions ?? '',
+      notes: recipe.notes ?? '',
       category_ids: ids,
       tag_ids: (recipe?.tag_ids ?? []).map((n) => String(n)),
       publish_at: recipe?.publish_at ? String(recipe.publish_at) : '',
@@ -2205,7 +2217,7 @@ export default function AdminDashboardPage() {
 
   const cancelRecipeEdit = () => {
     setEditingRecipeId(null);
-    setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
+    setRecipeForm({ title: '', summary: '', featured_image_url: '', content: '', description: '', ingredients: '', instructions: '', notes: '', category_ids: [], tag_ids: [], publish_at: '', is_published: true });
   };
 
   const deleteRecipe = async (id) => {
@@ -5128,6 +5140,22 @@ export default function AdminDashboardPage() {
                 <label className="field">
                   <span className="field-label">Content (optional)</span>
                   <textarea className="input textarea" rows={5} value={recipeForm.content} onChange={(e) => setRecipeForm((s) => ({ ...s, content: e.target.value }))} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Description (optional)</span>
+                  <textarea className="input textarea" rows={3} value={recipeForm.description} onChange={(e) => setRecipeForm((s) => ({ ...s, description: e.target.value }))} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Ingredients (one per line)</span>
+                  <textarea className="input textarea" rows={4} value={recipeForm.ingredients} onChange={(e) => setRecipeForm((s) => ({ ...s, ingredients: e.target.value }))} placeholder={"eg:\n200g flour\n100g sugar\n1 tsp baking powder"} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Step-by-step Instructions (one step per line)</span>
+                  <textarea className="input textarea" rows={6} value={recipeForm.instructions} onChange={(e) => setRecipeForm((s) => ({ ...s, instructions: e.target.value }))} />
+                </label>
+                <label className="field">
+                  <span className="field-label">Notes (optional)</span>
+                  <textarea className="input textarea" rows={3} value={recipeForm.notes} onChange={(e) => setRecipeForm((s) => ({ ...s, notes: e.target.value }))} />
                 </label>
                 <label className="field">
                   <span className="field-label">Publish</span>

@@ -1,6 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useCartStore } from '../store/cartStore';
 import SafeImage from './SafeImage';
+import { cleanDisplayName } from '../utils/displayText';
 
 function CartIcon({ size = 18 } = {}) {
   return (
@@ -75,12 +76,13 @@ export default function CourseCard({ course }) {
       : normalizeInrLabel(course.compareAtPriceText);
   const courseSlug = course?.slug ? encodeURIComponent(String(course.slug)) : '';
   const courseHref = courseSlug ? `/courses/${courseSlug}` : '#';
+  const courseTitle = cleanDisplayName(course?.title ?? '');
 
   return (
     <article className="card course-card">
       <div className="course-card-media">
         {course.featuredImage ? (
-          <SafeImage src={course.featuredImage} alt={course.title} />
+          <SafeImage src={course.featuredImage} alt={courseTitle} />
         ) : (
           <div className="course-card-fallback" aria-hidden="true" />
         )}
@@ -88,7 +90,7 @@ export default function CourseCard({ course }) {
       <div className="course-card-body">
         <Link className="course-card-link" to={courseHref} aria-disabled={!courseSlug}>
           <div className="course-card-kicker">course</div>
-          <h3 className="h3">{course.title}</h3>
+          <h3 className="h3">{courseTitle}</h3>
           {course.excerptHtml ? (
             <p className="muted" dangerouslySetInnerHTML={{ __html: course.excerptHtml }} />
           ) : (

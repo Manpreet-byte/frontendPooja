@@ -27,6 +27,18 @@ function normalizeRecipeDetail(recipe) {
     recipe.instructions_html ??
     recipe.instructionsHtml ??
     '';
+  // Prefer explicit admin-provided fields when available.
+  // Accept multiple naming conventions from different backends.
+  const descriptionHtml =
+    recipe.descriptionHtml ?? recipe.description ?? recipe.summary ?? recipe.excerptHtml ?? recipe.excerpt ?? '';
+
+  const explicitIngredients =
+    recipe.ingredients ?? recipe.ingredient_list ?? recipe.ingredientList ?? recipe.ingredients_list ?? null;
+
+  const explicitInstructions =
+    recipe.instructions ?? recipe.steps ?? recipe.method ?? recipe.method_steps ?? null;
+
+  const explicitNotes = recipe.notes ?? recipe.notesBlocks ?? recipe.recipe_notes ?? null;
 
   return {
     ...recipe,
@@ -40,8 +52,8 @@ function normalizeRecipeDetail(recipe) {
       slugKey(recipe.title ?? ''),
     contentHtml: sanitizeHtmlForApp(String(contentHtml ?? '')),
     excerptHtml:
-      recipe.excerptHtml ??
-      (recipe.short_description ? String(recipe.short_description) : recipe.shortDescription ? String(recipe.shortDescription) : ''),
+      // Use explicit description/excerpt if present, otherwise fall back to short_description
+      (descriptionHtml ? String(descriptionHtml) : recipe.excerptHtml ?? (recipe.short_description ? String(recipe.short_description) : recipe.shortDescription ? String(recipe.shortDescription) : '')),
     featuredImage:
       recipe.featuredImage ??
       recipe.hero_image ??
@@ -52,6 +64,10 @@ function normalizeRecipeDetail(recipe) {
       recipe.featuredImageUrl ??
       '',
     date: recipe.date ?? recipe.published_at ?? recipe.publishedAt ?? recipe.created_at ?? recipe.createdAt ?? null,
+    // Attach explicit structured fields for later rendering
+    _explicitIngredients: explicitIngredients,
+    _explicitInstructions: explicitInstructions,
+    _explicitNotes: explicitNotes,
   };
 }
 
@@ -90,24 +106,13 @@ function splitRecipeContent(contentHtml) {
       instructions: [],
       notesBlocks: [],
       extraBlocks: [],
+      introText: '',
     };
   }
 
   const parser = new DOMParser();
-  const document = parser.parseFromString(`<div id="recipe-content">${contentHtml}</div>`, 'text/html');
-  const root = document.getElementById('recipe-content');
-
-  if (!root) {
-    return {
-      introBlocks: [],
-      aboutBlocks: [],
-      ingredients: [],
-      instructions: [],
-      notesBlocks: [],
-      extraBlocks: [],
-    };
-  }
-
+  const doc = parser.parseFromString(`<div id="recipe-content">${contentHtml}</div>`, 'text/html');
+  const root = doc.getElementById('recipe-content');
   const sections = {
     introBlocks: [],
     aboutBlocks: [],
@@ -116,68 +121,65 @@ function splitRecipeContent(contentHtml) {
     notesBlocks: [],
     extraBlocks: [],
   };
-
-  let currentSection = 'intro';
   let introText = '';
+  let currentSection = 'intro';
 
-  for (const node of Array.from(root.children)) {
-    const tagName = node.tagName.toLowerCase();
-    const text = normalizeText(node.textContent ?? '');
-    const isHeading = /^h[1-6]$/.test(tagName);
+  for (const node of Array.from(root.childNodes)) {
+    if (!node || !node.nodeType) continue;
+    // Only consider element nodes and text nodes wrapped in paragraphs
+    if (node.nodeType === Node.TEXT_NODE && !node.textContent.trim()) continue;
 
-    if (isHeading && text.startsWith('recipe')) {
-      continue;
-    }
+    const tag = node.nodeType === Node.ELEMENT_NODE ? node.tagName.toLowerCase() : null;
 
-    if (text === 'about the recipe') {
-      currentSection = 'about';
-      continue;
-    }
-
-    if (text === 'ingredients') {
-      currentSection = 'ingredients';
-      continue;
-    }
-
-    if (text === 'instructions' || text === 'method') {
-      currentSection = 'instructions';
-      continue;
-    }
-
-    if (text === 'notes') {
-      currentSection = 'notes';
-      continue;
-    }
-
-    if (currentSection === 'intro') {
-      sections.introBlocks.push(node.outerHTML);
-      if (!introText) {
-        introText = node.textContent?.trim() ?? '';
+    // If this node is a heading, determine the target section
+    if (tag && /^h[1-6]$/.test(tag)) {
+      const text = (node.textContent || '').trim().toLowerCase();
+      if (/ingredient/.test(text)) {
+        currentSection = 'ingredients';
+        continue;
       }
+      if (/instruction|step|method/.test(text)) {
+        currentSection = 'instructions';
+        continue;
+      }
+      if (/note/.test(text)) {
+        currentSection = 'notes';
+        continue;
+      }
+      if (/about|description|summary/.test(text)) {
+        currentSection = 'about';
+        continue;
+      }
+      // Unknown heading — treat as extra
+      currentSection = 'extra';
       continue;
     }
 
+    // Depending on current section, push content appropriately
+    if (currentSection === 'intro') {
+      if (node.outerHTML) sections.introBlocks.push(node.outerHTML);
+      if (!introText) introText = (node.textContent || '').trim();
+      continue;
+    }
     if (currentSection === 'about') {
-      sections.aboutBlocks.push(node.outerHTML);
+      if (node.outerHTML) sections.aboutBlocks.push(node.outerHTML);
       continue;
     }
-
     if (currentSection === 'ingredients') {
       sections.ingredients.push(...extractListItems(node));
       continue;
     }
-
     if (currentSection === 'instructions') {
       sections.instructions.push(...extractListItems(node));
       continue;
     }
-
     if (currentSection === 'notes') {
-      sections.notesBlocks.push(node.outerHTML);
+      if (node.outerHTML) sections.notesBlocks.push(node.outerHTML);
       continue;
     }
 
-    sections.extraBlocks.push(node.outerHTML);
+    // Fallback
+    if (node.outerHTML) sections.extraBlocks.push(node.outerHTML);
   }
 
   return {
@@ -441,7 +443,20 @@ export default function RecipeDetailPage() {
                 {prevRecipe?.slug ? (
                   <Link className="recipe-pagination-link is-prev" to={`/recipes/${encodeURIComponent(prevRecipe.slug)}`}>
                     <div className="recipe-pagination-thumb" aria-hidden="true">
-                      {prevRecipe.featuredImage ? <SafeImage src={prevRecipe.featuredImage} alt="" /> : null}
+                      <SafeImage
+                        src={prevRecipe.featuredImage}
+                        alt={prevRecipe.title ?? ''}
+                        fallbackSrcs={[
+                          prevRecipe.featuredImageUrl,
+                          prevRecipe.featured_image_url,
+                          prevRecipe.thumbnailUrl,
+                          prevRecipe.thumbnail_url,
+                          prevRecipe.heroImage,
+                          prevRecipe.hero_image,
+                          prevRecipe.thumbnail,
+                          prevRecipe.image,
+                        ]}
+                      />
                     </div>
                     <div className="recipe-pagination-meta">
                       <span className="recipe-pagination-kicker">Previous</span>
@@ -459,7 +474,20 @@ export default function RecipeDetailPage() {
                       <span className="recipe-pagination-title">{nextRecipe.title}</span>
                     </div>
                     <div className="recipe-pagination-thumb" aria-hidden="true">
-                      {nextRecipe.featuredImage ? <SafeImage src={nextRecipe.featuredImage} alt="" /> : null}
+                      <SafeImage
+                        src={nextRecipe.featuredImage}
+                        alt={nextRecipe.title ?? ''}
+                        fallbackSrcs={[
+                          nextRecipe.featuredImageUrl,
+                          nextRecipe.featured_image_url,
+                          nextRecipe.thumbnailUrl,
+                          nextRecipe.thumbnail_url,
+                          nextRecipe.heroImage,
+                          nextRecipe.hero_image,
+                          nextRecipe.thumbnail,
+                          nextRecipe.image,
+                        ]}
+                      />
                     </div>
                   </Link>
                 ) : null}

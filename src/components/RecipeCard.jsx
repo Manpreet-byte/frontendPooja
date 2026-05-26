@@ -1,15 +1,17 @@
 import { Link } from 'react-router-dom';
 import SafeImage from './SafeImage';
 import { formatDateStandard } from '../utils/formatDate';
+import { cleanDisplayName } from '../utils/displayText';
 
 export default function RecipeCard({ recipe, to }) {
   const href = to ?? `/recipes/${recipe.slug ?? recipe.id}`;
-  const categoryName = recipe?.taxonomies?.category?.[0]?.name ?? 'Recipe';
+  const categoryName = cleanDisplayName(recipe?.taxonomies?.category?.[0]?.name ?? 'Recipe');
+  const recipeTitle = cleanDisplayName(recipe?.title ?? '');
   return (
     <Link className="card recipe-card" to={href}>
       <div className="recipe-card-media">
         {recipe.featuredImage ? (
-          <SafeImage src={recipe.featuredImage} alt={recipe.title} />
+          <SafeImage src={recipe.featuredImage} alt={recipeTitle} />
         ) : (
           <div className="recipe-card-fallback" aria-hidden="true" />
         )}
@@ -30,9 +32,9 @@ export default function RecipeCard({ recipe, to }) {
             <span>{formatDateStandard(recipe.date ?? Date.now())}</span>
           </span>
         </div>
-        <h3 className="h3">{recipe.title}</h3>
-        {recipe.excerptHtml ? (
-          <p className="muted" dangerouslySetInnerHTML={{ __html: recipe.excerptHtml }} />
+        <h3 className="h3">{recipeTitle}</h3>
+        {(recipe.excerptHtml || recipe.description || recipe.summary) ? (
+          <p className="muted" dangerouslySetInnerHTML={{ __html: recipe.excerptHtml ?? recipe.description ?? recipe.summary ?? '' }} />
         ) : null}
         <div className="recipe-card-footer" aria-hidden="true">
           <span>Read More</span>

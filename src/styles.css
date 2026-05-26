@@ -5286,7 +5286,7 @@ h1, h2, h3, h4, h5, h6 {
 
 .course-card-actions .button {
   width: 100%;
-  min-height: 34px;
+  min-height: 44px;
   border-radius: 10px;
   font-size: 0.88rem;
 }
@@ -5462,6 +5462,8 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  /* Avoid visible "blank" areas that are baked into some collage images by biasing crop left. */
+  object-position: 35% 50%;
   display: block;
 }
 
@@ -8279,6 +8281,20 @@ h1, h2, h3, h4, h5, h6 {
   margin-top: 12px;
 }
 
+.courses-page .section-heading {
+  margin-bottom: 18px;
+  max-width: none;
+}
+
+.courses-page .section-heading .h2 {
+  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+}
+
+.courses-page .section-heading-subtitle {
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
 @media (min-width: 820px) {
   .courses-layout {
     grid-template-columns: 280px 1fr;
@@ -8431,15 +8447,27 @@ h1, h2, h3, h4, h5, h6 {
 
 @media (min-width: 820px) and (max-height: 780px) {
   .courses-results .card.course-card {
-    min-height: 284px;
+    min-height: 268px;
   }
 
   .courses-results .course-card-media {
     height: clamp(140px, 18vw, 170px);
   }
 
+  .courses-results .course-card-link .h3 {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    min-height: calc(1 * 1.18em);
+  }
+
+  .courses-results .course-card-body .muted {
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    min-height: calc(1 * 1.55em);
+  }
+
   .courses-results .course-card-actions .button {
-    min-height: 32px;
+    min-height: 40px;
     font-size: 0.86rem;
   }
 }
@@ -8714,7 +8742,8 @@ h1, h2, h3, h4, h5, h6 {
 
 .footer-inner {
   width: 100%;
-  max-width: var(--content-wide-max);
+  /* Keep columns visually grouped (1400px was too wide; gaps looked uneven). */
+  max-width: 1240px;
   margin: 0 auto;
   padding: 0 clamp(20px, 4vw, 48px);
 }
@@ -8728,7 +8757,8 @@ h1, h2, h3, h4, h5, h6 {
 .footer-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: clamp(22px, 4vw, 36px);
+  row-gap: clamp(22px, 4vw, 36px);
+  column-gap: clamp(28px, 5vw, 64px);
   padding: 0;
   align-items: start;
   justify-items: start;
@@ -8737,14 +8767,16 @@ h1, h2, h3, h4, h5, h6 {
 @media (min-width: 680px) {
   .footer-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: clamp(22px, 4vw, 36px);
+    row-gap: clamp(22px, 4vw, 36px);
+    column-gap: clamp(28px, 5vw, 64px);
   }
 }
 
 @media (min-width: 860px) {
   .footer-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: clamp(22px, 4vw, 36px);
+    row-gap: clamp(22px, 4vw, 36px);
+    column-gap: clamp(28px, 5vw, 64px);
     padding: 0;
   }
 }
@@ -8765,7 +8797,8 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 .footer-brand-meta {
-  width: min(420px, 100%);
+  width: 100%;
+  max-width: 100%;
   padding-left: 12px;
 }
 
