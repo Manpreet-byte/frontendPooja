@@ -1099,6 +1099,18 @@ export default function AdminDashboardPage() {
     }
     setTab(nextId);
     await loadTabData(nextId);
+    if (typeof window !== 'undefined') {
+      window.requestAnimationFrame(() => {
+        const topbar = document.querySelector('.admin-topbar');
+        if (topbar?.scrollIntoView) {
+          topbar.scrollIntoView({ block: 'start', behavior: 'instant' });
+          // Account for fixed site header so the tab always starts visibly below it.
+          window.scrollBy({ top: -110, left: 0, behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: 0, left: 0, behavior: 'instant' });
+        }
+      });
+    }
   };
 
   const saveHomepage = async () => {

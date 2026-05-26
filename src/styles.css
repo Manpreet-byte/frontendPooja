@@ -6341,6 +6341,31 @@ h1, h2, h3, h4, h5, h6 {
   color: #fff3e8;
 }
 
+/* Desktop: keep image sticky, scroll text content area. */
+@media (min-width: 980px) and (min-height: 740px) {
+  .recipe-detail-split-content {
+    max-height: calc(100svh - var(--header-height, 84px) - 48px);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+
+  .recipe-detail-body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow: auto;
+    padding-right: 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .recipe-detail-body::-webkit-scrollbar {
+    width: 0;
+    height: 0;
+  }
+}
+
 .recipe-detail-toolbar {
   display: flex;
   justify-content: space-between;

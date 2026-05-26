@@ -117,6 +117,7 @@ export default function NotificationsBell({ token, enabled = true }) {
   const wrapRef = useRef(null);
   const buttonRef = useRef(null);
   const panelRef = useRef(null);
+  const pollDisabledRef = useRef(false);
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -139,10 +140,15 @@ export default function NotificationsBell({ token, enabled = true }) {
       setNotifications(data?.notifications ?? []);
       setUnread(Number(data?.unread_count ?? 0));
     } catch (err) {
-      if (err?.status === 403) setError('Forbidden.');
-      else if (err?.status === 401) setError('Session expired. Please log in again.');
-      else
-      setError(err?.message ?? 'Failed to load notifications');
+      if (err?.status === 403) {
+        setError('Forbidden.');
+        pollDisabledRef.current = true;
+      } else if (err?.status === 401) {
+        setError('Session expired. Please log in again.');
+        pollDisabledRef.current = true;
+      } else {
+        setError(err?.message ?? 'Failed to load notifications');
+      }
     } finally {
       setLoading(false);
     }
@@ -150,16 +156,25 @@ export default function NotificationsBell({ token, enabled = true }) {
 
   useEffect(() => {
     if (!token) return;
+    pollDisabledRef.current = false;
     let active = true;
     // Keep unread badge fresh (near realtime polling for admin).
-    const tick = () =>
+    const tick = () => {
+      if (pollDisabledRef.current) return;
       api.user.notifications
         .list(token, { limit: 1 })
         .then((data) => {
           if (!active) return;
           setUnread(Number(data?.unread_count ?? 0));
         })
-        .catch(() => {});
+        .catch((err) => {
+          if (err?.status === 401 || err?.status === 403) {
+            pollDisabledRef.current = true;
+            if (err?.status === 401) setError('Session expired. Please log in again.');
+            if (err?.status === 403) setError('Forbidden.');
+          }
+        });
+    };
 
     tick();
     const id = window.setInterval(tick, 3_000);
@@ -208,6 +223,7 @@ export default function NotificationsBell({ token, enabled = true }) {
   useEffect(() => {
     if (!open) return undefined;
     if (!token) return undefined;
+    if (pollDisabledRef.current) return undefined;
     let active = true;
     const tick = () => {
       if (!active) return;
