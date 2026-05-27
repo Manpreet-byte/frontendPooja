@@ -1005,6 +1005,65 @@ export default function AdminDashboardPage() {
     setStatus('loading');
     setMessage('');
     try {
+      if (nextTab === 'content') {
+        setCmsStatus('loading');
+        setCmsError('');
+        const [homepageRes, aboutRes, testimonialsRes, faqsRes, announcementsRes, galleryRes, subscribersRes] = await Promise.all([
+          api.admin.cms.getHomepage(token),
+          api.admin.cms.getAbout(token),
+          api.admin.cms.testimonials.list(token),
+          api.admin.cms.faqs.list(token),
+          api.admin.cms.announcements.list(token),
+          api.admin.cms.gallery.list(token),
+          api.admin.cms.newsletter.subscribers(token),
+        ]);
+
+        const homepagePage = homepageRes?.page ?? homepageRes?.homepage ?? homepageRes ?? {};
+        const aboutPage = aboutRes?.page ?? aboutRes?.about ?? aboutRes ?? {};
+
+        const homepageContent = homepagePage?.content ?? homepagePage?.data?.content ?? {};
+        const hero = homepageContent?.hero ?? homepageContent?.content?.hero ?? {};
+        const homepageUpdatedAt = homepagePage?.updated_at ?? homepagePage?.updatedAt ?? homepageRes?.updated_at ?? homepageRes?.updatedAt ?? null;
+        const aboutUpdatedAt = aboutPage?.updated_at ?? aboutPage?.updatedAt ?? aboutRes?.updated_at ?? aboutRes?.updatedAt ?? null;
+
+        setCmsMeta({
+          homepage_updated_at: homepageUpdatedAt,
+          about_updated_at: aboutUpdatedAt,
+        });
+
+        setHomepageForm((prev) => ({
+          ...prev,
+          title: homepagePage?.title ?? prev.title,
+          hero_badge: hero?.badge ?? prev.hero_badge,
+          hero_title: hero?.title ?? prev.hero_title,
+          hero_subtitle: hero?.subtitle ?? prev.hero_subtitle,
+          hero_image_url: hero?.image_url ?? hero?.imageUrl ?? prev.hero_image_url,
+          hero_primary_cta_label: hero?.primary_cta_label ?? prev.hero_primary_cta_label,
+          hero_primary_cta_href: hero?.primary_cta_href ?? prev.hero_primary_cta_href,
+          hero_secondary_cta_label: hero?.secondary_cta_label ?? prev.hero_secondary_cta_label,
+          hero_secondary_cta_href: hero?.secondary_cta_href ?? prev.hero_secondary_cta_href,
+          is_published: homepagePage?.is_published ?? prev.is_published,
+        }));
+
+        const aboutContent = aboutPage?.content ?? aboutPage?.data?.content ?? {};
+        setAboutCmsForm((prev) => ({
+          ...prev,
+          title: aboutPage?.title ?? prev.title,
+          featured_image_url: aboutContent?.featured_image_url ?? aboutContent?.featuredImageUrl ?? prev.featured_image_url,
+          content_html: aboutPage?.content_html ?? aboutPage?.contentHtml ?? prev.content_html,
+          is_published: aboutPage?.is_published ?? prev.is_published,
+        }));
+
+        setCmsTestimonials(testimonialsRes?.testimonials ?? testimonialsRes ?? []);
+        setCmsFaqs(faqsRes?.faqs ?? faqsRes ?? []);
+        setCmsAnnouncements(announcementsRes?.announcements ?? announcementsRes ?? []);
+        setCmsGallery(galleryRes?.gallery ?? galleryRes?.items ?? galleryRes ?? []);
+        setNewsletterSubscribers(subscribersRes?.subscribers ?? subscribersRes ?? []);
+
+        setCmsStatus('idle');
+        return;
+      }
+
       if (nextTab === 'overview') {
         setOverviewStatus('loading');
         setOverviewError('');
@@ -1172,8 +1231,15 @@ export default function AdminDashboardPage() {
 	        const cfg = rp?.config ?? {};
 	        setRazorpayConfig((prev) => ({ ...prev, ...cfg }));
 	        setRazorpayForm((prev) => ({ ...prev, mode: cfg.mode ?? prev.mode }));
+
+          // Load CMS content editor data alongside settings (homepage hero, about, etc).
+          await loadTabData('content');
 	      }
 	    } catch (err) {
+        if (nextTab === 'content') {
+          setCmsStatus('error');
+          setCmsError(err?.message ?? 'Failed to load content');
+        }
 	      setMessage(err?.message ?? 'Failed');
 	      if (nextTab === 'overview') {
 	        setOverviewStatus('error');
@@ -3725,10 +3791,10 @@ export default function AdminDashboardPage() {
             </div>
           ) : null}
 
-          {false ? (
-            <div className="admin-panel">
-              <h3 className="h3">Content & media management</h3>
-              {cmsError ? <p className="form-error">{cmsError}</p> : null}
+	          {tab === 'settings' ? (
+	            <div className="admin-panel">
+	              <h3 className="h3">Content & media management</h3>
+	              {cmsError ? <p className="form-error">{cmsError}</p> : null}
               <div className="button-row" style={{ marginTop: 10 }}>
                 <button className="button button-solid" type="button" onClick={() => loadTabData('content')} disabled={disabled}>
                   {disabled || cmsStatus === 'loading' ? 'Loading…' : 'Refresh content'}
