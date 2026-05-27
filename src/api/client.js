@@ -242,7 +242,8 @@ export const api = {
       return url.toString();
     },
     forgotPassword: ({ email } = {}) => request('/api/auth/password/forgot', { method: 'POST', body: { email } }),
-    resetPassword: ({ token, password } = {}) => request('/api/auth/password/reset', { method: 'POST', body: { token, password } }),
+    resetPassword: ({ token, password, newPassword } = {}) =>
+      request('/api/auth/password/reset', { method: 'POST', body: { token, newPassword: newPassword ?? password } }),
   },
   user: {
     dashboard: (token) => request('/api/user/dashboard', { token }),

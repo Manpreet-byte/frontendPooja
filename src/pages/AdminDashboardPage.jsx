@@ -197,6 +197,92 @@ function mergeBySlugOrExternalId({ online = [], offline = [] } = {}) {
   return merged;
 }
 
+function splitTextareaLines(value) {
+  return String(value ?? '')
+    .split(/\r?\n|\s*,\s*/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function extractWorkshopStructuredFields(contentHtml) {
+  const empty = {
+    description: '',
+    single_image_url: '',
+    carousel_images: '',
+    what_you_get: '',
+    special_collaboration: '',
+    what_you_learn: '',
+    menu_items: '',
+    bonus_learning: '',
+    who_this_workshop_is_for: '',
+  };
+
+  if (!contentHtml || typeof DOMParser === 'undefined') return empty;
+
+  const headingMap = [
+    [/^what you get$/i, 'what_you_get'],
+    [/^special collaboration$/i, 'special_collaboration'],
+    [/^what you(?:’|')?ll learn$/i, 'what_you_learn'],
+    [/^menu with description$/i, 'menu_items'],
+    [/^bonus learning$/i, 'bonus_learning'],
+    [/^who this workshop is for$/i, 'who_this_workshop_is_for'],
+  ];
+
+  const textLines = (node) =>
+    Array.from(node?.querySelectorAll?.('li') ?? [])
+      .map((item) => item.textContent?.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+  const paragraphText = (node) =>
+    Array.from(node?.querySelectorAll?.('p') ?? [])
+      .map((item) => item.textContent?.replace(/\s+/g, ' ').trim())
+      .filter(Boolean);
+
+  const parser = new DOMParser();
+  const document = parser.parseFromString(`<div id="workshop-content">${contentHtml}</div>`, 'text/html');
+  const root = document.getElementById('workshop-content');
+  if (!root) return empty;
+
+  const imageSources = Array.from(root.querySelectorAll('img'))
+    .map((img) => String(img.getAttribute('src') || img.getAttribute('data-src') || '').trim())
+    .filter(Boolean);
+
+  const next = { ...empty };
+  if (imageSources[0]) next.single_image_url = imageSources[0];
+  if (imageSources.length > 1) next.carousel_images = imageSources.slice(1).join('\n');
+
+  let descriptionCaptured = false;
+  for (const section of Array.from(root.querySelectorAll('section'))) {
+    const heading = section.querySelector('h1, h2, h3, h4, h5, h6');
+    if (heading) {
+      const headingText = String(heading.textContent ?? '').replace(/\s+/g, ' ').trim();
+      const match = headingMap.find(([pattern]) => pattern.test(headingText));
+      if (match) {
+        const key = match[1];
+        const lines = textLines(section).length ? textLines(section) : paragraphText(section);
+        next[key] = lines.join('\n');
+        continue;
+      }
+    }
+
+    if (!descriptionCaptured) {
+      const lines = paragraphText(section);
+      if (lines.length) {
+        next.description = lines.join('\n');
+        descriptionCaptured = true;
+      }
+    }
+  }
+
+  if (!next.description) {
+    const firstParagraph = root.querySelector('p');
+    const text = String(firstParagraph?.textContent ?? '').replace(/\s+/g, ' ').trim();
+    if (text) next.description = text;
+  }
+
+  return next;
+}
+
 const tabs = [
   { id: 'overview', label: 'Overview' },
   { id: 'orders', label: 'Orders' },
@@ -422,7 +508,16 @@ export default function AdminDashboardPage() {
     title: '',
     summary: '',
     content: '',
+    description: '',
     featured_image_url: '',
+    single_image_url: '',
+    carousel_images: '',
+    what_you_get: '',
+    special_collaboration: '',
+    what_you_learn: '',
+    menu_items: '',
+    bonus_learning: '',
+    who_this_workshop_is_for: '',
     currency: 'INR',
     price_inr: '',
     compare_at_inr: '',
@@ -1054,12 +1149,14 @@ export default function AdminDashboardPage() {
         const data = await api.admin.discountRules.list(token);
         setDiscountRules(data?.rules ?? []);
       } else if (nextTab === 'notifications') {
-        const [stats, outbox] = await Promise.all([
+        const [stats, outbox, subscribers] = await Promise.all([
           api.admin.emails.stats(token),
           api.admin.emails.outbox(token, { status: emailOutboxFilter.status || undefined, q: emailOutboxFilter.q || undefined, limit: 25, offset: 0 }),
+          api.admin.cms.newsletter.subscribers(token),
         ]);
         setEmailOutboxStats(stats?.stats ?? stats ?? null);
         setEmailOutbox(outbox?.outbox ?? outbox ?? []);
+        setNewsletterSubscribers(subscribers?.subscribers ?? subscribers ?? []);
       } else if (nextTab === 'settings') {
         const [data, rp] = await Promise.all([api.admin.settings.get(token), api.admin.payments.razorpay.get(token)]);
         const s = data?.settings ?? {};
@@ -1909,8 +2006,17 @@ export default function AdminDashboardPage() {
         kind: 'workshop',
         title: workshopForm.title,
         summary: workshopForm.summary || null,
+        description: workshopForm.description || null,
         content: workshopForm.content || null,
         featured_image_url: workshopForm.featured_image_url || null,
+        single_image_url: workshopForm.single_image_url || null,
+        carousel_images: splitTextareaLines(workshopForm.carousel_images),
+        what_you_get: splitTextareaLines(workshopForm.what_you_get),
+        special_collaboration: splitTextareaLines(workshopForm.special_collaboration),
+        what_you_learn: splitTextareaLines(workshopForm.what_you_learn),
+        menu_items: splitTextareaLines(workshopForm.menu_items),
+        bonus_learning: splitTextareaLines(workshopForm.bonus_learning),
+        who_this_workshop_is_for: splitTextareaLines(workshopForm.who_this_workshop_is_for),
         category_ids: categoryIds,
         price: workshopForm.price_inr
           ? {
@@ -1943,7 +2049,16 @@ export default function AdminDashboardPage() {
         title: '',
         summary: '',
         content: '',
+        description: '',
         featured_image_url: '',
+        single_image_url: '',
+        carousel_images: '',
+        what_you_get: '',
+        special_collaboration: '',
+        what_you_learn: '',
+        menu_items: '',
+        bonus_learning: '',
+        who_this_workshop_is_for: '',
         currency: 'INR',
         price_inr: '',
         compare_at_inr: '',
@@ -1991,22 +2106,32 @@ export default function AdminDashboardPage() {
 	    } else {
 	      setEditingWorkshopId(workshop.id);
 	    }
+      const parsedStructuredFields = extractWorkshopStructuredFields(workshop.content ?? '');
 	    setWorkshopForm({
 	      title: workshop.title ?? '',
 	      summary: workshop.summary ?? '',
 	      content: workshop.content ?? '',
+        description: parsedStructuredFields.description,
 	      featured_image_url: workshop.featured_image_url ?? '',
-      currency: String(workshop.currency ?? 'INR').trim().toUpperCase(),
-      price_inr: workshop.amount_cents ? String(Math.round(workshop.amount_cents / 100)) : '',
-      compare_at_inr: workshop.compare_at_amount_cents ? String(Math.round(workshop.compare_at_amount_cents / 100)) : '',
-      sale_price_inr: workshop.sale_amount_cents ? String(Math.round(workshop.sale_amount_cents / 100)) : '',
-      sale_starts_at: workshop.sale_starts_at ? String(workshop.sale_starts_at) : '',
-      sale_ends_at: workshop.sale_ends_at ? String(workshop.sale_ends_at) : '',
-      category_ids: Array.isArray(workshop.category_ids) ? workshop.category_ids : [],
-      scheduled_at: '',
-      zoom_meeting_id: '',
-      zoom_join_url: '',
-      publish_at: workshop.publish_at ? String(workshop.publish_at) : '',
+        single_image_url: workshop.single_image_url ?? parsedStructuredFields.single_image_url,
+        carousel_images: workshop.carousel_images ?? parsedStructuredFields.carousel_images,
+        what_you_get: workshop.what_you_get ?? parsedStructuredFields.what_you_get,
+        special_collaboration: workshop.special_collaboration ?? parsedStructuredFields.special_collaboration,
+        what_you_learn: workshop.what_you_learn ?? parsedStructuredFields.what_you_learn,
+        menu_items: workshop.menu_items ?? parsedStructuredFields.menu_items,
+        bonus_learning: workshop.bonus_learning ?? parsedStructuredFields.bonus_learning,
+        who_this_workshop_is_for: workshop.who_this_workshop_is_for ?? parsedStructuredFields.who_this_workshop_is_for,
+        currency: String(workshop.currency ?? 'INR').trim().toUpperCase(),
+        price_inr: workshop.amount_cents ? String(Math.round(workshop.amount_cents / 100)) : '',
+        compare_at_inr: workshop.compare_at_amount_cents ? String(Math.round(workshop.compare_at_amount_cents / 100)) : '',
+        sale_price_inr: workshop.sale_amount_cents ? String(Math.round(workshop.sale_amount_cents / 100)) : '',
+        sale_starts_at: workshop.sale_starts_at ? String(workshop.sale_starts_at) : '',
+        sale_ends_at: workshop.sale_ends_at ? String(workshop.sale_ends_at) : '',
+        category_ids: Array.isArray(workshop.category_ids) ? workshop.category_ids : [],
+        scheduled_at: '',
+        zoom_meeting_id: '',
+        zoom_join_url: '',
+        publish_at: workshop.publish_at ? String(workshop.publish_at) : '',
 	      qa_enabled: workshop.qa_enabled == null ? true : Boolean(workshop.qa_enabled),
 	      is_published: Boolean(workshop.is_published),
 	    });
@@ -2019,7 +2144,16 @@ export default function AdminDashboardPage() {
       title: '',
       summary: '',
       content: '',
+      description: '',
       featured_image_url: '',
+      single_image_url: '',
+      carousel_images: '',
+      what_you_get: '',
+      special_collaboration: '',
+      what_you_learn: '',
+      menu_items: '',
+      bonus_learning: '',
+      who_this_workshop_is_for: '',
       currency: 'INR',
       price_inr: '',
       compare_at_inr: '',
@@ -4678,12 +4812,48 @@ export default function AdminDashboardPage() {
                   <input className="input" value={workshopForm.title} onChange={(e) => setWorkshopForm((s) => ({ ...s, title: e.target.value }))} required />
                 </label>
                 <label className="field">
-                  <span className="field-label">Description</span>
-                  <textarea className="input textarea" rows={4} value={workshopForm.summary} onChange={(e) => setWorkshopForm((s) => ({ ...s, summary: e.target.value }))} />
+                  <span className="field-label">Card description</span>
+                  <textarea className="input textarea" rows={4} value={workshopForm.summary} onChange={(e) => setWorkshopForm((s) => ({ ...s, summary: e.target.value }))} placeholder="Short description shown on the card" />
                 </label>
                 <label className="field">
-                  <span className="field-label">Content</span>
-                  <textarea className="input textarea" rows={6} value={workshopForm.content} onChange={(e) => setWorkshopForm((s) => ({ ...s, content: e.target.value }))} />
+                  <span className="field-label">Description</span>
+                  <textarea className="input textarea" rows={4} value={workshopForm.description} onChange={(e) => setWorkshopForm((s) => ({ ...s, description: e.target.value }))} placeholder="Longer intro for the workshop detail page" />
+                </label>
+                <label className="field">
+                  <span className="field-label">Single image URL</span>
+                  <input className="input" value={workshopForm.single_image_url} onChange={(e) => setWorkshopForm((s) => ({ ...s, single_image_url: e.target.value }))} placeholder="https://..." />
+                </label>
+                <label className="field">
+                  <span className="field-label">Carousel images</span>
+                  <textarea className="input textarea" rows={4} value={workshopForm.carousel_images} onChange={(e) => setWorkshopForm((s) => ({ ...s, carousel_images: e.target.value }))} placeholder="One image URL per line or comma-separated" />
+                </label>
+                <label className="field">
+                  <span className="field-label">What you get</span>
+                  <textarea className="input textarea" rows={3} value={workshopForm.what_you_get} onChange={(e) => setWorkshopForm((s) => ({ ...s, what_you_get: e.target.value }))} placeholder="Optional list of takeaways" />
+                </label>
+                <label className="field">
+                  <span className="field-label">Special Collaboration</span>
+                  <textarea className="input textarea" rows={3} value={workshopForm.special_collaboration} onChange={(e) => setWorkshopForm((s) => ({ ...s, special_collaboration: e.target.value }))} placeholder="Optional collaboration details" />
+                </label>
+                <label className="field">
+                  <span className="field-label">What You&apos;ll Learn</span>
+                  <textarea className="input textarea" rows={4} value={workshopForm.what_you_learn} onChange={(e) => setWorkshopForm((s) => ({ ...s, what_you_learn: e.target.value }))} placeholder="Optional bullets or lines" />
+                </label>
+                <label className="field">
+                  <span className="field-label">Menu with description</span>
+                  <textarea className="input textarea" rows={4} value={workshopForm.menu_items} onChange={(e) => setWorkshopForm((s) => ({ ...s, menu_items: e.target.value }))} placeholder="Optional menu items and notes" />
+                </label>
+                <label className="field">
+                  <span className="field-label">BONUS LEARNING</span>
+                  <textarea className="input textarea" rows={3} value={workshopForm.bonus_learning} onChange={(e) => setWorkshopForm((s) => ({ ...s, bonus_learning: e.target.value }))} placeholder="Optional bonus topics" />
+                </label>
+                <label className="field">
+                  <span className="field-label">Who This Workshop Is For</span>
+                  <textarea className="input textarea" rows={3} value={workshopForm.who_this_workshop_is_for} onChange={(e) => setWorkshopForm((s) => ({ ...s, who_this_workshop_is_for: e.target.value }))} placeholder="Optional audience lines" />
+                </label>
+                <label className="field">
+                  <span className="field-label">Extra content / fallback HTML</span>
+                  <textarea className="input textarea" rows={6} value={workshopForm.content} onChange={(e) => setWorkshopForm((s) => ({ ...s, content: e.target.value }))} placeholder="Optional raw content if you want custom HTML" />
                 </label>
                 <label className="field">
                   <span className="field-label">Categories</span>

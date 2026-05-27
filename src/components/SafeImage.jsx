@@ -57,14 +57,40 @@ function deriveFallbackSrcs(src) {
   // If the resized file is missing or blocked, retry the original filename.
   try {
     const url = new URL(safe, typeof window !== 'undefined' ? window.location.href : 'https://example.com');
-    const match = url.pathname.match(/^(.*)-\d+x\d+(\.[a-z0-9]+)$/i);
-    if (match) {
+    const pathname = url.pathname;
+    const fileMatch = pathname.match(/^(.*\/)([^/]+)$/);
+    const dir = fileMatch?.[1] ?? '';
+    const filename = fileMatch?.[2] ?? '';
+    const extMatch = filename.match(/(\.[a-z0-9]+)$/i);
+    const ext = extMatch?.[1] ?? '';
+    const name = ext ? filename.slice(0, -ext.length) : filename;
+
+    const pushCandidate = (nextName) => {
+      const next = `${url.origin}${dir}${nextName}${ext}${url.search}${url.hash}`;
+      candidates.push(next);
+    };
+
+    const pushNameVariants = (baseName) => {
+      if (!baseName) return;
+      pushCandidate(baseName);
+      const trimmed = baseName.replace(/[-_]+$/, '');
+      if (trimmed && trimmed !== baseName) pushCandidate(trimmed);
+    };
+
+    const sizeMatch = name.match(/^(.*)-\d+x\d+$/i);
+    if (sizeMatch) {
       // Prefer the original asset for better quality; fall back to the resized variant if needed.
-      candidates.push(`${url.origin}${match[1]}${match[2]}${url.search}${url.hash}`);
-      candidates.push(safe);
-    } else {
-      candidates.push(safe);
+      // Some WP filenames end with extra separators (e.g. `foo--675x675.jpg` -> `foo-.jpg`),
+      // so we also try a trimmed variant.
+      pushNameVariants(sizeMatch[1]);
     }
+
+    const scaledMatch = name.match(/^(.*)-scaled$/i);
+    if (scaledMatch) {
+      pushNameVariants(scaledMatch[1]);
+    }
+
+    candidates.push(safe);
   } catch {
     candidates.push(safe);
   }

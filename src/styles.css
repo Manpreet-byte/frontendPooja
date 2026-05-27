@@ -3581,6 +3581,7 @@ h1, h2, h3, h4, h5, h6 {
   .recipe-showcase-viewport {
     width: 656.92px;
     max-width: 100%;
+    justify-self: stretch;
   }
 }
 
@@ -3599,6 +3600,7 @@ h1, h2, h3, h4, h5, h6 {
   display: grid;
   gap: 0;
   height: 100%;
+  width: 100%;
 }
 
 @media (min-width: 920px) {
@@ -3789,6 +3791,7 @@ h1, h2, h3, h4, h5, h6 {
   grid-area: feature;
   display: block;
   position: relative;
+  width: 100%;
   min-height: 100%;
   overflow: hidden;
   border-radius: inherit;
@@ -3807,19 +3810,18 @@ h1, h2, h3, h4, h5, h6 {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  /* Bias right + zoom to crop out baked-in left margins from some WP media. */
-  object-position: 170% 50%;
+  /* Some WordPress-generated thumbnails include baked-in side padding; bias crop to the right to hide it. */
+  object-position: 70% 50%;
   display: block;
-  /* Crop out baked-in margins in some images so the card feels edge-to-edge. */
-  transform: scale(1.75);
-  transform-origin: 100% 50%;
+  /* Slight zoom to hide any baked-in photo margins without exposing the card background. */
+  transform: scale(1.18);
+  transform-origin: 50% 50%;
 }
 
 @media (max-width: 520px) {
   .recipe-feature-media img {
-    object-position: 190% 50%;
-    transform: scale(1.85);
-    transform-origin: 100% 50%;
+    object-position: 72% 50%;
+    transform: scale(1.22);
   }
 }
 

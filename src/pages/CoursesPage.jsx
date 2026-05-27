@@ -10,7 +10,14 @@ import SelectMenu from '../components/SelectMenu';
 
 export default function CoursesPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const category = String(searchParams.get('category') || '').trim().toLowerCase();
+  const normalizeWorkshopCategorySlug = (value) => {
+    const slug = String(value ?? '').trim().toLowerCase();
+    if (!slug) return '';
+    if (slug === 'upcoming-live-session') return 'upcoming-live-workshops';
+    return slug;
+  };
+
+  const category = normalizeWorkshopCategorySlug(searchParams.get('category') || '');
   const qParam = searchParams.get('q') || '';
   const [query, setQuery] = useState(qParam);
   const [courses, setCourses] = useState([]);
@@ -132,7 +139,7 @@ export default function CoursesPage() {
 
   const onChangeCategory = (nextCategory) => {
     const next = new URLSearchParams(searchParams);
-    const normalized = String(nextCategory ?? '').trim().toLowerCase();
+    const normalized = normalizeWorkshopCategorySlug(nextCategory);
     if (normalized) next.set('category', normalized);
     else next.delete('category');
     setSearchParams(next, { replace: true });
@@ -188,8 +195,8 @@ export default function CoursesPage() {
     const q = String(qParam ?? '').trim().toLowerCase();
     return list.filter((c) => {
       if (category) {
-        const matches = (c.taxonomies?.['course-category'] ?? []).some((t) => String(t?.slug ?? '').toLowerCase() === category);
-        if (!matches && deriveWorkshopCategorySlug(c) !== category) return false;
+        const matches = (c.taxonomies?.['course-category'] ?? []).some((t) => normalizeWorkshopCategorySlug(t?.slug) === category);
+        if (!matches && normalizeWorkshopCategorySlug(deriveWorkshopCategorySlug(c)) !== category) return false;
       }
       if (!q) return true;
       const hay =
@@ -213,7 +220,7 @@ export default function CoursesPage() {
   const groupedByCategory = useMemo(() => {
     const groups = new Map();
     for (const c of filtered) {
-      const slug = deriveWorkshopCategorySlug(c);
+      const slug = normalizeWorkshopCategorySlug(deriveWorkshopCategorySlug(c));
       if (!allowedCategorySlugs.includes(slug)) continue;
       const list = groups.get(slug) ?? [];
       list.push(c);

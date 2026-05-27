@@ -8,12 +8,13 @@ import mediaMap from '../../../data/seed/media-map.json';
 import { formatDateStandard } from '../../../utils/formatDate';
 
 const FALLBACK_BAKERY_IMAGES = [
-  '/seed-media/560ebdc890236b1a4092bda8547a446f67b42cc9.jpg',
-  '/seed-media/164a1a2765010bda4c89f1b0bfbbc7bda20ea99c.jpg',
-  '/seed-media/42849221d1bbdd7b1f8f4a1a4dd72ec14c4d431d.jpg',
-  '/seed-media/90fe0f7b913d409627162b8ac6619ec5ac5722c3.jpg',
-  '/seed-media/803645d1e47482b4290bf28a0d2804ed00088ecc.jpg',
-  '/seed-media/4794a4dc013ae8f0ef553acfd0b24f6fe193186e.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/10/Candied-Oranges-506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/10/3-INGREDIENT-HEALTHY-ICECREAM-506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/09/IMG_6733-506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/10/Royal-Falooda-triffle-pudding--506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/09/wp-content_uploads_2020_11_img_1858-1440x1920.jpg-506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/10/Orange-Gulab-jamun-posset-506x675.jpg',
+  'https://loveandflourbypooja.com/wp-content/uploads/2025/12/Blueberry-Mug-cake--675x675.jpg',
 ];
 
 const FALLBACK_POSTS = FALLBACK_BAKERY_IMAGES.map((src, index) => ({
@@ -27,14 +28,44 @@ const FALLBACK_POSTS = FALLBACK_BAKERY_IMAGES.map((src, index) => ({
 }));
 
 function resolvePostImage(post) {
+  const fromList = (value) => {
+    if (!value) return '';
+    if (typeof value === 'string') return value;
+    if (Array.isArray(value)) {
+      for (const item of value) {
+        const found = fromList(item);
+        if (found) return found;
+      }
+      return '';
+    }
+    if (typeof value === 'object') {
+      return (
+        fromList(value.url) ||
+        fromList(value.src) ||
+        fromList(value.source_url) ||
+        fromList(value.media_url) ||
+        fromList(value.image_url) ||
+        fromList(value.imageUrl) ||
+        ''
+      );
+    }
+    return '';
+  };
+
   const raw =
     post?.featuredImage ??
     post?.featured_image_url ??
     post?.featuredImageUrl ??
+    post?.image_url ??
+    post?.imageUrl ??
+    post?.hero_image_url ??
+    post?.heroImageUrl ??
     post?.thumbnail_url ??
     post?.thumbnailUrl ??
     post?.hero_image ??
     post?.heroImage ??
+    fromList(post?.images) ??
+    fromList(post?.gallery) ??
     '';
 
   const value = String(raw ?? '').trim();
@@ -190,7 +221,12 @@ export default function RecipeHighlightsSection() {
                       <Link className="recipe-feature-card" to={slide.featured.slug ? `/recipes/${slide.featured.slug}` : '/recipe-library'}>
                         <div className="recipe-feature-media">
                           {slide.featured.featuredImage ? (
-                            <SafeImage src={slide.featured.featuredImage} alt={slide.featured.title} />
+                            <SafeImage
+                              src={slide.featured.featuredImage}
+                              alt={slide.featured.title}
+                              decoding="async"
+                              referrerPolicy="no-referrer"
+                            />
                           ) : (
                             <div className="recipe-card-fallback" aria-hidden="true" />
                           )}

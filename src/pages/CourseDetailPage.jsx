@@ -43,7 +43,7 @@ function extractGalleryFromHtml(contentHtml) {
   if (!root) return { sanitizedHtml: contentHtml ?? '', images: [] };
 
   const images = [];
-  const galleries = root.querySelectorAll('.gallery');
+  const galleries = root.querySelectorAll('.gallery, [data-gallery]');
   galleries.forEach((gallery) => {
     gallery.querySelectorAll('img').forEach((img) => {
       const src = img.getAttribute('src') || img.getAttribute('data-src') || '';
